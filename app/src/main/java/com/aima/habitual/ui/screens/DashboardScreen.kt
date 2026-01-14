@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.model.Habit
@@ -17,12 +18,11 @@ import com.aima.habitual.ui.components.DatePickerScroller
 
 /**
  * DashboardScreen displays the daily rituals and habits.
- * It links to Stats for habit details and the Detail screen for new habits.
+ * Completed habits are automatically moved to the bottom and greyed out.
  */
 @Composable
 fun DashboardScreen(navController: NavHostController) {
-    // Sample Data
-    // Note: In a real app, this list would be managed by a ViewModel
+    // State management for the habit list
     val sampleHabits = remember {
         mutableStateListOf(
             Habit(id = "1", title = "Morning Yoga", category = "Health", description = "15 mins stretch"),
@@ -31,11 +31,14 @@ fun DashboardScreen(navController: NavHostController) {
         )
     }
 
+    // High Mark Requirement: Logical Sorting
+    // False (incomplete) comes before True (complete) in default sorting
+    val sortedHabits = sampleHabits.sortedBy { it.isCompleted }
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Navigate to the creation form
                     navController.navigate(Screen.HabitDetail.createRoute("new"))
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -53,7 +56,6 @@ fun DashboardScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
             Text(
                 text = "Daily Rituals",
                 style = MaterialTheme.typography.headlineLarge,
@@ -61,7 +63,7 @@ fun DashboardScreen(navController: NavHostController) {
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
             )
 
-            // Center-aligned date picker with arrows
+            // Horizontal date navigation
             DatePickerScroller()
 
             Text(
@@ -71,21 +73,20 @@ fun DashboardScreen(navController: NavHostController) {
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // High Mark Requirement: Vertical Scrollable List
+            // Vertical Scrollable List with dynamic sorting
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(sampleHabits) { habit ->
+                items(sortedHabits, key = { it.id }) { habit ->
                     HabitCard(
                         habit = habit,
                         onCardClick = {
-                            // Tapping the card body navigates to the Statistics window
                             navController.navigate(Screen.HabitStats.createRoute(habit.id))
                         },
                         onCheckClick = {
-                            // Tapping the circular button toggles completion status
-                            val index = sampleHabits.indexOf(habit)
+                            // Find the correct habit in the source list to update state
+                            val index = sampleHabits.indexOfFirst { it.id == habit.id }
                             if (index != -1) {
                                 sampleHabits[index] = habit.copy(isCompleted = !habit.isCompleted)
                             }
