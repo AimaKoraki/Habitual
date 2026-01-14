@@ -40,7 +40,7 @@ fun SetupNavGraph(
             DiaryScreen()
         }
 
-        // 4. User Profile Screen (Now correctly receiving parameters)
+        // 4. User Profile Screen
         composable(route = Screen.Profile.route) {
             ProfileScreen(
                 isDarkTheme = isDarkTheme,
@@ -48,17 +48,29 @@ fun SetupNavGraph(
             )
         }
 
-        // 5. Habit Details Screen (With Argument Passing)
+        // 5. Habit Details Screen (Add/Edit Form)
         composable(
             route = Screen.HabitDetail.route,
             arguments = listOf(navArgument("habitId") {
                 type = NavType.StringType
                 nullable = true
-                defaultValue = "0"
+                defaultValue = "new"
             })
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
             HabitDetailScreen(habitId = habitId)
+        }
+
+        // 6. Habit Statistics Screen (New Destination)
+        composable(
+            route = Screen.HabitStats.route,
+            arguments = listOf(navArgument("habitId") {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val habitId = backStackEntry.arguments?.getString("habitId")
+            // Navigating to the Stats screen with the specific habit ID
+            HabitStatsScreen(habitId = habitId, navController = navController)
         }
     }
 }
