@@ -8,90 +8,85 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.aima.habitual.model.Habit
+import com.aima.habitual.model.HabitRecord
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.HabitCard
 import com.aima.habitual.ui.components.DatePickerScroller
+import com.aima.habitual.viewmodel.HabitViewModel
+import java.time.LocalDate
 
-/**
- * DashboardScreen displays the daily rituals and habits.
- * Completed habits are automatically moved to the bottom and greyed out.
- */
 @Composable
-fun DashboardScreen(navController: NavHostController) {
-    // State management for the habit list
-    val sampleHabits = remember {
-        mutableStateListOf(
-            Habit(id = "1", title = "Morning Yoga", category = "Health", description = "15 mins stretch"),
-            Habit(id = "2", title = "Read Kotlin Docs", category = "Study", description = "Learn State"),
-            Habit(id = "3", title = "Water Plants", category = "Home", description = "Check balcony")
-        )
-    }
+fun DashboardScreen(navController: NavHostController, viewModel: HabitViewModel) {
+    // Current selected date state
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
-    // High Mark Requirement: Logical Sorting
-    // False (incomplete) comes before True (complete) in default sorting
-    val sortedHabits = sampleHabits.sortedBy { it.isCompleted }
+    // Logic: Determine what habits to show based on the ViewModel's state
+    val filteredHabitsWithStatus = remember(selectedDate, viewModel.habits.size, viewModel.records.size) {
+        val dayOfWeekIndex = selectedDate.dayOfWeek.value % 7
+
+        viewModel.habits.filter { it.repeatDays.contains(dayOfWeekIndex) }
+            .map { habit ->
+                val isDone = viewModel.records.any {
+                    it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay()
+                }
+                habit.copy(isCompleted = isDone)
+            }
+            .sortedBy { it.isCompleted } // Move completed to the bottom
+    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    navController.navigate(Screen.HabitDetail.createRoute("new"))
-                },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                onClick = { navController.navigate(Screen.HabitDetail.createRoute("new")) },
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add New Habit"
-                )
+                Icon(Icons.Default.Add, contentDescription = "Add Habit")
             }
         }
-    ) { innerPadding ->
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(padding)
         ) {
             Text(
                 text = "Daily Rituals",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                modifier = Modifier.padding(16.dp)
             )
 
-            // Horizontal date navigation
-            DatePickerScroller()
-
-            Text(
-                text = "Habit List",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            DatePickerScroller(
+                selectedDate = selectedDate,
+                onDateSelected = { selectedDate = it }
             )
 
-            // Vertical Scrollable List with dynamic sorting
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(sortedHabits, key = { it.id }) { habit ->
-                    HabitCard(
-                        habit = habit,
-                        onCardClick = {
-                            navController.navigate(Screen.HabitStats.createRoute(habit.id))
-                        },
-                        onCheckClick = {
-                            // Find the correct habit in the source list to update state
-                            val index = sampleHabits.indexOfFirst { it.id == habit.id }
-                            if (index != -1) {
-                                sampleHabits[index] = habit.copy(isCompleted = !habit.isCompleted)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (filteredHabitsWithStatus.isEmpty()) {
+                // High Mark Requirement: Handle empty states
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("No rituals for today. Tap + to add one!", color = MaterialTheme.colorScheme.secondary)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(filteredHabitsWithStatus, key = { it.id }) { habit ->
+                        HabitCard(
+                            habit = habit,
+                            onCardClick = {
+                                navController.navigate(Screen.HabitStats.createRoute(habit.id))
+                            },
+                            onCheckClick = {
+                                // Delegate logic to the ViewModel
+                                viewModel.toggleHabitCompletion(habit.id, selectedDate)
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }

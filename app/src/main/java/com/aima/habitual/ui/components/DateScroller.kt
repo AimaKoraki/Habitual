@@ -22,46 +22,36 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun DatePickerScroller() {
-    var startDate by remember { mutableStateOf(LocalDate.now().minusDays(2)) }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+fun DatePickerScroller(
+    selectedDate: LocalDate, // Received from Dashboard
+    onDateSelected: (LocalDate) -> Unit // Callback to update Dashboard
+) {
+    var startDate by remember { mutableStateOf(selectedDate.minusDays(2)) }
     val today = LocalDate.now()
-
-    // ADD THIS LINE: This generates the list of dates for the scroller
-    val days = remember(startDate) {
-        (0..4).map { startDate.plusDays(it.toLong()) }
-    }
+    val days = remember(startDate) { (0..4).map { startDate.plusDays(it.toLong()) } }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { startDate = startDate.minusDays(1) }) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous")
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
         }
 
-        LazyRow(
-            modifier = Modifier.weight(0.8f),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            // Now 'days' refers to the list we just created above
+        LazyRow(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(days) { date ->
                 DateItem(
                     dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH),
                     dayNumber = date.dayOfMonth.toString(),
                     isSelected = date.isEqual(selectedDate),
                     isToday = date.isEqual(today),
-                    onClick = { selectedDate = date }
+                    onClick = { onDateSelected(date) } // Trigger the callback
                 )
             }
         }
 
         IconButton(onClick = { startDate = startDate.plusDays(1) }) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next")
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
         }
     }
 }

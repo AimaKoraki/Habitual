@@ -2,17 +2,15 @@ package com.aima.habitual.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.aima.habitual.ui.screens.*
+import com.aima.habitual.viewmodel.HabitViewModel
 
-/**
- * SetupNavGraph defines the navigation structure of the app.
- * It maps Screen routes to their respective Composable screens.
- */
 @Composable
 fun SetupNavGraph(
     navController: NavHostController,
@@ -20,35 +18,27 @@ fun SetupNavGraph(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ) {
+    // 1. Initialize the shared ViewModel
+    val habitViewModel: HabitViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Dashboard.route,
         modifier = modifier
     ) {
-        // 1. Dashboard Screen (Main Entry)
+        // 2. Dashboard Screen: Now receives the viewModel
         composable(route = Screen.Dashboard.route) {
-            DashboardScreen(navController = navController)
+            DashboardScreen(navController = navController, viewModel = habitViewModel)
         }
 
-        // 2. WellBeing Screen
-        composable(route = Screen.WellBeing.route) {
-            WellBeingScreen()
-        }
+        composable(route = Screen.WellBeing.route) { WellBeingScreen() }
+        composable(route = Screen.Diary.route) { DiaryScreen() }
 
-        // 3. Diary Screen
-        composable(route = Screen.Diary.route) {
-            DiaryScreen()
-        }
-
-        // 4. User Profile Screen
         composable(route = Screen.Profile.route) {
-            ProfileScreen(
-                isDarkTheme = isDarkTheme,
-                onThemeChange = onThemeChange
-            )
+            ProfileScreen(isDarkTheme = isDarkTheme, onThemeChange = onThemeChange)
         }
 
-// 5. Habit Details Screen (Add/Edit Form)
+        // 3. Habit Detail Screen: Form now saves to the same viewModel
         composable(
             route = Screen.HabitDetail.route,
             arguments = listOf(navArgument("habitId") {
@@ -58,23 +48,24 @@ fun SetupNavGraph(
             })
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
-
-            // FIXED: Pass the navController to the screen
             HabitDetailScreen(
                 habitId = habitId,
-                navController = navController
+                navController = navController,
+                viewModel = habitViewModel // Shared instance
             )
         }
-        // 6. Habit Statistics Screen (New Destination)
+
+        // 4. Habit Stats Screen: Uses records from the viewModel
         composable(
             route = Screen.HabitStats.route,
-            arguments = listOf(navArgument("habitId") {
-                type = NavType.StringType
-            })
+            arguments = listOf(navArgument("habitId") { type = NavType.StringType })
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
-            // Navigating to the Stats screen with the specific habit ID
-            HabitStatsScreen(habitId = habitId, navController = navController)
+            HabitStatsScreen(
+                habitId = habitId,
+                navController = navController,
+                viewModel = habitViewModel // Shared instance
+            )
         }
     }
 }
