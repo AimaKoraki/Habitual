@@ -1,11 +1,14 @@
 package com.aima.habitual.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.media3.common.Timeline
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aima.habitual.navigation.Screen
@@ -19,7 +22,7 @@ data class NavItem(
 
 val navItems = listOf(
     NavItem("Home", Icons.Default.Home, Screen.Dashboard),
-    NavItem("Stats", Icons.Default.Timeline, Screen.WellBeing),
+    NavItem("Stats", Icons.Default.ShowChart, Screen.WellBeing), // Changed to ShowChart
     NavItem("Diary", Icons.Default.Book, Screen.Diary),
     NavItem("Profile", Icons.Default.Person, Screen.Profile)
 )
