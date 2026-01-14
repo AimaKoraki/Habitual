@@ -1,26 +1,38 @@
 package com.aima.habitual.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitDetailScreen(habitId: String?, navController: NavHostController) {
-    // State variables for form fields
+    // Form States
     var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var targetDays by remember { mutableFloatStateOf(7f) }
+    var targetMonths by remember { mutableFloatStateOf(1f) }
+
+    // Dropdown States
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Health", "Study", "Home", "Work", "Wellbeing")
+    val categories = listOf("Health", "Study", "Personal", "Work", "Wellbeing")
     var selectedCategory by remember { mutableStateOf(categories[0]) }
+
+    // Circular Day Selector States
+    val dayLabels = listOf("S", "M", "T", "W", "T", "F", "S")
+    var selectedDays by remember { mutableStateOf(setOf<Int>()) }
 
     Scaffold(
         topBar = {
@@ -41,18 +53,17 @@ fun HabitDetailScreen(habitId: String?, navController: NavHostController) {
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // 1. TextField: Habit Title
+            // 1. Habit Title Input
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Habit Title") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. DropdownMenu: Category Selection
+            // 2. Category Dropdown (Exposed Dropdown Menu)
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
@@ -60,10 +71,9 @@ fun HabitDetailScreen(habitId: String?, navController: NavHostController) {
                 OutlinedTextField(
                     value = selectedCategory,
                     onValueChange = {},
-                    readOnly = true,
+                    readOnly = true, // Prevents keyboard from appearing
                     label = { Text("Category") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    // UPDATED: Use menuAnchor with the box scope
                     modifier = Modifier
                         .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                         .fillMaxWidth()
@@ -78,7 +88,8 @@ fun HabitDetailScreen(habitId: String?, navController: NavHostController) {
                             onClick = {
                                 selectedCategory = category
                                 expanded = false
-                            }
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
                     }
                 }
@@ -86,34 +97,62 @@ fun HabitDetailScreen(habitId: String?, navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. Slider: Target Days Per Week
+            // 3. Repeat Days (Circular Selector)
+            Text("Repeat on", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                dayLabels.forEachIndexed { index, label ->
+                    val isSelected = selectedDays.contains(index)
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(if (isSelected) Color(0xFF004D40) else Color.Transparent)
+                            .border(1.dp, Color.LightGray, CircleShape)
+                            .clickable {
+                                selectedDays = if (isSelected) selectedDays - index else selectedDays + index
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            color = if (isSelected) Color.White else Color.Black,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 4. Target Months Slider
             Text(
-                text = "Target: ${targetDays.toInt()} days per week",
+                text = "Target Duration: ${targetMonths.toInt()} Months",
                 style = MaterialTheme.typography.bodyLarge
             )
             Slider(
-                value = targetDays,
-                onValueChange = { targetDays = it },
-                valueRange = 1f..7f,
-                steps = 5, // Creates discrete steps for 2, 3, 4, 5, 6 days
+                value = targetMonths,
+                onValueChange = { targetMonths = it },
+                valueRange = 1f..12f,
+                steps = 10,
                 colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary
+                    activeTrackColor = Color(0xFF004D40),
+                    thumbColor = Color(0xFF004D40)
                 )
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Save Button
+            // Save Action
             Button(
-                onClick = {
-                    // Logic to save the habit would go here
-                    navController.popBackStack()
-                },
+                onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004D40))
             ) {
-                Text("Save Ritual")
+                Text("Save Habit")
             }
         }
     }

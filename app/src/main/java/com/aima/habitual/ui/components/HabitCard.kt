@@ -14,29 +14,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.model.Habit
 
-/**
- * HabitCard displays the habit summary and a completion toggle.
- * * @param habit The data model for the habit.
- * @param onCardClick Action triggered when the card body is tapped (Stats).
- * @param onCheckClick Action triggered when the circular button is tapped (Toggle).
- */
 @Composable
 fun HabitCard(
     habit: Habit,
+    modifier: Modifier = Modifier,
     onCardClick: () -> Unit,
     onCheckClick: () -> Unit
 ) {
+    // Determine colors based on completion to avoid the "white shadow" alpha glitch
+    val contentAlpha = if (habit.isCompleted) 0.5f else 1f
+    val textDecoration = if (habit.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+
     ElevatedCard(
-        onClick = onCardClick, // Tapping the card navigates to stats
-        modifier = Modifier
+        onClick = onCardClick,
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(20.dp),
+        // Use a flatter look for completed items to reduce shadow artifacts
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = if (habit.isCompleted) 0.dp else 2.dp
+        ),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (habit.isCompleted)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
@@ -50,12 +56,13 @@ fun HabitCard(
                     text = habit.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    textDecoration = textDecoration, // Professional strike-through
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
                 )
                 Text(
                     text = habit.category,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha)
                 )
             }
 
@@ -66,20 +73,20 @@ fun HabitCard(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(
-                        if (habit.isCompleted) Color(0xFF004D40)
+                        if (habit.isCompleted) Color(0xFF004D40).copy(alpha = 0.6f)
                         else Color.Transparent
                     )
                     .border(
                         width = 2.dp,
-                        color = Color(0xFF004D40),
+                        color = Color(0xFF004D40).copy(alpha = contentAlpha),
                         shape = CircleShape
                     )
             ) {
                 if (habit.isCompleted) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Mark Incomplete",
-                        tint = Color.White
+                        contentDescription = "Completed",
+                        tint = Color.White.copy(alpha = 0.9f)
                     )
                 }
             }
