@@ -48,7 +48,7 @@ fun SetupNavGraph(
             )
         }
 
-        // 5. Habit Details Screen (Add/Edit Form)
+// 5. Habit Details Screen (Add/Edit Form)
         composable(
             route = Screen.HabitDetail.route,
             arguments = listOf(navArgument("habitId") {
@@ -58,9 +58,13 @@ fun SetupNavGraph(
             })
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
-            HabitDetailScreen(habitId = habitId)
-        }
 
+            // FIXED: Pass the navController to the screen
+            HabitDetailScreen(
+                habitId = habitId,
+                navController = navController
+            )
+        }
         // 6. Habit Statistics Screen (New Destination)
         composable(
             route = Screen.HabitStats.route,
