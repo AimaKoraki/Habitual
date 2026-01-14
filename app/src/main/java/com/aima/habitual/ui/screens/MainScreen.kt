@@ -13,47 +13,48 @@ import com.aima.habitual.ui.components.HabitualBottomBar
 import com.aima.habitual.ui.components.HabitualNavigationRail
 
 /**
- * Updated MainScreen that handles adaptive layouts.
- * It uses windowSizeClass to switch between Bottom Navigation (Phone/Portrait)
- * and Navigation Rail (Tablet/Landscape).
+ * Updated MainScreen that handles adaptive layouts and theme state passing.
  */
 @Composable
-fun MainScreen(windowSizeClass: WindowWidthSizeClass) {
+fun MainScreen(
+    windowSizeClass: WindowWidthSizeClass,
+    isDarkTheme: Boolean,            // New parameter for theme state
+    onThemeChange: (Boolean) -> Unit // New parameter for theme toggle logic
+) {
     val navController = rememberNavController()
 
     // High Mark Logic: Determine if the screen is wide enough for a Rail
-    // Compact usually means Phone in Portrait mode.
     val useNavRail = windowSizeClass != WindowWidthSizeClass.Compact
 
     Scaffold(
         bottomBar = {
-            // Only show the BottomBar if we are NOT using the side Rail
             if (!useNavRail) {
                 HabitualBottomBar(navController = navController)
             }
         }
     ) { innerPadding ->
-        // Use a Row if we need the side-by-side layout (Rail + Content)
         if (useNavRail) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Side Navigation Rail
                 HabitualNavigationRail(navController = navController)
 
-                // Main Content Area
+                // Pass theme parameters into the Navigation Graph
                 SetupNavGraph(
                     navController = navController,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = onThemeChange
                 )
             }
         } else {
-            // Standard Portrait layout (Bottom Bar + Content)
             SetupNavGraph(
                 navController = navController,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange
             )
         }
     }

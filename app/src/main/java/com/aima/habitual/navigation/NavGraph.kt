@@ -16,7 +16,9 @@ import com.aima.habitual.ui.screens.*
 @Composable
 fun SetupNavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -38,9 +40,12 @@ fun SetupNavGraph(
             DiaryScreen()
         }
 
-        // 4. User Profile Screen
+        // 4. User Profile Screen (Now correctly receiving parameters)
         composable(route = Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange
+            )
         }
 
         // 5. Habit Details Screen (With Argument Passing)
