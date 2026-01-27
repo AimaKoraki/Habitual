@@ -44,7 +44,7 @@ class HabitViewModel : ViewModel() {
                     timestamp = epochDay,
                     isCompleted = true
                 )
-            ) // Mark as completed
+            )
         }
     }
 }

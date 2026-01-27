@@ -22,7 +22,7 @@ data class NavItem(
 
 val navItems = listOf(
     NavItem("Home", Icons.Default.Home, Screen.Dashboard),
-    NavItem("Stats", Icons.Default.ShowChart, Screen.WellBeing), // Changed to ShowChart
+    NavItem("Stats", Icons.Default.ShowChart, Screen.WellBeing),
     NavItem("Diary", Icons.Default.Book, Screen.Diary),
     NavItem("Profile", Icons.Default.Person, Screen.Profile)
 )
@@ -47,7 +47,7 @@ fun HabitualBottomBar(navController: NavHostController) {
                         }
                         // Avoid multiple copies of the same destination
                         launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
+                        // Restore state when re-selecting a previously selected item
                         restoreState = true
                     }
                 }

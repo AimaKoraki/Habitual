@@ -12,9 +12,7 @@ import com.aima.habitual.navigation.SetupNavGraph
 import com.aima.habitual.ui.components.HabitualBottomBar
 import com.aima.habitual.ui.components.HabitualNavigationRail
 
-/**
- * Updated MainScreen that handles adaptive layouts and theme state passing.
- */
+
 @Composable
 fun MainScreen(
     windowSizeClass: WindowWidthSizeClass,

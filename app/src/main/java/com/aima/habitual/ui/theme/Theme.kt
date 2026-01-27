@@ -52,21 +52,16 @@ fun HabitualTheme(
         SideEffect {
             val window = (view.context as Activity).window
 
-            // Note: Strikethrough is expected in modern Android Studio.
-            // This is the correct way to apply custom solid colors to bars.
+
             window.statusBarColor = colorScheme.primary.toArgb()
             window.navigationBarColor = colorScheme.background.toArgb()
 
             val insetsController = WindowCompat.getInsetsController(window, view)
 
-            // High Mark Requirement: Accessibility & Contrast
-            // We want white icons (isAppearanceLightStatusBars = false)
-            // because our status bar is a dark Deep Teal.
+
             insetsController.isAppearanceLightStatusBars = false
 
-            // Navigation bar matches the app background.
-            // In Light Mode, we need Dark icons (true).
-            // In Dark Mode, we need Light icons (false).
+
             insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }

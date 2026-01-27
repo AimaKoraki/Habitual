@@ -17,26 +17,40 @@ import com.aima.habitual.viewmodel.HabitViewModel
 fun HabitDetailScreen(
     habitId: String?,
     navController: NavHostController,
-    viewModel: HabitViewModel // Added ViewModel parameter
+    viewModel: HabitViewModel
 ) {
+    // Logic: If habitId is not "new", find the existing habit to edit
+    val existingHabit = if (habitId != "new") {
+        viewModel.habits.find { it.id == habitId }
+    } else null
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (habitId == "new") "Add Habit" else "Edit Habit") },
+                title = {
+                    Text(if (existingHabit == null) "Add Ritual" else "Edit Ritual")
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
         ) {
-            // Passing the ViewModel into the form
+            // pass the existingHabit to the form for pre-filling
             HabitForm(
                 viewModel = viewModel,
+                initialHabit = existingHabit,
                 onSave = { navController.popBackStack() }
             )
         }
