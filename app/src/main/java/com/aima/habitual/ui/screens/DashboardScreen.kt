@@ -1,5 +1,7 @@
 package com.aima.habitual.ui.screens
 
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -14,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -145,6 +148,28 @@ fun PremiumHabitCard(
     onClick: () -> Unit,
     onToggle: () -> Unit // Add toggle callback
 ) {
+    // Animation State
+    val transition = updateTransition(targetState = isCompleted, label = "CheckmarkTransition")
+    
+    val tint by transition.animateColor(label = "Tint") { completed ->
+        if (completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+    }
+
+    val scale by transition.animateFloat(
+        label = "Scale",
+        transitionSpec = {
+            if (targetState) {
+                // Bounce effect when checking
+                spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+            } else {
+                // Smooth shrinking when unchecking
+                tween(durationMillis = 200)
+            }
+        }
+    ) { completed ->
+        if (completed) 1.2f else 1.0f // Slightly larger when checked for emphasis
+    }
+
     Card(
         // JSON: "card.radius": 20
         shape = RoundedCornerShape(HabitualTheme.radius.large),
@@ -188,11 +213,13 @@ fun PremiumHabitCard(
             // Interactive Checkmark
             IconButton(onClick = onToggle) {
                 Icon(
-                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.CheckCircle, // Could use Outlined for incomplete
+                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.CheckCircle, 
                     contentDescription = stringResource(if (isCompleted) R.string.desc_complete else R.string.desc_complete),
-                    tint = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                    // Premium Rule: Min touch target sizing
-                    modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
+                    tint = tint,
+                    // Premium Rule: Min touch target sizing + Animation
+                    modifier = Modifier
+                        .size(HabitualTheme.components.minTouchTarget)
+                        .scale(scale)
                 )
             }
         }

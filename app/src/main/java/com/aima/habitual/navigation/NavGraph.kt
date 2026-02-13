@@ -1,5 +1,8 @@
 package com.aima.habitual.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -26,7 +29,11 @@ fun NavGraph(
         navController = navController,
         // Start at Login if not authenticated, otherwise Dashboard
         startDestination = if (viewModel.isLoggedIn) Screen.Dashboard.route else "login",
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { slideInHorizontally(animationSpec = tween(300)) { it } },
+        exitTransition = { slideOutHorizontally(animationSpec = tween(300)) { -it } },
+        popEnterTransition = { slideInHorizontally(animationSpec = tween(300)) { -it } },
+        popExitTransition = { slideOutHorizontally(animationSpec = tween(300)) { it } }
     ) {
 
         // --- 1. AUTH FLOW ---

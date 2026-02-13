@@ -53,6 +53,6 @@ class StepSensorManager(context: Context) : SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Required by interface but not necessary for basic step counting.
+
     }
 }
