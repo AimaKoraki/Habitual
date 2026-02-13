@@ -11,7 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,8 +22,10 @@ import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.model.Habit
 import com.aima.habitual.navigation.Screen
+import com.aima.habitual.ui.components.DatePickerScroller
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
+import java.time.LocalDate
 
 @Composable
 fun DashboardScreen(
@@ -32,6 +34,7 @@ fun DashboardScreen(
 ) {
     val habits = viewModel.habits
     val isDark = isSystemInDarkTheme()
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -79,32 +82,11 @@ fun DashboardScreen(
             // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-            // --- 2. PREMIUM DATE SELECTOR ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf("M", "T", "W", "T", "F", "S", "S").forEachIndexed { index, day ->
-                    val isToday = index == 2
-                    Box(
-                        modifier = Modifier
-                            // JSON: "dateChip.height": 40
-                            .size(HabitualTheme.components.chipSize)
-                            .background(
-                                color = if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                // JSON: "dateChip.radius": 16
-                                shape = RoundedCornerShape(HabitualTheme.radius.medium)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = day,
-                            color = if (isToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-            }
+            // --- 2. DATE SELECTOR ---
+            DatePickerScroller(
+                selectedDate = selectedDate,
+                onDateSelected = { selectedDate = it }
+            )
 
             // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
