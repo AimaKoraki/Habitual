@@ -6,9 +6,20 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Define the Typography scale
+/**
+ * Typography: Defines the text scale for the Habitual brand.
+ * Following Material Design 3 guidelines to ensure readability and accessibility.
+ */
 val Typography = Typography(
-    // Used for the "Habitual" brand or large dashboard headers
+
+    // Large numeric data (e.g., Step counts in the Wellbeing screen)
+    displaySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 36.sp
+    ),
+
+    // Primary Screen Headers (e.g., "Ritual Specialist", "Login")
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -16,7 +27,8 @@ val Typography = Typography(
         lineHeight = 40.sp,
         letterSpacing = 0.sp
     ),
-    // Used for section headers (e.g., "Daily Habits", "Edit Habit")
+
+    // Sub-headers and Card Titles (e.g., Habit Names, Section titles)
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
@@ -24,7 +36,8 @@ val Typography = Typography(
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
-    // Standard text for habit names and diary entries
+
+    // Standard long-form text (e.g., Diary entry content)
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -32,7 +45,8 @@ val Typography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
-    // Used for metadata like "Joined: Jan 2026" or "Category"
+
+    // Secondary information (e.g., Date labels, Habit categories)
     bodyMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
@@ -40,12 +54,22 @@ val Typography = Typography(
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
-    // Smallest text for button labels and navigation items
+
+    // Interactive text (e.g., Navigation bar labels, Button text)
     labelMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+
+    // Fine print and small accents (e.g., Category Tags in Diary)
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
         letterSpacing = 0.5.sp
     )
 )
