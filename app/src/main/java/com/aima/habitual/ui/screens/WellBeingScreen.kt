@@ -23,6 +23,7 @@ import com.aima.habitual.R
 import com.aima.habitual.ui.components.DatePickerScroller
 import com.aima.habitual.ui.components.HealthStatCard
 import com.aima.habitual.ui.components.ScreenHeader
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 
@@ -61,7 +62,7 @@ fun WellBeingScreen(
         ) {
             ScreenHeader(
                 title = stringResource(R.string.wellbeing_header),
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)
             )
 
             // Date Picker updates 'selectedDate'
@@ -70,24 +71,24 @@ fun WellBeingScreen(
                 onDateSelected = { selectedDate = it }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
 
             // Steps Circle
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = HabitualTheme.spacing.lg)
             ) {
                 CircularProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.size(220.dp),
+                    modifier = Modifier.size(HabitualTheme.components.progressRingSize),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    strokeWidth = 16.dp,
+                    strokeWidth = HabitualTheme.components.progressStrokeWidth,
                 )
                 CircularProgressIndicator(
                     progress = { stepProgress },
-                    modifier = Modifier.size(220.dp),
+                    modifier = Modifier.size(HabitualTheme.components.progressRingSize),
                     color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 16.dp,
+                    strokeWidth = HabitualTheme.components.progressStrokeWidth,
                     strokeCap = StrokeCap.Round
                 )
 
@@ -96,13 +97,13 @@ fun WellBeingScreen(
                     onClick = { viewModel.syncSteps() },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(end = 32.dp)
+                        .padding(end = HabitualTheme.spacing.section)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Sync,
                         contentDescription = stringResource(R.string.desc_sync_steps),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(HabitualTheme.components.iconDefault)
                     )
                 }
 
@@ -121,21 +122,21 @@ fun WellBeingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
 
             // Stats Grid
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)) {
                 Text(
                     text = stringResource(R.string.wellbeing_daily_summary),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground // Fix text color
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
                         HealthStatCard(
@@ -158,7 +159,7 @@ fun WellBeingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
             // Log Water Button
             Button(
@@ -166,15 +167,15 @@ fun WellBeingScreen(
                     waterAmountInput = ""
                     showWaterDialog = true
                 },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
+                shape = RoundedCornerShape(HabitualTheme.radius.medium),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.LocalDrink, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
                 Text(stringResource(R.string.wellbeing_log_water))
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
         }
     }
 
@@ -187,7 +188,7 @@ fun WellBeingScreen(
             text = {
                 Column {
                     Text(stringResource(R.string.dialog_sleep_prompt))
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
                     Slider(
                         value = stats.sleepDurationHours.toFloat(),
                         onValueChange = {
@@ -214,7 +215,7 @@ fun WellBeingScreen(
             onDismissRequest = { showWaterDialog = false },
             title = { Text(stringResource(R.string.dialog_log_water_title)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)) {
                     OutlinedTextField(
                         value = waterAmountInput,
                         onValueChange = { if (it.all { char -> char.isDigit() }) waterAmountInput = it },

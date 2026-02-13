@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.model.DiaryEntry
+import com.aima.habitual.ui.theme.HabitualTheme
 
 @Composable
 fun DiaryCard(
@@ -23,23 +24,23 @@ fun DiaryCard(
 ) {
     Column(
         modifier = Modifier
-            .padding(vertical = 12.dp)
+             .padding(vertical = HabitualTheme.spacing.md)
             .clickable { onClick() } // <--- ADDED: Makes the whole area clickable
     ) {
         // 1. Tag Row
         if (entry.tags.isNotEmpty()) {
             Row(
-                modifier = Modifier.padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(bottom = HabitualTheme.spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
             ) {
                 entry.tags.forEach { tag ->
                     Surface(
                         color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(HabitualTheme.radius.medium)
                     ) {
                         Text(
                             text = tag,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.xs),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -51,12 +52,12 @@ fun DiaryCard(
         // 2. Main Entry Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(HabitualTheme.components.cardPadding)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -79,7 +80,7 @@ fun DiaryCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
                 Text(
                     text = entry.title,
@@ -88,7 +89,7 @@ fun DiaryCard(
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
                 Text(
                     text = entry.content,

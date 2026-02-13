@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aima.habitual.R
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,17 +65,17 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(HabitualTheme.spacing.lg)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.components.iconLarge))
 
         // --- 1. AVATAR SECTION ---
         Box(contentAlignment = Alignment.BottomEnd) {
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(HabitualTheme.components.profileImage)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     .clickable {
@@ -98,7 +99,7 @@ fun ProfileScreen(
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = null,
-                        modifier = Modifier.size(80.dp),
+                        modifier = Modifier.size(HabitualTheme.components.profileImageSmall),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -117,12 +118,12 @@ fun ProfileScreen(
                     imageVector = Icons.Default.Edit,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(HabitualTheme.components.iconSmall)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
 
         // --- 2. EDITABLE NAME SECTION ---
         if (isEditingName) {
@@ -165,19 +166,19 @@ fun ProfileScreen(
                         tempName = viewModel.userName
                         isEditingName = true
                     }
-                    .padding(8.dp)
+                    .padding(HabitualTheme.spacing.sm)
             ) {
                 Text(
                     text = viewModel.userName,
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = stringResource(R.string.desc_edit_name),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(HabitualTheme.components.iconMedium)
                 )
             }
         }
@@ -188,7 +189,7 @@ fun ProfileScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
         // --- 3. SETTINGS CARD ---
         Card(
@@ -198,7 +199,7 @@ fun ProfileScreen(
             ),
             shape = MaterialTheme.shapes.large
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(HabitualTheme.spacing.lg)) {
 
                 // Theme Toggle
                 Row(
@@ -212,7 +213,7 @@ fun ProfileScreen(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
                         Text(
                             text = stringResource(R.string.profile_dark_mode),
                             style = MaterialTheme.typography.titleMedium,
@@ -229,14 +230,14 @@ fun ProfileScreen(
                     )
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                HorizontalDivider(modifier = Modifier.padding(vertical = HabitualTheme.spacing.lg), color = MaterialTheme.colorScheme.outlineVariant)
 
                 // Habits List Button
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showHabitsSheet = true }
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = HabitualTheme.spacing.sm),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -246,7 +247,7 @@ fun ProfileScreen(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
                         Text(
                             text = stringResource(R.string.profile_my_rituals),
                             style = MaterialTheme.typography.titleMedium,
@@ -262,7 +263,7 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
         // --- 4. LOG OUT BUTTON ---
         // Satisfies the Logout requirement and fixes the missing parameter error
@@ -270,15 +271,15 @@ fun ProfileScreen(
             onClick = onLogout,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(HabitualTheme.components.buttonHeight),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
             ),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(HabitualTheme.radius.medium)
         ) {
             Icon(imageVector = Icons.Default.Logout, contentDescription = null)
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
             Text(
                 text = stringResource(R.string.profile_log_out),
                 style = MaterialTheme.typography.titleMedium,
@@ -286,7 +287,7 @@ fun ProfileScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
     }
 
     // --- HABITS SHEET ---
@@ -298,23 +299,23 @@ fun ProfileScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 32.dp)
+                    .padding(horizontal = HabitualTheme.spacing.lg)
+                    .padding(bottom = HabitualTheme.spacing.section)
                     .fillMaxWidth()
             ) {
                 Text(
                     text = stringResource(R.string.profile_your_rituals),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = HabitualTheme.spacing.lg)
                 )
 
                 if (habits.isEmpty()) {
                     Text(stringResource(R.string.profile_no_rituals), style = MaterialTheme.typography.bodyLarge)
                 } else {
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
+                        contentPadding = PaddingValues(bottom = HabitualTheme.spacing.lg)
                     ) {
                         items(habits) { habit ->
                             Card(
@@ -322,7 +323,7 @@ fun ProfileScreen(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                    modifier = Modifier.padding(HabitualTheme.spacing.md).fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
@@ -335,7 +336,7 @@ fun ProfileScreen(
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary
                                         )
-                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
                                         Column {
                                             Text(
                                                 text = habit.title,

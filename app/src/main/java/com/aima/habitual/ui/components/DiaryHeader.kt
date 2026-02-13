@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
+import com.aima.habitual.ui.theme.HabitualTheme
 
 @Composable
 fun DiaryHeader(
@@ -22,7 +23,7 @@ fun DiaryHeader(
         // Step 2: Apply the modifier to the top-level Row
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = HabitualTheme.spacing.lg),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

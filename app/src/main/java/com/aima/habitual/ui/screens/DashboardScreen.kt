@@ -49,7 +49,7 @@ fun DashboardScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.desc_add_ritual),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(HabitualTheme.components.iconMedium)
                 )
             }
         }
@@ -89,7 +89,7 @@ fun DashboardScreen(
                     Box(
                         modifier = Modifier
                             // JSON: "dateChip.height": 40
-                            .size(40.dp)
+                            .size(HabitualTheme.components.chipSize)
                             .background(
                                 color = if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
                                 // JSON: "dateChip.radius": 16
@@ -132,7 +132,7 @@ fun DashboardScreen(
                     // JSON: "spacing.lg": 16 (Space between cards)
                     verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
                     // Adding bottom padding so the FAB doesn't cover the last item
-                    contentPadding = PaddingValues(bottom = 100.dp)
+                    contentPadding = PaddingValues(bottom = HabitualTheme.spacing.listBottom)
                 ) {
                     items(habits) { habit ->
                         PremiumHabitCard(habit = habit, isDark = isDark)

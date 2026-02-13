@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
+import com.aima.habitual.ui.theme.HabitualTheme
 
 @Composable
 fun RegisterScreen(
@@ -24,7 +25,7 @@ fun RegisterScreen(
     var termsAccepted by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(HabitualTheme.spacing.screen),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -35,7 +36,7 @@ fun RegisterScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
         OutlinedTextField(
             value = userName,
@@ -43,10 +44,10 @@ fun RegisterScreen(
             label = { Text(stringResource(R.string.register_name_hint)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(HabitualTheme.radius.input)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
         OutlinedTextField(
             value = email,
@@ -54,10 +55,10 @@ fun RegisterScreen(
             label = { Text(stringResource(R.string.register_email_hint)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(HabitualTheme.radius.input)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
         OutlinedTextField(
             value = password,
@@ -66,10 +67,10 @@ fun RegisterScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(HabitualTheme.radius.input)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -85,8 +86,8 @@ fun RegisterScreen(
             // CHANGED: Pass all three fields to save them
             onClick = { onRegisterSuccess(userName, email, password) },
             enabled = termsAccepted && email.isNotBlank() && password.length >= 6 && userName.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)
+            modifier = Modifier.fillMaxWidth().height(HabitualTheme.components.buttonHeight),
+            shape = RoundedCornerShape(HabitualTheme.radius.medium)
         ) {
             Text(stringResource(R.string.register_btn_text))
         }

@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.ui.components.DiaryCard // <--- USING YOUR CARD
 import com.aima.habitual.ui.components.ScreenHeader
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
 @Composable
@@ -44,7 +45,7 @@ fun DiaryScreen(
         ) {
             ScreenHeader(
                 title = stringResource(R.string.diary_header),
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)
             )
 
             if (entries.isEmpty()) {
@@ -60,8 +61,8 @@ fun DiaryScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(HabitualTheme.spacing.lg),
+                    verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
                 ) {
                     items(entries) { entry ->
                         // USES YOUR DIARY CARD

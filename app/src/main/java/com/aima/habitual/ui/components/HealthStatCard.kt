@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * HealthStatCard with click support for editing stats.
@@ -29,11 +30,11 @@ fun HealthStatCard(
         colors = CardDefaults.cardColors(
             containerColor = color.copy(alpha = 0.12f)
         ),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(HabitualTheme.radius.extraLarge)
     ) {
         Column(
             modifier = Modifier
-                .padding(20.dp)
+                .padding(HabitualTheme.components.cardPadding)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {
@@ -41,10 +42,10 @@ fun HealthStatCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(HabitualTheme.components.iconDefault)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
             Text(
                 text = value,

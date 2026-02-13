@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aima.habitual.R
 import com.aima.habitual.model.HabitRecord
+import com.aima.habitual.ui.theme.HabitualTheme
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -51,7 +52,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(HabitualTheme.spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Branded Month Header in Forest Green
@@ -60,15 +61,15 @@ fun HistoryCalendar(records: List<HabitRecord>) {
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(bottom = HabitualTheme.spacing.xxl)
         )
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.height(320.dp),
             userScrollEnabled = false,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs),
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs)
         ) {
             // Day Labels using muted Sage text
             items(daysOfWeek) { day ->
@@ -77,13 +78,13 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = HabitualTheme.spacing.md)
                 )
             }
 
             // Empty slots for the start of the month
             items(firstDayOfWeek) {
-                Spacer(modifier = Modifier.size(40.dp))
+                Spacer(modifier = Modifier.size(HabitualTheme.components.calendarCellSize))
             }
 
             // Individual Day Cells

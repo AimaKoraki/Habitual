@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
 import com.aima.habitual.model.WellbeingStats
+import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * WellbeingStatsGrid organizes health metrics into a branded Forest & Sage layout.
@@ -21,8 +22,8 @@ fun WellbeingStatsGrid(stats: WellbeingStats) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(vertical = HabitualTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)
     ) {
         // Row 1: Steps - Uses Forest Green (Primary)
         HealthStatCard(
@@ -35,7 +36,7 @@ fun WellbeingStatsGrid(stats: WellbeingStats) {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)
         ) {
             // Row 2, Card 1: Sleep - Uses Secondary (Sage)
             HealthStatCard(

@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
+import com.aima.habitual.ui.theme.HabitualTheme
 
 @Composable
 fun LoginScreen(
@@ -23,7 +24,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(HabitualTheme.spacing.screen),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -34,7 +35,7 @@ fun LoginScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
         OutlinedTextField(
             value = email,
@@ -42,10 +43,10 @@ fun LoginScreen(
             label = { Text(stringResource(R.string.login_email_hint)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(HabitualTheme.radius.input)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
         OutlinedTextField(
             value = password,
@@ -54,12 +55,12 @@ fun LoginScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(HabitualTheme.radius.input)
         )
 
         // NEW: Display error message if login fails
         if (errorMessage != null) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
             Text(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
@@ -67,19 +68,19 @@ fun LoginScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
 
         Button(
             // CHANGED: Trigger login attempt with the typed data
             onClick = { onLoginAttempt(email, password) },
             enabled = email.isNotBlank() && password.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)
+            modifier = Modifier.fillMaxWidth().height(HabitualTheme.components.buttonHeight),
+            shape = RoundedCornerShape(HabitualTheme.radius.medium)
         ) {
             Text(stringResource(R.string.login_btn_text), style = MaterialTheme.typography.titleMedium)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
         TextButton(onClick = onNavigateToRegister) {
             Text(stringResource(R.string.login_register_prompt))

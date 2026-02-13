@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.model.Habit
 import com.aima.habitual.viewmodel.HabitViewModel
 
@@ -48,8 +49,8 @@ fun HabitForm(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .padding(HabitualTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xl)
     ) {
         // Field 1: Habit Name
         OutlinedTextField(
@@ -124,7 +125,7 @@ fun HabitForm(
                     label = { Text(stringResource(R.string.every_day)) },
                     leadingIcon = {
                         if (isEveryDaySelected) {
-                            Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSmall))
                         }
                     },
                     colors = FilterChipDefaults.filterChipColors(
@@ -134,7 +135,7 @@ fun HabitForm(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
             // Day Circles
             Row(
@@ -145,7 +146,7 @@ fun HabitForm(
                     val isSelected = selectedDays.contains(index)
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(HabitualTheme.components.chipSize)
                             .clip(CircleShape)
                             .background(
                                 if (isSelected) MaterialTheme.colorScheme.primary
@@ -221,8 +222,8 @@ fun HabitForm(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
+                .height(HabitualTheme.components.buttonHeight),
+            shape = RoundedCornerShape(HabitualTheme.radius.medium),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             enabled = habitName.isNotBlank()
         ) {

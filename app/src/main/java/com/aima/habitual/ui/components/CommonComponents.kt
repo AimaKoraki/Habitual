@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * A standardized header for all screens to ensure visual consistency.
@@ -21,7 +22,7 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.primary, // Forest Green
         fontWeight = FontWeight.Bold,
-        modifier = modifier.padding(vertical = 16.dp)
+        modifier = modifier.padding(vertical = HabitualTheme.spacing.lg)
     )
 }
 
@@ -40,8 +41,8 @@ fun PrimaryActionButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
+            .height(HabitualTheme.components.buttonHeight),
+        shape = RoundedCornerShape(HabitualTheme.radius.medium),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary, // Forest Green
             contentColor = MaterialTheme.colorScheme.onPrimary

@@ -16,6 +16,7 @@ import com.aima.habitual.R
 import com.aima.habitual.ui.components.StreakCard
 import com.aima.habitual.ui.components.ConsistencyChart
 import com.aima.habitual.ui.components.HistoryCalendar
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 
@@ -74,11 +75,11 @@ fun HabitStatsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = HabitualTheme.spacing.lg)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xxl)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
             // 1. Visual Highlight: The Streak Card (Peach)
             StreakCard(streakCount = currentStreak)
@@ -101,7 +102,7 @@ fun HabitStatsScreen(
             )
             HistoryCalendar(records = habitRecords)
 
-            Spacer(modifier = Modifier.height(32.dp)) // Extra padding for bottom
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra padding for bottom
         }
     }
 }

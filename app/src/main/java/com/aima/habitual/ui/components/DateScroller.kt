@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.ui.theme.HabitualTheme
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -37,7 +38,7 @@ fun DatePickerScroller(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = HabitualTheme.spacing.lg),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { startDate = startDate.minusDays(1) }) {
@@ -50,7 +51,7 @@ fun DatePickerScroller(
 
         LazyRow(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
         ) {
             items(days) { date ->
                 DateItem(
@@ -96,10 +97,10 @@ private fun DateItem(
         modifier = Modifier
             .padding(horizontal = 2.dp)
             .width(62.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(HabitualTheme.radius.medium))
             .background(backgroundColor)
             .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = HabitualTheme.spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -117,10 +118,10 @@ private fun DateItem(
 
         // Indicator for "Today" aligned with the primary brand color
         if (isToday) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
             Box(
                 modifier = Modifier
-                    .width(16.dp)
+                    .width(HabitualTheme.components.iconSmall)
                     .height(3.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(

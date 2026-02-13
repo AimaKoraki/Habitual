@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.navigation.Screen
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -55,9 +56,9 @@ fun DiaryViewScreen(
                         onClick = { navController.navigate(Screen.DiaryDetail.createRoute(entry.id)) },
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(40.dp).padding(end = 16.dp)
+                        modifier = Modifier.size(HabitualTheme.components.chipSize).padding(end = HabitualTheme.spacing.lg)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.desc_edit_entry), modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.desc_edit_entry), modifier = Modifier.size(HabitualTheme.components.iconMedium))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -70,7 +71,7 @@ fun DiaryViewScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp) // Wider reading margins
+                .padding(horizontal = HabitualTheme.spacing.xxl) // Wider reading margins
                 .verticalScroll(rememberScrollState())
         ) {
             // 3. Date Header
@@ -80,7 +81,7 @@ fun DiaryViewScreen(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
             // 4. Main Title
             Text(
@@ -90,29 +91,29 @@ fun DiaryViewScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
             // 5. Tags Display (Chips)
             if (entry.tags.isNotEmpty()) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
                 ) {
                     entry.tags.forEach { tag ->
                         Surface(
                             color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(HabitualTheme.radius.tag)
                         ) {
                             Text(
                                 text = stringResource(R.string.tag_prefix, tag),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = 6.dp)
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
             }
 
             Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -130,7 +131,7 @@ fun DiaryViewScreen(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.components.iconLarge))
         }
     }
 }

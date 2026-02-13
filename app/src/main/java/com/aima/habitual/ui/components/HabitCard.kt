@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
 import com.aima.habitual.model.Habit
+import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * HabitCard updated to reflect the Forest Green & Soft Sage theme.
@@ -48,8 +49,8 @@ fun HabitCard(
         onClick = onCardClick,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp),
+            .padding(horizontal = HabitualTheme.spacing.lg, vertical = HabitualTheme.spacing.sm),
+        shape = RoundedCornerShape(HabitualTheme.radius.large),
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = if (habit.isCompleted) 0.dp else 2.dp
         ),
@@ -57,7 +58,7 @@ fun HabitCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(20.dp)
+                .padding(HabitualTheme.components.cardPadding)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -81,7 +82,7 @@ fun HabitCard(
             IconButton(
                 onClick = onCheckClick,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(HabitualTheme.components.chipSize)
                     .clip(CircleShape)
                     .background(
                         if (habit.isCompleted) forestGreen

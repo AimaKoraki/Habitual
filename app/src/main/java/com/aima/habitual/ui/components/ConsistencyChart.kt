@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.model.HabitRecord
+import com.aima.habitual.ui.theme.HabitualTheme
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -24,7 +25,7 @@ fun ConsistencyChart(records: List<HabitRecord>) {
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = HabitualTheme.spacing.sm),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -39,18 +40,18 @@ fun ConsistencyChart(records: List<HabitRecord>) {
                 // Bar Visualization with branded colors
                 Box(
                     modifier = Modifier
-                        .width(28.dp) // Adjusted for better visual balance
+                        .width(HabitualTheme.components.iconDefault) // Adjusted for better visual balance
                         .fillMaxHeight(if (isDone) 0.8f else 0.2f)
                         .background(
                             color = if (isDone)
                                 MaterialTheme.colorScheme.primary // Forest Green
                             else
                                 MaterialTheme.colorScheme.secondaryContainer, // Soft Sage
-                            shape = RoundedCornerShape(8.dp) // Fully rounded bars for a modern look
+                            shape = RoundedCornerShape(HabitualTheme.radius.tag) // Fully rounded bars for a modern look
                         )
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
                 // Day Label pulling from localized system settings
                 Text(

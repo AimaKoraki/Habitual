@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
+import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * The individual Sage-colored tag used for diary entries.
@@ -21,11 +22,11 @@ import com.aima.habitual.R
 fun DiaryTag(text: String) {
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer, // Soft Sage
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(HabitualTheme.radius.medium)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.xs),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer // Forest Green
         )
@@ -44,7 +45,7 @@ fun DiaryHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            .padding(bottom = HabitualTheme.spacing.lg),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
