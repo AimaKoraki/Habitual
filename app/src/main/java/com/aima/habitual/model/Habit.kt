@@ -1,34 +1,33 @@
-/** Habit.kt **/
 package com.aima.habitual.model
 
 import java.util.UUID
 
 /**
- * Enumeration for habit importance levels.
+ * Defines the priority levels for a habit.
  */
 enum class Priority { LOW, MEDIUM, HIGH }
 
 /**
- * Data class representing a Habit.
- * Fully optimized for Dashboard sorting, Monthly Targets, and Repeat Days.
+ * Represents a user-defined habit.
+ *
+ * @property id Unique identifier for the habit.
+ * @property title The name of the habit.
+ * @property description A brief description of the habit.
+ * @property category The category the habit belongs to.
+ * @property priority The importance level of the habit.
+ * @property repeatDays A list of integers representing the days of the week to repeat the habit (e.g., 0 for Sunday).
+ * @property targetMonths The duration in months for which the user wants to follow the habit.
+ * @property isCompleted Whether the habit is marked as completed for the current period.
+ * @property createdAt The timestamp of when the habit was created.
  */
 data class Habit(
-    // Unique identifier for database and navigation keys
     val id: String = UUID.randomUUID().toString(),
-
     val title: String,
     val description: String = "",
     val category: String,
     val priority: Priority = Priority.MEDIUM,
-
-    // Stores selected days (e.g., [0, 2, 4] for Sun, Tue, Thu)
     val repeatDays: List<Int> = emptyList(),
-
-    // Represents the long-term goal (e.g., 3 months)
     val targetMonths: Int = 1,
-
-    // Drives the grey-out and sorting logic on the Dashboard
     val isCompleted: Boolean = false,
-
     val createdAt: Long = System.currentTimeMillis()
 )

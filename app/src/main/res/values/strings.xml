@@ -29,7 +29,10 @@
     <string name="habit_name_placeholder">e.g. Drink Water</string>
     <string name="category_label">Category</string>
     <string name="repeat_on_label">Repeat on</string>
-    <string name="target_duration_label">Target Duration: %1$d Months</string>
+    <string name="target_duration_label">Target Duration: %d Months</string>
+    <string name="target_duration_label_only">Target Duration</string>
+    <string name="add_habit_header">Add New Ritual</string>
+    <string name="edit_habit_header">Edit Ritual</string>
     <string name="save_ritual">Save Ritual</string>
     <string name="update_ritual">Update Ritual</string>
     <string name="desc_delete_ritual">Delete Ritual</string>

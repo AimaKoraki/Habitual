@@ -5,7 +5,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * WellbeingStats represents a snapshot of the user's daily health metrics.
+ * Snapshot of daily health metrics for tracking and visualization.
  */
 data class WellbeingStats(
     val stepsCount: Int = 0,
@@ -14,7 +14,7 @@ data class WellbeingStats(
     val lastSyncTimestamp: Long = System.currentTimeMillis()
 ) {
     /**
-     * Helper to return a formatted string for the UI (e.g., "8:30 PM")
+     * Converts the sync timestamp into a human-readable UI string (e.g., "8:30 PM").
      */
     val formattedLastSync: String
         get() = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(lastSyncTimestamp))

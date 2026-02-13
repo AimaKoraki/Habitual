@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.*
@@ -13,8 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aima.habitual.R
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.model.Habit
@@ -43,54 +49,124 @@ fun HabitForm(
     val dayLabels = listOf("S", "M", "T", "W", "T", "F", "S")
     var selectedDays by remember { mutableStateOf(initialHabit?.repeatDays?.toSet() ?: emptySet()) }
 
-    // Helper: Check if all days are selected
     val isEveryDaySelected = selectedDays.size == 7
+
+    // Helper for Section Labels (14sp, Medium, Muted)
+    @Composable
+    fun SectionLabel(text: String) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.medium)
+            ),
+            modifier = Modifier.padding(bottom = HabitualTheme.spacing.md) // 12dp spacing (Rhythm)
+        )
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(HabitualTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xl)
+            .padding(HabitualTheme.spacing.lg) 
+            // Theme surface is used by parent Surface/Scaffold usually. 
+            // If explicit warmth needed: .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Field 1: Habit Name
-        OutlinedTextField(
-            value = habitName,
-            onValueChange = { habitName = it },
-            label = { Text(stringResource(R.string.habit_name_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.habit_name_placeholder)) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+        // --- HIERARCHY ---
+        // 1. Subtle Back Label / Eyebrow
+        Text(
+            text = stringResource(R.string.add_habit_title).uppercase(), // "ADD HABIT"
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
             )
         )
+        
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs)) // Small gap
 
-        // Field 2: Category Dropdown
+        // 2. Dominant Title
+        Text(
+            text = if (initialHabit == null) stringResource(R.string.add_habit_header) else stringResource(R.string.edit_habit_header),
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp (Section Gap)
+
+        // --- FIELD 1: NAME ---
+        SectionLabel(stringResource(R.string.habit_name_label))
+        
+        TextField(
+            value = habitName,
+            onValueChange = { habitName = it },
+            placeholder = { Text(stringResource(R.string.habit_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
+                    shape = RoundedCornerShape(HabitualTheme.radius.input) // 20dp
+                ),
+            shape = RoundedCornerShape(HabitualTheme.radius.input),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+        )
+
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp (Input Gap)
+
+        // --- FIELD 2: CATEGORY (Refined Dropdown) ---
+        SectionLabel(stringResource(R.string.category_label))
+
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
         ) {
-            OutlinedTextField(
+            TextField(
                 value = selectedCategory,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(stringResource(R.string.category_label)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
                     .menuAnchor()
-                    .fillMaxWidth(),
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
+                        shape = RoundedCornerShape(HabitualTheme.radius.input)
+                    ),
+                shape = RoundedCornerShape(HabitualTheme.radius.input),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
             )
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clip(RoundedCornerShape(HabitualTheme.radius.medium)) // Rounded Menu
             ) {
                 categories.forEach { category ->
                     DropdownMenuItem(
-                        text = { Text(category) },
+                        text = { 
+                            Text(
+                                text = category, 
+                                modifier = Modifier.padding(vertical = 4.dp) // More vertical padding
+                            ) 
+                        },
                         onClick = {
                             selectedCategory = category
                             expanded = false
@@ -100,105 +176,93 @@ fun HabitForm(
             }
         }
 
-        // Field 3: Day Selection with "Every Day" Toggle
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.repeat_on_label),
-                    style = MaterialTheme.typography.titleSmall
-                )
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp (Section Gap)
 
-                // NEW: "Every Day" Chip
-                FilterChip(
-                    selected = isEveryDaySelected,
-                    onClick = {
-                        if (isEveryDaySelected) {
-                            selectedDays = emptySet() // Clear all
-                        } else {
-                            selectedDays = (0..6).toSet() // Select all (Sun-Sat)
-                        }
-                    },
-                    label = { Text(stringResource(R.string.every_day)) },
-                    leadingIcon = {
-                        if (isEveryDaySelected) {
-                            Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSmall))
-                        }
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
+        // --- FIELD 3: DAYS ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Label with Rhythm
+            Column {
+                SectionLabel(stringResource(R.string.repeat_on_label))
             }
-
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
-
-            // Day Circles
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            
+            // "Every Day" Toggle
+            TextButton(
+                onClick = {
+                    if (isEveryDaySelected) selectedDays = emptySet() else selectedDays = (0..6).toSet() 
+                }
             ) {
-                dayLabels.forEachIndexed { index, label ->
-                    val isSelected = selectedDays.contains(index)
-                    Box(
-                        modifier = Modifier
-                            .size(HabitualTheme.components.chipSize)
-                            .clip(CircleShape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.secondaryContainer
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                shape = CircleShape
-                            )
-                            .clickable {
-                                // Toggle individual day
-                                selectedDays = if (isSelected) selectedDays - index else selectedDays + index
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = label,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onSecondaryContainer,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                Text(stringResource(R.string.every_day), color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
+        // Day Chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            dayLabels.forEachIndexed { index, label ->
+                val isSelected = selectedDays.contains(index)
+                Box(
+                    modifier = Modifier
+                        .size(HabitualTheme.components.chipSize) // 40dp
+                        .clip(CircleShape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         )
-                    }
+                        .clickable { selectedDays = if (isSelected) selectedDays - index else selectedDays + index },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
                 }
             }
         }
 
-        // Field 4: Target Duration
-        Column {
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
+
+        // --- FIELD 4: DURATION ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SectionLabel(stringResource(R.string.target_duration_label_only))
             Text(
-                text = stringResource(R.string.target_duration_label, targetMonths.toInt()),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Slider(
-                value = targetMonths,
-                onValueChange = { targetMonths = it },
-                valueRange = 1f..12f,
-                steps = 10,
-                colors = SliderDefaults.colors(
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    thumbColor = MaterialTheme.colorScheme.primary
-                )
+                text = "${targetMonths.toInt()} Months",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
             )
         }
+        
+        Slider(
+            value = targetMonths,
+            onValueChange = { targetMonths = it },
+            valueRange = 1f..12f,
+            steps = 10,
+            colors = SliderDefaults.colors(
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                thumbColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            modifier = Modifier.padding(vertical = HabitualTheme.spacing.sm)
+        )
 
-        // Field 5: Action Button
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
+
+        // --- ACTION BUTTON ---
         Button(
             onClick = {
-                // Ensure at least one day is selected before saving
                 val daysToSave = if (selectedDays.isEmpty()) (0..6).toList() else selectedDays.toList()
-
                 if (initialHabit == null) {
                     val newHabit = Habit(
                         title = habitName,
@@ -223,15 +287,14 @@ fun HabitForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(HabitualTheme.components.buttonHeight),
-            shape = RoundedCornerShape(HabitualTheme.radius.medium),
+            shape = RoundedCornerShape(HabitualTheme.radius.medium), // 16dp
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             enabled = habitName.isNotBlank()
         ) {
             Text(
-                text = if (initialHabit == null)
-                    stringResource(R.string.save_ritual)
-                else
-                    stringResource(R.string.update_ritual)
+                text = if (initialHabit == null) stringResource(R.string.save_ritual) else stringResource(R.string.update_ritual),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
     }

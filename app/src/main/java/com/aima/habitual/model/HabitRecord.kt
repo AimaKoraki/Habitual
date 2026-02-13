@@ -4,25 +4,21 @@ package com.aima.habitual.model
 import java.util.UUID
 
 /**
- * HabitRecord tracks the historical completion of a specific habit on a specific day.
- * This data drives the "History" Calendar and "Consistency" Charts.
+ * Represents a single completion instance of a habit.
+ * Connects habits to the Calendar and Consistency charts.
  */
 data class HabitRecord(
-    // Unique ID for the specific record entry
     val id: String = UUID.randomUUID().toString(),
 
-    // Link to the parent habit
+    // Reference to the associated Habit
     val habitId: String,
 
-    // The timestamp for the day this record belongs to
+    // Epoch day/timestamp for historical tracking
     val timestamp: Long,
 
-    // Status for the "Checkmark" button on the Dashboard
+    // Completion state for the Dashboard UI
     val isCompleted: Boolean,
 
-    /**
-     * Optional value for habits that track metrics (e.g., "5km" or "8 glasses of water").
-     * This drives the bar heights in your Consistency Chart.
-     */
+    // Metric value (e.g., liters, miles) for data visualization
     val completionValue: Float? = null
 )

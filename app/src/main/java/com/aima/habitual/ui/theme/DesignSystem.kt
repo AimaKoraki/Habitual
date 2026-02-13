@@ -21,7 +21,7 @@ data class HabitualSpacing(
 // 2. Define Radius Tokens
 data class HabitualRadius(
     val tag: Dp = 8.dp,        // Tag/chip corner radius
-    val input: Dp = 12.dp,     // Text field corner radius
+    val input: Dp = 20.dp,     // Softer input fields (was 12)
     val small: Dp = 12.dp,
     val medium: Dp = 16.dp,
     val large: Dp = 20.dp,     // Card radius
@@ -56,7 +56,8 @@ data class HabitualAlpha(
     val low: Float = 0.05f,       // Subtle borders
     val medium: Float = 0.7f,     // Secondary text
     val high: Float = 1.0f,
-    val disabled: Float = 0.38f
+    val disabled: Float = 0.38f,
+    val inputBorder: Float = 0.15f // Slightly visible border for inputs
 )
 
 // 5. Create "Locals" so Compose can pass these down the UI tree
