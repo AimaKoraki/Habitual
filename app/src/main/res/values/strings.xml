@@ -1,44 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Habitual</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
+    <string name="btn_done">Done</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_go_back">Go Back</string>
 
     <string name="nav_dashboard">Rituals</string>
     <string name="nav_wellbeing">Wellbeing</string>
     <string name="nav_diary">Diary</string>
     <string name="nav_profile">Profile</string>
+    <string name="nav_diary_label">My Journal</string>
 
     <string name="dashboard_header">Daily Rituals</string>
     <string name="no_habits_msg">No rituals for today. Tap + to add one!</string>
     <string name="add_habit_content_desc">Add Habit</string>
+    <string name="desc_completed">Completed Ritual</string>
+    <string name="desc_mark_completed">Mark Ritual as Completed</string>
+    <string name="desc_prev_days">Previous Days</string>
+    <string name="desc_next_days">Next Days</string>
 
     <string name="add_habit_title">Add Habit</string>
     <string name="edit_habit_title">Edit Habit</string>
     <string name="habit_name_label">Habit Name</string>
+    <string name="habit_name_placeholder">e.g. Drink Water</string>
     <string name="category_label">Category</string>
     <string name="repeat_on_label">Repeat on</string>
     <string name="target_duration_label">Target Duration: %1$d Months</string>
     <string name="save_ritual">Save Ritual</string>
     <string name="update_ritual">Update Ritual</string>
+    <string name="desc_delete_ritual">Delete Ritual</string>
+    
+    <string name="dialog_delete_title">Delete Ritual?</string>
+    <string name="dialog_delete_text">This will permanently remove \'%1$s\' and all its completion history. This action cannot be undone.</string>
+    <string name="btn_delete">Delete</string>
 
-    <string name="wellbeing_header">Health Insights</string>
-    <string name="steps_label">Steps Today</string>
-    <string name="daily_summary">Daily Summary</string>
-    <string name="sleep_label">Sleep</string>
-    <string name="distance_label">Distance</string>
-    <string name="screen_time_label">Screen Time</string>
-    <string name="log_water">Log Water</string>
-    <string name="wellbeing_sync_label">Last synced: %1$s</string>
+    <string name="category_health">Health</string>
+    <string name="category_study">Study</string>
+    <string name="category_personal">Personal</string>
+    <string name="category_work">Work</string>
+    <string name="category_wellbeing">Well-being</string>
+
+    <string name="every_day">Every Day</string>
+    <string name="day_initial_su">S</string>
+    <string name="day_initial_m">M</string>
+    <string name="day_initial_t">T</string>
+    <string name="day_initial_w">W</string>
+    <string name="day_initial_th">T</string>
+    <string name="day_initial_f">F</string>
+    <string name="day_initial_sa">S</string>
+    <string name="calendar_month_year">%1$s %2$s</string>
+    <string name="day_sun">Sun</string>
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+
+    <string name="wellbeing_header">Well-being</string>
+    <string name="wellbeing_steps">Steps</string>
+    <string name="wellbeing_daily_summary">Daily Summary</string>
+    <string name="wellbeing_sleep">Sleep</string>
+    <string name="wellbeing_water">Water</string>
+    <string name="wellbeing_log_water">Log Water</string>
+    <string name="desc_sync_steps">Sync Steps</string>
+
+    <string name="dialog_update_sleep">Update Sleep</string>
+    <string name="dialog_sleep_prompt">How many hours did you sleep?</string>
+    <string name="dialog_sleep_format">%.1f Hours</string>
+    <string name="dialog_log_water_title">Log Water Intake</string>
+    <string name="dialog_water_amount_hint">Amount (%1$s)</string>
 
     <string name="diary_header">Recent entries</string>
-    <string name="nav_diary_label">My Journal</string>
     <string name="sort_by">Sort by</string>
     <string name="new_diary_entry">New Diary Entry</string>
     <string name="diary_placeholder">How was your day?</string>
     <string name="no_diary_entries">No entries yet. Write your first thought!</string>
     <string name="diary_tag_label">Tags</string>
+    <string name="diary_new_entry">New Entry</string>
+    <string name="diary_edit_entry">Edit Entry</string>
+    <string name="diary_label_title">Title</string>
+    <string name="diary_label_add_tag">Add Tag</string>
+    <string name="diary_label_content">How was your day?</string>
+    <string name="diary_empty_state">Your journal is empty. Take a moment to reflect.</string>
+    <string name="diary_entry_not_found">Entry not found. It may have been deleted.</string>
+    
+    <string name="desc_back">Navigate Back</string>
+    <string name="desc_save">Save Entry</string>
+    <string name="desc_add_tag">Add Tag</string>
+    <string name="desc_remove_tag">Remove Tag</string>
+    <string name="desc_add_entry">Add New Entry</string>
+    <string name="desc_edit_entry">Edit Entry</string>
+    <string name="desc_sort_options">Sort Options</string>
+    <string name="desc_diary_icon">Diary Entry</string>
+    <string name="tag_prefix">#%1$s</string>
 
     <string name="current_streak">Current Streak</string>
     <string name="days_count">%1$d Days</string>
@@ -47,5 +106,29 @@
     <string name="profile_streak_label">Total Streak: %1$d days</string>
     <string name="streak_icon_desc">Streak Fire Icon</string>
 
+    <string name="login_welcome">Welcome Back</string>
+    <string name="login_email_hint">Email Address</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_btn_text">Login</string>
+    <string name="login_register_prompt">Don\'t have an account? Register</string>
+
+    <string name="register_title">Create Account</string>
+    <string name="register_name_hint">Full Name</string>
+    <string name="register_email_hint">Email Address</string>
+    <string name="register_password_hint">Create Password</string>
+    <string name="register_terms">I agree to the Terms of Service</string>
+    <string name="register_btn_text">Sign Up</string>
+    <string name="register_login_prompt">Already have an account? Log In</string>
+
+    <string name="profile_mastery_level">Mastery Level: %1$d</string>
+    <string name="profile_dark_mode">Dark Mode</string>
+    <string name="profile_my_rituals">My Rituals</string>
+    <string name="profile_log_out">Log Out</string>
+    <string name="profile_your_rituals">Your Rituals</string>
+    <string name="profile_no_rituals">No rituals added yet.</string>
+    
+    <string name="desc_profile_picture">Profile Picture</string>
+    <string name="desc_save_name">Save Name</string>
+    <string name="desc_edit_name">Edit Name</string>
 
 </resources>
