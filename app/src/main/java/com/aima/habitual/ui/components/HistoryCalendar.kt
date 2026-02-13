@@ -1,6 +1,5 @@
 package com.aima.habitual.ui.components
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -24,73 +23,88 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+/**
+ * HistoryCalendar visualizes ritual completion over a full month.
+ * Optimized for the Forest Green & Soft Sage palette.
+ */
 @Composable
 fun HistoryCalendar(records: List<HabitRecord>) {
-    // 1. Setup the current month data (January 2026 based on your screenshots)
     val currentMonth = YearMonth.now()
+    val today = LocalDate.now()
     val firstDayOfMonth = currentMonth.atDay(1)
     val daysInMonth = currentMonth.lengthOfMonth()
 
-    // Calculate the offset for the first day (e.g., if Jan 1st is Thursday)
-    val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // 0 = Sunday
-
+    // Offset calculation: ensure the grid starts on the correct day of the week
+    val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
     val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Month Header
+        // Branded Month Header in Forest Green
         Text(
-            text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)} ${currentMonth.year}",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Calendar Grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
-            modifier = Modifier.height(300.dp), // Adjust height as needed
-            userScrollEnabled = false
+            modifier = Modifier.height(320.dp),
+            userScrollEnabled = false,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // Day Labels (Sun, Mon, etc.)
+            // Day Labels using muted Sage text
             items(daysOfWeek) { day ->
                 Text(
                     text = day,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
-            // Empty slots for days before the 1st of the month
+            // Empty slots for the start of the month
             items(firstDayOfWeek) {
                 Spacer(modifier = Modifier.size(40.dp))
             }
 
-            // Actual Days of the Month
+            // Individual Day Cells
             items(daysInMonth) { index ->
                 val dayNumber = index + 1
                 val date = currentMonth.atDay(dayNumber)
                 val isDone = records.any { it.timestamp == date.toEpochDay() && it.isCompleted }
+                val isCurrentDay = date.isEqual(today)
 
                 Box(
                     modifier = Modifier
-                        .padding(4.dp)
-                        .size(36.dp)
+                        .aspectRatio(1f)
                         .clip(CircleShape)
-                        // Circle logic: Teal if habit was completed, transparent otherwise
-                        .background(if (isDone) Color(0xFF004D40) else Color.Transparent),
+                        .background(
+                            when {
+                                isDone -> MaterialTheme.colorScheme.primary // Forest Green
+                                isCurrentDay -> MaterialTheme.colorScheme.secondaryContainer // Soft Sage
+                                else -> Color.Transparent
+                            }
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = dayNumber.toString(),
-                        fontSize = 12.sp,
-                        fontWeight = if (isDone) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isDone) Color.White else Color.Black
+                        fontSize = 14.sp,
+                        fontWeight = if (isDone || isCurrentDay) FontWeight.Bold else FontWeight.Normal,
+                        color = when {
+                            isDone -> MaterialTheme.colorScheme.onPrimary
+                            isCurrentDay -> MaterialTheme.colorScheme.onSecondaryContainer
+                            else -> MaterialTheme.colorScheme.onSurface
+                        }
                     )
                 }
             }
