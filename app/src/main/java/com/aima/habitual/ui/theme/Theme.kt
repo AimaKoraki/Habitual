@@ -4,54 +4,51 @@ import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-/**
- * Light Mode Configuration:
- * Focuses on a clean, nature-inspired "Forest Green" and "Soft Sage" palette.
- */
 private val LightColorScheme = lightColorScheme(
-    primary = ForestGreen,
-    onPrimary = White,
+    primary = LightAccentPrimary,
+    onPrimary = LightSurface,
+    primaryContainer = LightAccentSoft,
+    onPrimaryContainer = LightAccentPrimary,
 
-    // Core Layout colors
-    background = White,
-    surface = White,
-    onBackground = ForestGreen,
-    onSurface = ForestGreen,
+    background = LightBg,
+    onBackground = LightTextPrimary,
 
-    // Component/Card colors
-    surfaceVariant = SoftSage,
-    onSurfaceVariant = Color(0xFF1B5E20),
+    surface = LightSurface,
+    onSurface = LightTextPrimary,
+    surfaceVariant = LightSurfaceSubtle,
+    onSurfaceVariant = LightTextSecondary,
 
-    secondary = SoftSage,
-    onSecondary = ForestGreen
+    outline = LightBorderStrong,
+    outlineVariant = LightBorderSubtle,
+
+    error = DangerRed
 )
 
-/**
- * Dark Mode Configuration:
- * Swaps to high-contrast "LimeSage" for primary actions and deep greys for eye comfort.
- */
 private val DarkColorScheme = darkColorScheme(
-    primary = LimeSageAccent,
-    onPrimary = Color(0xFF1B5E20),
-    secondary = DarkCardGrey,
+    primary = DarkAccentPrimary,
+    onPrimary = DarkBg,
+    primaryContainer = DarkAccentSoft,
+    onPrimaryContainer = DarkAccentPrimary,
 
-    background = DarkBackground,
-    surface = DarkBackground,
-    onSurface = White,
+    background = DarkBg,
+    onBackground = DarkTextPrimary,
 
-    surfaceVariant = DarkCardGrey,
-    onSurfaceVariant = DarkTextSecondary
+    surface = DarkSurface,
+    onSurface = DarkTextPrimary,
+    surfaceVariant = DarkSurfaceSubtle,
+    onSurfaceVariant = DarkTextSecondary,
+
+    outline = DarkBorderStrong,
+    outlineVariant = DarkBorderSubtle,
+
+    error = DangerRed
 )
 
-/**
- * HabitualTheme: The root styling engine for the application.
- * Manages Dynamic Colors, Typography, and System UI (Status/Navigation Bars).
- */
 @Composable
 fun HabitualTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -60,21 +57,40 @@ fun HabitualTheme(
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
 
-    // System UI logic (Status Bar and Navigation Bar colors)
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             val insetsController = WindowCompat.getInsetsController(window, view)
-
-            // Adjusts status bar icons: Dark icons on Light backgrounds, Light icons on Dark backgrounds
             insetsController.isAppearanceLightStatusBars = !darkTheme
             insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    // NEW: Provide our custom design tokens to the app
+    CompositionLocalProvider(
+        LocalSpacing provides HabitualSpacing(),
+        LocalRadius provides HabitualRadius(),
+        LocalComponents provides HabitualComponents()
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+}
+
+// NEW: Create a custom object to easily access these tokens anywhere!
+object HabitualTheme {
+    val spacing: HabitualSpacing
+        @Composable
+        get() = LocalSpacing.current
+
+    val radius: HabitualRadius
+        @Composable
+        get() = LocalRadius.current
+
+    val components: HabitualComponents
+        @Composable
+        get() = LocalComponents.current
 }
