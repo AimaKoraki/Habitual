@@ -33,31 +33,40 @@ fun NavGraph(
 
         composable("login") {
             LoginScreen(
-                onLoginSuccess = {
-                    viewModel.login()
-                    navController.navigate(Screen.Dashboard.route) {
-                        popUpTo("login") { inclusive = true }
+                errorMessage = viewModel.loginError, // Pass the error state
+                onLoginAttempt = { email, password ->
+                    // Validate using ViewModel
+                    val isSuccess = viewModel.validateLogin(email, password)
+                    if (isSuccess) {
+                        navController.navigate(Screen.Dashboard.route) {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToRegister = {
+                    viewModel.clearLoginError() // Clear errors when switching screens
                     navController.navigate("register")
                 }
             )
         }
 
-// Inside NavGraph.kt
         composable("register") {
             RegisterScreen(
-                onRegisterSuccess = { name ->
-                    viewModel.updateUserName(name)
-                    viewModel.login()
+                onRegisterSuccess = { name, email, password ->
+                    // Save user to SharedPreferences
+                    viewModel.registerUser(name, email, password)
+
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onNavigateToLogin = { navController.popBackStack() }
+                onNavigateToLogin = {
+                    viewModel.clearLoginError()
+                    navController.popBackStack()
+                }
             )
         }
+
         // --- 2. MAIN APP TABS ---
 
         composable(Screen.Dashboard.route) {
@@ -84,7 +93,6 @@ fun NavGraph(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 viewModel = viewModel,
-                // FIX: Added the missing onLogout parameter here
                 onLogout = {
                     viewModel.logout()
                     navController.navigate("login") {

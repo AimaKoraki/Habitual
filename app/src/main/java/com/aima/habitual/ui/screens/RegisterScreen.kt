@@ -12,10 +12,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: (String) -> Unit, // Changed: Now takes the username as a String
+    // CHANGED: Now passes Name, Email, and Password back to MainScreen
+    onRegisterSuccess: (String, String, String) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    var userName by remember { mutableStateOf("") } // New state for username
+    var userName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var termsAccepted by remember { mutableStateOf(false) }
@@ -34,7 +35,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Username Field
         OutlinedTextField(
             value = userName,
             onValueChange = { userName = it },
@@ -80,7 +80,8 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { onRegisterSuccess(userName) }, // Pass the name back
+            // CHANGED: Pass all three fields to save them
+            onClick = { onRegisterSuccess(userName, email, password) },
             enabled = termsAccepted && email.isNotBlank() && password.length >= 6 && userName.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp)

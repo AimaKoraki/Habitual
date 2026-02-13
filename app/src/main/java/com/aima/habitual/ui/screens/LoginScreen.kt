@@ -10,22 +10,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
-/**
- * LoginScreen: The entry point of the app.
- * Uses callbacks to notify MainScreen of navigation events.
- */
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    // CHANGED: Now passes Email and Password for validation, and receives an error message
+    onLoginAttempt: (String, String) -> Unit,
+    errorMessage: String?,
     onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -36,15 +32,8 @@ fun LoginScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Text(
-            text = "Sign in to continue your rituals",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -56,7 +45,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password Field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -67,25 +55,30 @@ fun LoginScreen(
             shape = RoundedCornerShape(12.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        // NEW: Display error message if login fails
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
-        // Login Button
+        Spacer(modifier = Modifier.height(24.dp))
+
         Button(
-            // Trigger the success callback defined in MainScreen
-            onClick = onLoginSuccess,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            // Basic validation: Disable button if fields are empty
-            enabled = email.isNotBlank() && password.isNotBlank()
+            // CHANGED: Trigger login attempt with the typed data
+            onClick = { onLoginAttempt(email, password) },
+            enabled = email.isNotBlank() && password.isNotBlank(),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
             Text("Login", style = MaterialTheme.typography.titleMedium)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Register Link
         TextButton(onClick = onNavigateToRegister) {
             Text("Don't have an account? Register")
         }

@@ -193,18 +193,61 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         diaryEntries.removeAll { it.id == entryId }
     }
     // --- AUTH LOGIC ---
+// --- AUTHENTICATION LOGIC ---
 
-    // State to track if user is authenticated
     var isLoggedIn by mutableStateOf(prefs.getBoolean("is_logged_in", false))
         private set
 
-    fun login() {
-        isLoggedIn = true
-        prefs.edit().putBoolean("is_logged_in", true).apply()
-    }
+    // State to hold error messages for the Login Screen
+    var loginError by mutableStateOf<String?>(null)
+        private set
 
+    /**
+     * Saves user credentials locally during Registration.
+     */
+    fun registerUser(name: String, email: String, pass: String) {
+        prefs.edit().apply {
+            putString("user_name", name)
+            putString("user_email", email)
+            putString("user_password", pass) // Note: Real apps encrypt this!
+            putBoolean("is_logged_in", true)
+        }.apply()
+
+        userName = name
+        isLoggedIn = true
+        loginError = null
+    }
     fun logout() {
         isLoggedIn = false
         prefs.edit().putBoolean("is_logged_in", false).apply()
+    }
+    /**
+     * Checks if entered credentials match the locally saved ones.
+     */
+    fun validateLogin(email: String, pass: String): Boolean {
+        val savedEmail = prefs.getString("user_email", null)
+        val savedPass = prefs.getString("user_password", null)
+
+        return when {
+            savedEmail == null -> {
+                loginError = "No account found. Please register."
+                false
+            }
+            savedEmail == email && savedPass == pass -> {
+                loginError = null
+                isLoggedIn = true
+                prefs.edit().putBoolean("is_logged_in", true).apply()
+                true
+            }
+            else -> {
+                loginError = "Invalid email or password."
+                false
+            }
+        }
+
+    }
+
+    fun clearLoginError() {
+        loginError = null
     }
 }

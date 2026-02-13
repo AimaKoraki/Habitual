@@ -13,17 +13,17 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.aima.habitual.navigation.NavGraph
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.BottomNavigationBar
 import com.aima.habitual.viewmodel.HabitViewModel
 
 /**
- * MainScreen: The root container of the app.
- * Handles Navigation, Responsive Layouts, and Authentication State Logic.
+ * MainScreen: The root UI container of the app.
+ * Handles the responsive outer shell (Bottom Bar vs Navigation Rail)
+ * and delegates screen routing to NavGraph.kt.
  */
 @Composable
 fun MainScreen(
@@ -44,7 +44,7 @@ fun MainScreen(
     // Show Side Rail if screen is Wide (Tablet) OR Landscape (Phone rotated)
     val showSideRail = windowSizeClass != WindowWidthSizeClass.Compact || isLandscape
 
-    // Navigation item definitions
+    // Navigation item definitions (Only show bars on these screens)
     val mainTabs = listOf(Screen.Dashboard, Screen.WellBeing, Screen.Diary, Screen.Profile)
     val showBars = currentRoute in mainTabs.map { it.route }
 
@@ -82,99 +82,15 @@ fun MainScreen(
                 }
             }
 
-            // B. NAVIGATION HOST
-            NavHost(
+            // B. DELEGATE TO NAVGRAPH
+            // Modifier.weight(1f) ensures it takes up all remaining space next to the Rail.
+            NavGraph(
                 navController = navController,
-                // Automatically skips login if the user session is still active
-                startDestination = if (viewModel.isLoggedIn) Screen.Dashboard.route else "login",
+                viewModel = viewModel,
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
                 modifier = Modifier.weight(1f)
-            ) {
-
-                // --- AUTHENTICATION FLOW ---
-
-                composable("login") {
-                    LoginScreen(
-                        onLoginSuccess = {
-                            viewModel.login()
-                            navController.navigate(Screen.Dashboard.route) {
-                                // FIXED: Clears "login" from backstack so Back button exits app
-                                popUpTo("login") { inclusive = true }
-                            }
-                        },
-                        onNavigateToRegister = {
-                            navController.navigate("register")
-                        }
-                    )
-                }
-
-                composable("register") {
-                    RegisterScreen(
-                        onRegisterSuccess = { nameFromForm -> // Receive the name here
-                            viewModel.updateUserName(nameFromForm) // Save it to the ViewModel/Prefs
-                            viewModel.login() // Set login state
-                            navController.navigate(Screen.Dashboard.route) {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        },
-                        onNavigateToLogin = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-
-                // --- MAIN APP TABS ---
-
-                composable(Screen.Dashboard.route) {
-                    DashboardScreen(navController, viewModel)
-                }
-
-                composable(Screen.WellBeing.route) {
-                    WellBeingScreen(navController, viewModel)
-                }
-
-                // --- MASTER / DETAIL FLOW (DIARY) ---
-
-                composable(Screen.Diary.route) {
-                    DiaryScreen(
-                        navController = navController,
-                        viewModel = viewModel,
-                        onEntryClick = { entryId: String ->
-                            if (entryId == "new") {
-                                navController.navigate("diary_detail/new")
-                            } else {
-                                navController.navigate("diary_detail/$entryId")
-                            }
-                        }
-                    )
-                }
-
-                composable("diary_detail/{entryId}") { backStackEntry ->
-                    val entryId = backStackEntry.arguments?.getString("entryId")
-                    DiaryDetailScreen(
-                        entryId = if (entryId == "new") null else entryId,
-                        navController = navController,
-                        viewModel = viewModel
-                    )
-                }
-
-                // --- PROFILE & LOGOUT ---
-
-                composable(Screen.Profile.route) {
-                    ProfileScreen(
-                        isDarkTheme = isDarkTheme,
-                        onThemeChange = onThemeChange,
-                        viewModel = viewModel,
-                        // This is the missing parameter!
-                        onLogout = {
-                            viewModel.logout() // Clear the "isLoggedIn" state in the ViewModel
-                            navController.navigate("login") {
-                                // Clear the navigation history so the user can't "back" into the app
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-            }
+            )
         }
     }
 }
