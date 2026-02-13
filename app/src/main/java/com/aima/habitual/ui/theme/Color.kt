@@ -2,14 +2,18 @@ package com.aima.habitual.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- Light Mode (Calm & Airy) ---
-val SageGreen = Color(0xFF6B8E23)     // Primary: Calm growth color
-val DeepTeal = Color(0xFF004D40)      // High Contrast Text/Icons
-val SoftSage = Color(0xFFF1F8E9)      // Card Background (Very light green)
-val MutedSlate = Color(0xFF546E7A)    // Secondary details
+// Light Mode Palette (Inspired by Image 3)
+val ForestGreen = Color(0xFF003D33)      // Deep teal for headers and FAB
+val SoftSage = Color(0xFFE8F5E9)        // Light airy green for cards/dates
+val MutedForest = Color(0xFF2E7D32)      // Secondary accents
 
-// --- Dark Mode (Midnight Oasis) ---
-val DarkSage = Color(0xFFC5E1A5)      // Primary: Soft glow for dark mode
-val DarkBackground = Color(0xFF121212) // Near black for less strain
-val DarkCard = Color(0xFF1E2321)      // Deep forest green-grey for cards
-val DarkText = Color(0xFFE0E0E0)      // Off-white for reduced glare
+// Dark Mode Palette (Inspired by Image 4)
+val DarkBackground = Color(0xFF000000)   // Pure black background
+val DarkCardGrey = Color(0xFF1A1C1E)     // Dark charcoal for ritual cards
+val LimeSageAccent = Color(0xFFC5E1A5)   // The bright "pop" color for FAB/Selected
+val DarkTextSecondary = Color(0xFF9E9E9E)
+
+// Global Constants
+val White = Color(0xFFFFFFFF)
+
+val RitualOrange = Color(0xFFFF9800)
