@@ -1,5 +1,6 @@
 package com.aima.habitual.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -28,13 +29,15 @@ fun HealthStatCard(
         onClick = onClick, // Added: Connects the click action
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.12f)
+            containerColor = MaterialTheme.colorScheme.surface // Glassy/Flat
         ),
+        // Premium: Subtle alpha border
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
         shape = RoundedCornerShape(HabitualTheme.radius.extraLarge)
     ) {
         Column(
             modifier = Modifier
-                .padding(HabitualTheme.components.cardPadding)
+                .padding(HabitualTheme.spacing.cardInternalLg) // Airy padding
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {

@@ -70,7 +70,8 @@ fun HabitualTheme(
     CompositionLocalProvider(
         LocalSpacing provides HabitualSpacing(),
         LocalRadius provides HabitualRadius(),
-        LocalComponents provides HabitualComponents()
+        LocalComponents provides HabitualComponents(),
+        LocalAlpha provides HabitualAlpha()
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -85,12 +86,16 @@ object HabitualTheme {
     val spacing: HabitualSpacing
         @Composable
         get() = LocalSpacing.current
-
+    
     val radius: HabitualRadius
         @Composable
         get() = LocalRadius.current
-
+        
     val components: HabitualComponents
         @Composable
         get() = LocalComponents.current
+
+    val alpha: HabitualAlpha
+        @Composable
+        get() = LocalAlpha.current
 }

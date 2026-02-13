@@ -56,7 +56,12 @@ fun DiaryViewScreen(
                         onClick = { navController.navigate(Screen.DiaryDetail.createRoute(entry.id)) },
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(HabitualTheme.components.chipSize).padding(end = HabitualTheme.spacing.lg)
+                        shape = androidx.compose.foundation.shape.CircleShape, // Standardized
+                        modifier = Modifier.size(HabitualTheme.components.fabSize),
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = HabitualTheme.components.fabElevation,
+                            pressedElevation = HabitualTheme.components.fabPressedElevation
+                        )
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.desc_edit_entry), modifier = Modifier.size(HabitualTheme.components.iconMedium))
                     }

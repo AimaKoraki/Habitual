@@ -32,7 +32,13 @@ fun DiaryScreen(
             FloatingActionButton(
                 onClick = onAddClick,
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = androidx.compose.foundation.shape.CircleShape, // Standardized
+                modifier = Modifier.size(HabitualTheme.components.fabSize),
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = HabitualTheme.components.fabElevation,
+                    pressedElevation = HabitualTheme.components.fabPressedElevation
+                )
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.desc_add_entry))
             }

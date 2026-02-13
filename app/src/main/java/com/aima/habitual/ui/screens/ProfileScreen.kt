@@ -86,7 +86,9 @@ fun ProfileScreen(
                 modifier = Modifier
                     .size(HabitualTheme.components.profileImage)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    // Premium: Subtle Avatar Ring
+                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 if (viewModel.profileImageUri != null) {
@@ -186,6 +188,9 @@ fun ProfileScreen(
                 )
             }
         }
+
+        // Space between Name and Mastery Level increased
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg)) 
 
         Text(
             text = stringResource(R.string.profile_mastery_level, level),

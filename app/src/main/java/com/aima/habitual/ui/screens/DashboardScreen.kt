@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,16 +47,18 @@ fun DashboardScreen(
                 onClick = { navController.navigate(Screen.HabitDetail.createRoute("new")) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                // JSON: "fab.radius": 24
-                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
-                // JSON: "fab.size": 56
-                modifier = Modifier.size(HabitualTheme.components.fabSize)
+                // Premium Rule: Perfect Circle 56dp
+                shape = androidx.compose.foundation.shape.CircleShape,
+                modifier = Modifier.size(HabitualTheme.components.fabSize),
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = HabitualTheme.components.fabElevation, 
+                    pressedElevation = HabitualTheme.components.fabPressedElevation
+                )
             ) {
-                // JSON: "fab.iconSize": 20
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.desc_add_ritual),
-                    modifier = Modifier.size(HabitualTheme.components.iconMedium)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -74,7 +77,7 @@ fun DashboardScreen(
             Text(
                 text = stringResource(R.string.greeting_morning),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.medium)
             )
             Text(
                 text = viewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
@@ -171,18 +174,14 @@ fun PremiumHabitCard(
     }
 
     Card(
-        // JSON: "card.radius": 20
         shape = RoundedCornerShape(HabitualTheme.radius.large),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface // Flat surface color
         ),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(
-            // Premium Rule: Soft shadow in light mode, NO shadow in dark mode
-            defaultElevation = if (isDark) 0.dp else 4.dp
-        ),
-        // Premium Rule: Subtle 1px white border in dark mode
-        border = if (isDark) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // No shadow for flat feel
+        // Premium Glow: 1px border with very low alpha
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -213,10 +212,10 @@ fun PremiumHabitCard(
             // Interactive Checkmark
             IconButton(onClick = onToggle) {
                 Icon(
-                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.CheckCircle, 
+                    // Unchecked = Thin Outlined Circle. Checked = Filled Soft Circle.
+                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle, 
                     contentDescription = stringResource(if (isCompleted) R.string.desc_complete else R.string.desc_complete),
                     tint = tint,
-                    // Premium Rule: Min touch target sizing + Animation
                     modifier = Modifier
                         .size(HabitualTheme.components.minTouchTarget)
                         .scale(scale)

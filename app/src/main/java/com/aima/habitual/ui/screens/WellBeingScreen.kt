@@ -81,14 +81,14 @@ fun WellBeingScreen(
                 CircularProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.size(HabitualTheme.components.progressRingSize),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    strokeWidth = HabitualTheme.components.progressStrokeWidth,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), // Subtle track
+                    strokeWidth = HabitualTheme.components.progressTrackThick, // 8.dp
                 )
                 CircularProgressIndicator(
                     progress = { stepProgress },
                     modifier = Modifier.size(HabitualTheme.components.progressRingSize),
                     color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = HabitualTheme.components.progressStrokeWidth,
+                    strokeWidth = HabitualTheme.components.progressArcThick, // 16.dp
                     strokeCap = StrokeCap.Round
                 )
 
