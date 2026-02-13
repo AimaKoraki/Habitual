@@ -1,58 +1,70 @@
 package com.aima.habitual.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
-import com.aima.habitual.ui.theme.RitualOrange // Import your custom orange
+import com.aima.habitual.ui.theme.HabitualTheme
+import com.aima.habitual.ui.theme.WarningGold
 
 /**
- * StreakCard updated for the Forest & Sage theme with an orange momentum icon.
+ * StreakCard: Displays the user's momentum.
+ * Fully responsive to dark/light mode and driven by the HabitualTheme token system.
  */
 @Composable
 fun StreakCard(streakCount: Int) {
+    val isDark = isSystemInDarkTheme()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
+        // JSON Token: "card.radius": 20
+        shape = RoundedCornerShape(HabitualTheme.radius.large),
         colors = CardDefaults.cardColors(
-            // Uses SoftSage/SecondaryContainer for the background
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
-        shape = MaterialTheme.shapes.large
+        // Premium Shadow/Border Logic
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isDark) 0.dp else 4.dp
+        ),
+        border = if (isDark) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
     ) {
         Column(
             modifier = Modifier
-                .padding(32.dp)
+                // JSON Token: "sectionSpacing": 32
+                .padding(HabitualTheme.spacing.section)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            // JSON Token: "spacing.sm": 8
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
         ) {
             Icon(
                 imageVector = Icons.Default.Whatshot,
-                contentDescription = null,
-                // Using the specific orange from your Color.kt
-                tint = RitualOrange,
-                modifier = Modifier.size(48.dp)
+                contentDescription = stringResource(R.string.streak_icon_desc),
+                // Uses the premium WarningGold from our design system instead of generic orange
+                tint = WarningGold,
+                modifier = Modifier.size(HabitualTheme.components.iconLarge)
             )
 
             Text(
                 text = stringResource(R.string.current_streak),
                 style = MaterialTheme.typography.bodyMedium,
-                // Uses ForestGreen/OnSecondaryContainer for text contrast
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
 
             Text(
                 text = stringResource(R.string.days_count, streakCount),
                 style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                // Uses the main text color defined in your theme
+                // Notice we removed FontWeight.Bold here!
+                // It now relies entirely on the 600 weight defined in your Type.kt
                 color = MaterialTheme.colorScheme.onSurface
             )
         }

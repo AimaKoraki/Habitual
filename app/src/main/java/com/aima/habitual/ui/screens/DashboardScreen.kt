@@ -1,138 +1,197 @@
-/** DasshboardScreen.kt **/
-
 package com.aima.habitual.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.aima.habitual.R
+import com.aima.habitual.model.Habit
 import com.aima.habitual.navigation.Screen
-import com.aima.habitual.ui.components.HabitCard
-import com.aima.habitual.ui.components.DatePickerScroller
-import com.aima.habitual.ui.components.ScreenHeader
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
-/**
- * DashboardScreen: The main hub for your rituals.
- * Connects ScreenHeader, DatePickerScroller, and HabitCard.
- */
 @Composable
-fun DashboardScreen(navController: NavHostController, viewModel: HabitViewModel) {
-    // 1. State: Manage the currently selected date
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-
-    // 2. Logic: Filter habits based on repeat days and creation date
-    val filteredHabitsWithStatus = remember(selectedDate, viewModel.habits.size, viewModel.records.size) {
-        val dayOfWeekIndex = selectedDate.dayOfWeek.value % 7 // 0=Sun, 1=Mon...
-        val selectedEpochDay = selectedDate.toEpochDay()
-
-        viewModel.habits.filter { habit ->
-            // Only show if:
-            // a) It is scheduled for this day of the week
-            // b) The selected date is NOT before the habit was created
-            val isRepeatDay = habit.repeatDays.contains(dayOfWeekIndex)
-            val creationDate = Instant.ofEpochMilli(habit.createdAt)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-
-            isRepeatDay && !selectedDate.isBefore(creationDate)
-        }
-            .map { habit ->
-                // Check if it's completed for this specific date
-                val isDone = viewModel.records.any {
-                    it.habitId == habit.id && it.timestamp == selectedEpochDay
-                }
-                habit.copy(isCompleted = isDone)
-            }
-            .sortedBy { it.isCompleted } // Move completed items to the bottom
-    }
+fun DashboardScreen(
+    navController: NavHostController,
+    viewModel: HabitViewModel
+) {
+    val habits = viewModel.habits
+    val isDark = isSystemInDarkTheme()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Screen.HabitDetail.createRoute("new")) },
+                onClick = { navController.navigate(Screen.HabitDetail.route) },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                // JSON: "fab.radius": 24
+                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+                // JSON: "fab.size": 56
+                modifier = Modifier.size(HabitualTheme.components.fabSize)
             ) {
+                // JSON: "fab.iconSize": 20
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_habit_content_desc)
+                    contentDescription = "Add Ritual",
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding) // Respects Status Bar & Nav Bar automatically
+                .padding(paddingValues)
+                // JSON: "screen.horizontalPadding": 24
+                .padding(horizontal = HabitualTheme.spacing.screen)
         ) {
-            // 3. Header: Uses your CommonComponent 'ScreenHeader'
-            ScreenHeader(
-                title = stringResource(R.string.dashboard_header),
-                modifier = Modifier.padding(horizontal = 16.dp) // Adds side padding
+            // JSON: "sectionSpacing": 32
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
+            // --- 1. HEADER SECTION ---
+            Text(
+                text = "Good Morning,",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
+            Text(
+                text = viewModel.userName.ifEmpty { "Ritualist" },
+                style = MaterialTheme.typography.displayMedium, // Using new premium typography
+                color = MaterialTheme.colorScheme.onBackground
             )
 
-            // 4. Date Scroller
-            DatePickerScroller(
-                selectedDate = selectedDate,
-                onDateSelected = { selectedDate = it }
-            )
+            // JSON: "sectionSpacing": 32
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 5. Content Area
-            if (filteredHabitsWithStatus.isEmpty()) {
-                // Empty State: Lotus Icon + Encouraging Text
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SelfImprovement,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.no_habits_msg),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp) // Space for FAB
-                ) {
-                    items(filteredHabitsWithStatus, key = { it.id }) { habit ->
-                        HabitCard(
-                            habit = habit,
-                            onCardClick = {
-                                // Navigate to Stats/History
-                                navController.navigate(Screen.HabitStats.createRoute(habit.id))
-                            },
-                            onCheckClick = {
-                                viewModel.toggleHabitCompletion(habit.id, selectedDate)
-                            }
+            // --- 2. PREMIUM DATE SELECTOR ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                listOf("M", "T", "W", "T", "F", "S", "S").forEachIndexed { index, day ->
+                    val isToday = index == 2
+                    Box(
+                        modifier = Modifier
+                            // JSON: "dateChip.height": 40
+                            .size(40.dp)
+                            .background(
+                                color = if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                // JSON: "dateChip.radius": 16
+                                shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = day,
+                            color = if (isToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }
             }
+
+            // JSON: "sectionSpacing": 32
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
+            Text(
+                text = "Today's Rituals",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            // JSON: "componentSpacing": 20 (Using xl for spacing between title and list)
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+
+            // --- 3. HABIT LIST ---
+            if (habits.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    Text(
+                        text = "No rituals for today. Take a rest.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                LazyColumn(
+                    // JSON: "spacing.lg": 16 (Space between cards)
+                    verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
+                    // Adding bottom padding so the FAB doesn't cover the last item
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    items(habits) { habit ->
+                        PremiumHabitCard(habit = habit, isDark = isDark)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Premium Card using centralized design tokens for shadow, radius, and padding.
+ */
+@Composable
+fun PremiumHabitCard(habit: Habit, isDark: Boolean) {
+    Card(
+        // JSON: "card.radius": 20
+        shape = RoundedCornerShape(HabitualTheme.radius.large),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            // Premium Rule: Soft shadow in light mode, NO shadow in dark mode
+            defaultElevation = if (isDark) 0.dp else 4.dp
+        ),
+        // Premium Rule: Subtle 1px white border in dark mode
+        border = if (isDark) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                // JSON: "card.padding": 20
+                .padding(HabitualTheme.components.cardPadding)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = habit.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                // JSON: "spacing.xs": 4
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
+
+                Text(
+                    text = habit.category,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "Complete",
+                tint = MaterialTheme.colorScheme.primary,
+                // Premium Rule: Min touch target sizing
+                modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
+            )
         }
     }
 }
