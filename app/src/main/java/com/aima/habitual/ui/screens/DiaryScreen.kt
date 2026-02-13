@@ -22,14 +22,15 @@ import com.aima.habitual.viewmodel.HabitViewModel
 fun DiaryScreen(
     navController: NavHostController,
     viewModel: HabitViewModel,
-    onEntryClick: (String) -> Unit // <--- REQUIRED for Master/Detail
+    onEntryClick: (String) -> Unit,
+    onAddClick: () -> Unit // Separate callback for FAB
 ) {
     val entries = viewModel.diaryEntries
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onEntryClick("new") }, // Click "+" -> Go to New Entry
+                onClick = onAddClick,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {

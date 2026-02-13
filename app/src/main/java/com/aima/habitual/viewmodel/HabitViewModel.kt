@@ -31,6 +31,23 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
 
+    // --- LEVELING SYSTEM ---
+    val currentLevel: Int
+        get() = records.size / 2
+
+    val habitsForNextLevel: Int
+        get() = 2 - (records.size % 2)
+
+    val levelProgress: Float
+        get() = (records.size % 2) / 2f
+
+    // --- 5. PERSISTENT SENSOR & STEP LOGIC ---
+    // Keys for SharedPreferences
+    private val KEY_STEPS_TODAY = "saved_steps_today"
+    private val KEY_LAST_SENSOR = "last_sensor_value"
+    private val KEY_LAST_DATE = "last_step_date"
+    private val KEY_REWARDS = "saved_rewards_today"
+
     // --- 3. USER PROFILE LOGIC ---
     // Loads saved name or defaults to "Ritual Specialist"
     var userName by mutableStateOf(
@@ -79,12 +96,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // --- 5. PERSISTENT SENSOR & STEP LOGIC ---
-    // Keys for SharedPreferences
-    private val KEY_STEPS_TODAY = "saved_steps_today"
-    private val KEY_LAST_SENSOR = "last_sensor_value"
-    private val KEY_LAST_DATE = "last_step_date"
-    private val KEY_REWARDS = "saved_rewards_today"
-
+    
     private val stepSensor = StepSensorManager(application)
     
     // In-memory definition, but backed by Prefs

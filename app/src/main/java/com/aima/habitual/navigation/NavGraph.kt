@@ -90,6 +90,9 @@ fun NavGraph(
                 viewModel = viewModel,
                 onEntryClick = { entryId ->
                     navController.navigate(Screen.DiaryView.createRoute(entryId))
+                },
+                onAddClick = {
+                    navController.navigate(Screen.DiaryDetail.createRoute("new"))
                 }
             )
         }

@@ -64,7 +64,9 @@ fun ProfileScreen(
     val focusManager = LocalFocusManager.current
 
     val habits = viewModel.habits
-    val level = viewModel.wellbeingStats.stepsCount / 1000
+    val level = viewModel.currentLevel
+    val progress = viewModel.levelProgress
+    val toNextLevel = viewModel.habitsForNextLevel
 
     Column(
         modifier = Modifier
@@ -190,6 +192,27 @@ fun ProfileScreen(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
+
+        // Level Progress Bar
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "$toNextLevel habits to Level ${level + 1}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
