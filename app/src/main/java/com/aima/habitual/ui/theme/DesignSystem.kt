@@ -31,7 +31,8 @@ data class HabitualComponents(
     val minTouchTarget: Dp = 44.dp,
     val bottomNavHeight: Dp = 64.dp,
     val cardPadding: Dp = 20.dp,
-    val iconLarge: Dp = 48.dp
+    val iconLarge: Dp = 48.dp,
+    val iconSmall: Dp = 16.dp
 )
 
 // 4. Create "Locals" so Compose can pass these down the UI tree

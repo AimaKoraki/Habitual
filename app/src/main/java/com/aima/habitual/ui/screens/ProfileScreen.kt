@@ -27,11 +27,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.aima.habitual.R
 import com.aima.habitual.viewmodel.HabitViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,7 +90,7 @@ fun ProfileScreen(
                             .data(selectedImageUri)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Profile Picture",
+                        contentDescription = stringResource(R.string.desc_profile_picture),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -148,7 +150,7 @@ fun ProfileScreen(
                 }) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Save Name",
+                        contentDescription = stringResource(R.string.desc_save_name),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -173,7 +175,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Name",
+                    contentDescription = stringResource(R.string.desc_edit_name),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.size(20.dp)
                 )
@@ -181,7 +183,7 @@ fun ProfileScreen(
         }
 
         Text(
-            text = "Mastery Level: $level",
+            text = stringResource(R.string.profile_mastery_level, level),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -212,7 +214,7 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "Dark Mode",
+                            text = stringResource(R.string.profile_dark_mode),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -246,7 +248,7 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "My Rituals",
+                            text = stringResource(R.string.profile_my_rituals),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -278,7 +280,7 @@ fun ProfileScreen(
             Icon(imageVector = Icons.Default.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Log Out",
+                text = stringResource(R.string.profile_log_out),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -301,14 +303,14 @@ fun ProfileScreen(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Your Rituals",
+                    text = stringResource(R.string.profile_your_rituals),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 if (habits.isEmpty()) {
-                    Text("No rituals added yet.", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.profile_no_rituals), style = MaterialTheme.typography.bodyLarge)
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -350,7 +352,7 @@ fun ProfileScreen(
                                     IconButton(onClick = { viewModel.deleteHabit(habit.id) }) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete",
+                                            contentDescription = stringResource(R.string.desc_delete),
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                     }

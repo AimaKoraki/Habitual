@@ -7,8 +7,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.R
 
 @Composable
 fun DiaryHeader(
@@ -33,7 +35,7 @@ fun DiaryHeader(
 
         TextButton(onClick = onSortClick) {
             Text(
-                text = "Sort by",
+                text = stringResource(R.string.sort_by),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary // Forest Green
             )

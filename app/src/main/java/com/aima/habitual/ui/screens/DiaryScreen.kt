@@ -32,7 +32,7 @@ fun DiaryScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Entry")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.desc_add_entry))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -53,7 +53,7 @@ fun DiaryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Your journal is empty.",
+                        text = stringResource(R.string.diary_empty_journal),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

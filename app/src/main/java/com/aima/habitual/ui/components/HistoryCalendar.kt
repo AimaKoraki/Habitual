@@ -13,10 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aima.habitual.R
 import com.aima.habitual.model.HabitRecord
 import java.time.LocalDate
 import java.time.YearMonth
@@ -36,7 +38,15 @@ fun HistoryCalendar(records: List<HabitRecord>) {
 
     // Offset calculation: ensure the grid starts on the correct day of the week
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
-    val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    val daysOfWeek = listOf(
+        stringResource(R.string.day_sun),
+        stringResource(R.string.day_mon),
+        stringResource(R.string.day_tue),
+        stringResource(R.string.day_wed),
+        stringResource(R.string.day_thu),
+        stringResource(R.string.day_fri),
+        stringResource(R.string.day_sat)
+    )
 
     Column(
         modifier = Modifier

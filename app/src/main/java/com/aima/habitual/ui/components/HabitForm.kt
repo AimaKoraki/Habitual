@@ -29,7 +29,13 @@ fun HabitForm(
     // 1. Form State
     var habitName by remember { mutableStateOf(initialHabit?.title ?: "") }
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Health", "Study", "Personal", "Work", "Wellbeing")
+    val categories = listOf(
+        stringResource(R.string.category_health),
+        stringResource(R.string.category_study),
+        stringResource(R.string.category_personal),
+        stringResource(R.string.category_work),
+        stringResource(R.string.category_wellbeing)
+    )
     var selectedCategory by remember { mutableStateOf(initialHabit?.category ?: categories[0]) }
     var targetMonths by remember { mutableFloatStateOf(initialHabit?.targetMonths?.toFloat() ?: 1f) }
 
@@ -51,7 +57,7 @@ fun HabitForm(
             onValueChange = { habitName = it },
             label = { Text(stringResource(R.string.habit_name_label)) },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("e.g. Drink Water") },
+            placeholder = { Text(stringResource(R.string.habit_name_placeholder)) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
@@ -115,7 +121,7 @@ fun HabitForm(
                             selectedDays = (0..6).toSet() // Select all (Sun-Sat)
                         }
                     },
-                    label = { Text("Every Day") },
+                    label = { Text(stringResource(R.string.every_day)) },
                     leadingIcon = {
                         if (isEveryDaySelected) {
                             Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.size(16.dp))

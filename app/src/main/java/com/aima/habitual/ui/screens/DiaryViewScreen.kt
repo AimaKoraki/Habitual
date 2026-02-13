@@ -12,9 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.aima.habitual.R
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.viewmodel.HabitViewModel
 
@@ -31,8 +33,8 @@ fun DiaryViewScreen(
     if (entry == null) {
         // Fallback if entry is missing
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Entry not found")
-            Button(onClick = { navController.popBackStack() }) { Text("Go Back") }
+            Text(stringResource(R.string.diary_entry_not_found_label))
+            Button(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.btn_go_back)) }
         }
         return
     }
@@ -44,7 +46,7 @@ fun DiaryViewScreen(
                 title = { }, // Empty title for a cleaner look
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.desc_back))
                     }
                 },
                 actions = {
@@ -55,7 +57,7 @@ fun DiaryViewScreen(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(40.dp).padding(end = 16.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Entry", modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.desc_edit_entry), modifier = Modifier.size(20.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -102,7 +104,7 @@ fun DiaryViewScreen(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "#$tag",
+                                text = stringResource(R.string.tag_prefix, tag),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)

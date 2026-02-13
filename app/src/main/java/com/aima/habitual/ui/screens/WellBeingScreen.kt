@@ -100,7 +100,7 @@ fun WellBeingScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Sync,
-                        contentDescription = "Sync Steps",
+                        contentDescription = stringResource(R.string.desc_sync_steps),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.dp)
                     )
@@ -114,7 +114,7 @@ fun WellBeingScreen(
                         color = MaterialTheme.colorScheme.onBackground // Fix text color
                     )
                     Text(
-                        text = "Steps",
+                        text = stringResource(R.string.wellbeing_steps),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -126,7 +126,7 @@ fun WellBeingScreen(
             // Stats Grid
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    text = "Daily Summary",
+                    text = stringResource(R.string.wellbeing_daily_summary),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground // Fix text color
@@ -139,7 +139,7 @@ fun WellBeingScreen(
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
                         HealthStatCard(
-                            label = "Sleep",
+                            label = stringResource(R.string.wellbeing_sleep),
                             value = "${stats.sleepDurationHours}h",
                             icon = Icons.Default.NightsStay,
                             color = MaterialTheme.colorScheme.secondary,
@@ -148,7 +148,7 @@ fun WellBeingScreen(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         HealthStatCard(
-                            label = "Water",
+                            label = stringResource(R.string.wellbeing_water),
                             value = "${stats.waterIntakeMl}ml",
                             icon = Icons.Default.LocalDrink,
                             color = MaterialTheme.colorScheme.primary,
@@ -172,7 +172,7 @@ fun WellBeingScreen(
             ) {
                 Icon(Icons.Default.LocalDrink, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Log Water")
+                Text(stringResource(R.string.wellbeing_log_water))
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -183,10 +183,10 @@ fun WellBeingScreen(
     if (showSleepDialog) {
         AlertDialog(
             onDismissRequest = { showSleepDialog = false },
-            title = { Text("Update Sleep") },
+            title = { Text(stringResource(R.string.dialog_update_sleep)) },
             text = {
                 Column {
-                    Text("How many hours did you sleep?")
+                    Text(stringResource(R.string.dialog_sleep_prompt))
                     Spacer(modifier = Modifier.height(16.dp))
                     Slider(
                         value = stats.sleepDurationHours.toFloat(),
@@ -197,13 +197,13 @@ fun WellBeingScreen(
                         steps = 23
                     )
                     Text(
-                        text = String.format("%.1f Hours", stats.sleepDurationHours),
+                        text = String.format("%.1f", stats.sleepDurationHours) + " " + stringResource(R.string.wellbeing_sleep),
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
             },
-            confirmButton = { TextButton(onClick = { showSleepDialog = false }) { Text("Done") } },
+            confirmButton = { TextButton(onClick = { showSleepDialog = false }) { Text(stringResource(R.string.btn_done)) } },
             // FIX 2: Use Theme Surface Color
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -212,13 +212,13 @@ fun WellBeingScreen(
     if (showWaterDialog) {
         AlertDialog(
             onDismissRequest = { showWaterDialog = false },
-            title = { Text("Log Water Intake") },
+            title = { Text(stringResource(R.string.dialog_log_water_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = waterAmountInput,
                         onValueChange = { if (it.all { char -> char.isDigit() }) waterAmountInput = it },
-                        label = { Text("Amount ($selectedUnit)") },
+                        label = { Text(stringResource(R.string.wellbeing_amount_label, selectedUnit)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
@@ -252,9 +252,9 @@ fun WellBeingScreen(
                             showWaterDialog = false
                         }
                     }
-                ) { Text("Add") }
+                ) { Text(stringResource(R.string.btn_add)) }
             },
-            dismissButton = { TextButton(onClick = { showWaterDialog = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showWaterDialog = false }) { Text(stringResource(R.string.btn_cancel)) } },
             // FIX 3: Use Theme Surface Color
             containerColor = MaterialTheme.colorScheme.surface
         )

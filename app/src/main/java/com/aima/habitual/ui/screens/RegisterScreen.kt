@@ -6,9 +6,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.R
 
 @Composable
 fun RegisterScreen(
@@ -27,7 +29,7 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Create Account",
+            text = stringResource(R.string.register_title),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -38,7 +40,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = userName,
             onValueChange = { userName = it },
-            label = { Text("Full Name") },
+            label = { Text(stringResource(R.string.register_name_hint)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(12.dp)
@@ -49,7 +51,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email Address") },
+            label = { Text(stringResource(R.string.register_email_hint)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(12.dp)
@@ -60,7 +62,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Create Password") },
+            label = { Text(stringResource(R.string.register_password_hint)) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -74,7 +76,7 @@ fun RegisterScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(checked = termsAccepted, onCheckedChange = { termsAccepted = it })
-            Text("I agree to the Terms of Service", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.register_terms), style = MaterialTheme.typography.bodySmall)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -86,11 +88,11 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Sign Up")
+            Text(stringResource(R.string.register_btn_text))
         }
 
         TextButton(onClick = onNavigateToLogin) {
-            Text("Already have an account? Log In")
+            Text(stringResource(R.string.register_login_prompt))
         }
     }
 }

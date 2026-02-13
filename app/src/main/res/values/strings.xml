@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Habitual</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
     <string name="btn_done">Done</string>
     <string name="btn_add">Add</string>
+    <string name="btn_cancel">Cancel</string>
     <string name="btn_go_back">Go Back</string>
 
     <string name="nav_dashboard">Rituals</string>
@@ -33,7 +33,6 @@
     <string name="save_ritual">Save Ritual</string>
     <string name="update_ritual">Update Ritual</string>
     <string name="desc_delete_ritual">Delete Ritual</string>
-    
     <string name="dialog_delete_title">Delete Ritual?</string>
     <string name="dialog_delete_text">This will permanently remove \'%1$s\' and all its completion history. This action cannot be undone.</string>
     <string name="btn_delete">Delete</string>
@@ -43,6 +42,14 @@
     <string name="category_personal">Personal</string>
     <string name="category_work">Work</string>
     <string name="category_wellbeing">Well-being</string>
+
+    <string name="wellbeing_header">Well-being</string>
+    <string name="wellbeing_steps">Steps</string>
+    <string name="steps_label">Steps</string> <string name="wellbeing_sleep">Sleep</string>
+    <string name="sleep_label">Sleep</string> <string name="wellbeing_water">Water</string>
+    <string name="wellbeing_log_water">Log Water</string>
+    <string name="log_water">Log Water</string> <string name="wellbeing_daily_summary">Daily Summary</string>
+    <string name="desc_sync_steps">Sync Steps</string>
 
     <string name="every_day">Every Day</string>
     <string name="day_initial_su">S</string>
@@ -61,14 +68,6 @@
     <string name="day_fri">Fri</string>
     <string name="day_sat">Sat</string>
 
-    <string name="wellbeing_header">Well-being</string>
-    <string name="wellbeing_steps">Steps</string>
-    <string name="wellbeing_daily_summary">Daily Summary</string>
-    <string name="wellbeing_sleep">Sleep</string>
-    <string name="wellbeing_water">Water</string>
-    <string name="wellbeing_log_water">Log Water</string>
-    <string name="desc_sync_steps">Sync Steps</string>
-
     <string name="dialog_update_sleep">Update Sleep</string>
     <string name="dialog_sleep_prompt">How many hours did you sleep?</string>
     <string name="dialog_sleep_format">%.1f Hours</string>
@@ -86,18 +85,17 @@
     <string name="diary_label_title">Title</string>
     <string name="diary_label_add_tag">Add Tag</string>
     <string name="diary_label_content">How was your day?</string>
-    <string name="diary_empty_state">Your journal is empty. Take a moment to reflect.</string>
-    <string name="diary_entry_not_found">Entry not found. It may have been deleted.</string>
-    
-    <string name="desc_back">Navigate Back</string>
-    <string name="desc_save">Save Entry</string>
     <string name="desc_add_tag">Add Tag</string>
     <string name="desc_remove_tag">Remove Tag</string>
+    <string name="diary_empty_state">Your journal is empty. Take a moment to reflect.</string>
     <string name="desc_add_entry">Add New Entry</string>
+    <string name="diary_entry_not_found">Entry not found. It may have been deleted.</string>
     <string name="desc_edit_entry">Edit Entry</string>
+    <string name="tag_prefix">#%1$s</string>
     <string name="desc_sort_options">Sort Options</string>
     <string name="desc_diary_icon">Diary Entry</string>
-    <string name="tag_prefix">#%1$s</string>
+    <string name="desc_back">Navigate Back</string>
+    <string name="desc_save">Save Entry</string>
 
     <string name="current_streak">Current Streak</string>
     <string name="days_count">%1$d Days</string>
@@ -111,7 +109,6 @@
     <string name="login_password_hint">Password</string>
     <string name="login_btn_text">Login</string>
     <string name="login_register_prompt">Don\'t have an account? Register</string>
-
     <string name="register_title">Create Account</string>
     <string name="register_name_hint">Full Name</string>
     <string name="register_email_hint">Email Address</string>
@@ -126,9 +123,20 @@
     <string name="profile_log_out">Log Out</string>
     <string name="profile_your_rituals">Your Rituals</string>
     <string name="profile_no_rituals">No rituals added yet.</string>
-    
     <string name="desc_profile_picture">Profile Picture</string>
     <string name="desc_save_name">Save Name</string>
     <string name="desc_edit_name">Edit Name</string>
 
+    <string name="greeting_morning">Good Morning,</string>
+    <string name="default_user_name">Ritualist</string>
+    <string name="todays_rituals">Today\'s Rituals</string>
+    <string name="no_rituals_today">No rituals for today. Take a rest.</string>
+    <string name="desc_add_ritual">Add Ritual</string>
+    <string name="desc_complete">Complete</string>
+    <string name="desc_completed_ritual">Completed</string>
+    <string name="desc_delete">Delete</string>
+    <string name="desc_edit_entry_action">Edit Entry</string>
+    <string name="diary_empty_journal">Your journal is empty.</string>
+    <string name="diary_entry_not_found_label">Entry not found</string>
+    <string name="wellbeing_amount_label">Amount (%1$s)</string>
 </resources>

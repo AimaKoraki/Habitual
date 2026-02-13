@@ -62,7 +62,7 @@ fun HabitDetailScreen(
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Ritual",
+                                contentDescription = stringResource(R.string.desc_delete_ritual),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -93,8 +93,8 @@ fun HabitDetailScreen(
             if (showDeleteDialog && existingHabit != null) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
-                    title = { Text(text = "Delete Ritual?") },
-                    text = { Text(text = "This will permanently remove '${existingHabit.title}' and all its completion history. This action cannot be undone.") },
+                    title = { Text(text = stringResource(R.string.dialog_delete_title)) },
+                    text = { Text(text = stringResource(R.string.dialog_delete_text, existingHabit.title)) },
                     confirmButton = {
                         Button(
                             onClick = {
@@ -106,12 +106,12 @@ fun HabitDetailScreen(
                                 containerColor = MaterialTheme.colorScheme.error
                             )
                         ) {
-                            Text("Delete")
+                            Text(stringResource(R.string.btn_delete))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteDialog = false }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.btn_cancel))
                         }
                     }
                 )

@@ -12,10 +12,12 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.aima.habitual.R
 import com.aima.habitual.model.DiaryEntry
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -23,7 +25,7 @@ import java.util.UUID
 
 /**
  * DiaryDetailScreen provides the interface to create or edit journal entries.
- * Integrated with Forest Green & Soft Sage branding.
+ * Fully integrated with the Premium Minimal Wellness design token system.
  */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -32,35 +34,37 @@ fun DiaryDetailScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    // 1. Logic: Check if we are editing an existing entry
-    // We use a safe call in case the list is empty or ID is null
     val existingEntry = viewModel.diaryEntries.find { it.id == entryId }
 
-    // 2. State: Fields
     var title by remember { mutableStateOf(existingEntry?.title ?: "") }
     var content by remember { mutableStateOf(existingEntry?.content ?: "") }
 
-    // 3. State: Tags
     var currentTagInput by remember { mutableStateOf("") }
-    val tags = remember { mutableStateListOf<String>().apply {
-        addAll(existingEntry?.tags ?: emptyList())
-    }}
+    val tags = remember {
+        mutableStateListOf<String>().apply {
+            addAll(existingEntry?.tags ?: emptyList())
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (existingEntry == null) "New Entry" else "Edit Entry") },
+                title = {
+                    Text(
+                        text = if (existingEntry == null) stringResource(R.string.diary_new_entry)
+                        else stringResource(R.string.diary_edit_entry),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.desc_back))
                     }
                 },
                 actions = {
-                    // SAVE BUTTON
                     IconButton(
                         onClick = {
-                            val todayDate = LocalDate.now()
-                                .format(DateTimeFormatter.ofPattern("dd MMM"))
+                            val todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM"))
 
                             val entry = DiaryEntry(
                                 id = existingEntry?.id ?: UUID.randomUUID().toString(),
@@ -81,9 +85,11 @@ fun DiaryDetailScreen(
                         enabled = title.isNotBlank() && content.isNotBlank()
                     ) {
                         Icon(
-                            Icons.Default.Save,
-                            contentDescription = "Save",
-                            tint = MaterialTheme.colorScheme.primary
+                            imageVector = Icons.Default.Save,
+                            contentDescription = stringResource(R.string.desc_save),
+                            tint = if (title.isNotBlank() && content.isNotBlank())
+                                MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -95,30 +101,38 @@ fun DiaryDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                // JSON Token: "screenPadding": 24
+                .padding(horizontal = HabitualTheme.spacing.screen),
+            // JSON Token: "spacing.lg": 16
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)
         ) {
+
+            // JSON Token: "spacing.lg": 16 (Top breathing room)
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+
             // A. Title Field
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.diary_label_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                )
+                // Soften the harsh square corners of default text fields
+                shape = RoundedCornerShape(HabitualTheme.radius.medium)
             )
 
             // B. Tag Input Section
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                // JSON Token: "spacing.sm": 8
+                verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+            ) {
                 OutlinedTextField(
                     value = currentTagInput,
                     onValueChange = { currentTagInput = it },
-                    label = { Text("Add Tag") },
+                    label = { Text(stringResource(R.string.diary_label_add_tag)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    shape = RoundedCornerShape(HabitualTheme.radius.medium),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
                         if (currentTagInput.isNotBlank()) {
@@ -135,7 +149,7 @@ fun DiaryDetailScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Add Tag",
+                                contentDescription = stringResource(R.string.desc_add_tag),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -146,26 +160,28 @@ fun DiaryDetailScreen(
                 if (tags.isNotEmpty()) {
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        // JSON Token: "spacing.sm": 8
+                        horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
                     ) {
                         tags.forEach { tag ->
                             InputChip(
                                 selected = true,
                                 onClick = { tags.remove(tag) },
-                                label = { Text(tag) },
+                                label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
                                 trailingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Remove",
-                                        modifier = Modifier.size(16.dp)
+                                        contentDescription = stringResource(R.string.desc_remove_tag),
+                                        modifier = Modifier.size(HabitualTheme.components.iconSmall)
                                     )
                                 },
                                 colors = InputChipDefaults.inputChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 ),
-                                shape = RoundedCornerShape(16.dp)
+                                // JSON Token: "radius.medium": 16
+                                shape = RoundedCornerShape(HabitualTheme.radius.medium)
                             )
                         }
                     }
@@ -176,16 +192,15 @@ fun DiaryDetailScreen(
             OutlinedTextField(
                 value = content,
                 onValueChange = { content = it },
-                label = { Text("How was your day?") },
+                label = { Text(stringResource(R.string.diary_label_content)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f), // Fills remaining space
-                // FIX: Removed 'textAlign' parameter (it does not exist in OutlinedTextField)
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                )
+                    .weight(1f), // Fills remaining space so the user has a large typing area
+                shape = RoundedCornerShape(HabitualTheme.radius.medium)
             )
+
+            // Bottom breathing room
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
         }
     }
 }

@@ -44,7 +44,7 @@ fun PrimaryActionButton(
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary, // Forest Green
-            contentColor = Color.White
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ),
         enabled = enabled
     ) {

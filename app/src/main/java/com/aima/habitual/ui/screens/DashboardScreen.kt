@@ -15,9 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.aima.habitual.R
 import com.aima.habitual.model.Habit
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.theme.HabitualTheme
@@ -46,7 +48,7 @@ fun DashboardScreen(
                 // JSON: "fab.iconSize": 20
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add Ritual",
+                    contentDescription = stringResource(R.string.desc_add_ritual),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -64,12 +66,12 @@ fun DashboardScreen(
 
             // --- 1. HEADER SECTION ---
             Text(
-                text = "Good Morning,",
+                text = stringResource(R.string.greeting_morning),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
             Text(
-                text = viewModel.userName.ifEmpty { "Ritualist" },
+                text = viewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
                 style = MaterialTheme.typography.displayMedium, // Using new premium typography
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -108,7 +110,7 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
             Text(
-                text = "Today's Rituals",
+                text = stringResource(R.string.todays_rituals),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -120,7 +122,7 @@ fun DashboardScreen(
             if (habits.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     Text(
-                        text = "No rituals for today. Take a rest.",
+                        text = stringResource(R.string.no_rituals_today),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -187,7 +189,7 @@ fun PremiumHabitCard(habit: Habit, isDark: Boolean) {
 
             Icon(
                 imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Complete",
+                contentDescription = stringResource(R.string.desc_complete),
                 tint = MaterialTheme.colorScheme.primary,
                 // Premium Rule: Min touch target sizing
                 modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
