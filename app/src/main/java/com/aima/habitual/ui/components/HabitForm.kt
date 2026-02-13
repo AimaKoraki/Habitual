@@ -5,38 +5,39 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.R
 import com.aima.habitual.model.Habit
 import com.aima.habitual.viewmodel.HabitViewModel
 
-/**
- * HabitForm handles the data entry for both creating and editing habits.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitForm(
     viewModel: HabitViewModel,
-    initialHabit: Habit? = null, // Parameter to support editing existing habits
+    initialHabit: Habit? = null,
     onSave: () -> Unit
 ) {
-    // 1. Form State: Initialized with existing habit data if present, otherwise defaults
+    // 1. Form State
     var habitName by remember { mutableStateOf(initialHabit?.title ?: "") }
     var expanded by remember { mutableStateOf(false) }
     val categories = listOf("Health", "Study", "Personal", "Work", "Wellbeing")
     var selectedCategory by remember { mutableStateOf(initialHabit?.category ?: categories[0]) }
-
-    // Slider state (Float) converted from the Int in our Model
     var targetMonths by remember { mutableFloatStateOf(initialHabit?.targetMonths?.toFloat() ?: 1f) }
 
     val dayLabels = listOf("S", "M", "T", "W", "T", "F", "S")
-    // Convert List from model to a Set for easier toggling in the UI
     var selectedDays by remember { mutableStateOf(initialHabit?.repeatDays?.toSet() ?: emptySet()) }
+
+    // Helper: Check if all days are selected
+    val isEveryDaySelected = selectedDays.size == 7
 
     Column(
         modifier = Modifier
@@ -48,12 +49,16 @@ fun HabitForm(
         OutlinedTextField(
             value = habitName,
             onValueChange = { habitName = it },
-            label = { Text("Habit Name") },
+            label = { Text(stringResource(R.string.habit_name_label)) },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("e.g. Drink Water") }
+            placeholder = { Text("e.g. Drink Water") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            )
         )
 
-        // Field 2: Category Dropdown (Exposed Dropdown Menu)
+        // Field 2: Category Dropdown
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
@@ -62,11 +67,15 @@ fun HabitForm(
                 value = selectedCategory,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Category") },
+                label = { Text(stringResource(R.string.category_label)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
-                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
-                    .fillMaxWidth()
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -84,10 +93,44 @@ fun HabitForm(
             }
         }
 
-        // Field 3: Circular Day Selectors (Repeat Days)
+        // Field 3: Day Selection with "Every Day" Toggle
         Column {
-            Text("Repeat on", style = MaterialTheme.typography.titleSmall)
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.repeat_on_label),
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+                // NEW: "Every Day" Chip
+                FilterChip(
+                    selected = isEveryDaySelected,
+                    onClick = {
+                        if (isEveryDaySelected) {
+                            selectedDays = emptySet() // Clear all
+                        } else {
+                            selectedDays = (0..6).toSet() // Select all (Sun-Sat)
+                        }
+                    },
+                    label = { Text("Every Day") },
+                    leadingIcon = {
+                        if (isEveryDaySelected) {
+                            Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Day Circles
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -98,28 +141,37 @@ fun HabitForm(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(if (isSelected) Color(0xFF004D40) else Color.Transparent)
-                            .border(1.dp, Color.LightGray, CircleShape)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.secondaryContainer
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape
+                            )
                             .clickable {
-                                // Toggle logic: Add if absent, remove if present
+                                // Toggle individual day
                                 selectedDays = if (isSelected) selectedDays - index else selectedDays + index
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = label,
-                            color = if (isSelected) Color.White else Color.Black,
-                            style = MaterialTheme.typography.bodySmall
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                            else MaterialTheme.colorScheme.onSecondaryContainer,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
                         )
                     }
                 }
             }
         }
 
-        // Field 4: Target Duration Slider
+        // Field 4: Target Duration
         Column {
             Text(
-                text = "Target Duration: ${targetMonths.toInt()} ${if (targetMonths.toInt() == 1) "Month" else "Months"}",
+                text = stringResource(R.string.target_duration_label, targetMonths.toInt()),
                 style = MaterialTheme.typography.bodyMedium
             )
             Slider(
@@ -128,43 +180,52 @@ fun HabitForm(
                 valueRange = 1f..12f,
                 steps = 10,
                 colors = SliderDefaults.colors(
-                    activeTrackColor = Color(0xFF004D40),
-                    thumbColor = Color(0xFF004D40)
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    thumbColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
 
-        // Field 5: Save/Update Button
+        // Field 5: Action Button
         Button(
             onClick = {
+                // Ensure at least one day is selected before saving
+                val daysToSave = if (selectedDays.isEmpty()) (0..6).toList() else selectedDays.toList()
+
                 if (initialHabit == null) {
-                    // Logic for Creating New Habit
                     val newHabit = Habit(
                         title = habitName,
                         category = selectedCategory,
-                        repeatDays = selectedDays.toList(),
+                        repeatDays = daysToSave,
                         targetMonths = targetMonths.toInt()
                     )
                     viewModel.addHabit(newHabit)
                 } else {
-                    // Logic for Updating Existing Habit
                     val index = viewModel.habits.indexOfFirst { it.id == initialHabit.id }
                     if (index != -1) {
                         viewModel.habits[index] = initialHabit.copy(
                             title = habitName,
                             category = selectedCategory,
-                            repeatDays = selectedDays.toList(),
+                            repeatDays = daysToSave,
                             targetMonths = targetMonths.toInt()
                         )
                     }
                 }
-                onSave() // Navigate back to Dashboard
+                onSave()
             },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004D40)),
-            enabled = habitName.isNotBlank() // Validation: Prevent saving empty habits
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            enabled = habitName.isNotBlank()
         ) {
-            Text(if (initialHabit == null) "Save Ritual" else "Update Ritual")
+            Text(
+                text = if (initialHabit == null)
+                    stringResource(R.string.save_ritual)
+                else
+                    stringResource(R.string.update_ritual)
+            )
         }
     }
 }

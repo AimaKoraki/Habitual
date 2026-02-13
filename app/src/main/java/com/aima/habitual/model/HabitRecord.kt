@@ -1,3 +1,4 @@
+/** HabitRecord.kt **/
 package com.aima.habitual.model
 
 import java.util.UUID

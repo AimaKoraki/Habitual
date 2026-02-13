@@ -8,14 +8,20 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.aima.habitual.R
 import com.aima.habitual.ui.components.StreakCard
 import com.aima.habitual.ui.components.ConsistencyChart
 import com.aima.habitual.ui.components.HistoryCalendar
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 
+/**
+ * HabitStatsScreen visualizes progress for a specific habit using charts and a calendar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitStatsScreen(
@@ -23,16 +29,14 @@ fun HabitStatsScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
+    // 1. Data Retrieval: Find the habit and its specific completion history
     val habit = viewModel.habits.find { it.id == habitId }
-
-    // Filter records specifically for this habit
     val habitRecords = viewModel.records.filter { it.habitId == habitId }
 
-    // Logic: Calculate current streak
+    // 2. Logic: Calculate current streak (Counting backwards from today)
     val currentStreak = remember(habitRecords) {
         var streak = 0
         var checkDate = LocalDate.now()
-        // Simple streak logic: count backwards from today
         while (habitRecords.any { it.timestamp == checkDate.toEpochDay() && it.isCompleted }) {
             streak++
             checkDate = checkDate.minusDays(1)
@@ -43,12 +47,26 @@ fun HabitStatsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(habit?.title ?: "Habit Stats") },
+                title = {
+                    Text(
+                        text = habit?.title ?: stringResource(R.string.history_header),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = MaterialTheme.colorScheme.primary // Branded Deep Teal
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     ) { padding ->
@@ -56,20 +74,34 @@ fun HabitStatsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 1. Streak Card
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 1. Visual Highlight: The Streak Card (Peach)
             StreakCard(streakCount = currentStreak)
 
-            // 2. Consistency Chart (Last 7 Days)
-            Text("Consistency", style = MaterialTheme.typography.titleLarge)
+            // 2. Weekly Insight: Consistency Chart (Teal Bars)
+            Text(
+                text = stringResource(R.string.consistency_header),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
+            )
             ConsistencyChart(records = habitRecords)
 
-            // 3. History Calendar (Current Month)
-            Text("History", style = MaterialTheme.typography.titleLarge)
+            // 3. Monthly Overview: History Calendar
+            Text(
+                text = stringResource(R.string.history_header),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
+            )
             HistoryCalendar(records = habitRecords)
+
+            Spacer(modifier = Modifier.height(32.dp)) // Extra padding for bottom
         }
     }
 }

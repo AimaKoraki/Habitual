@@ -1,9 +1,14 @@
+/** Diary Entry **/
 package com.aima.habitual.model
 
+import java.util.UUID
+
 data class DiaryEntry(
-    val id: String = java.util.UUID.randomUUID().toString(),
-    val date: Long = System.currentTimeMillis(),
-    val mood: String, // e.g., "Happy", "Productive"
+    val id: String = UUID.randomUUID().toString(),
+    val title: String,
     val content: String,
-    val attachedImagePath: String? = null // For "optimized media" requirement
+    val date: String,
+    val tags: List<String> = emptyList(),
+    val categoryIcon: String = "General", // For umbrella, cake, etc.
+    val timestamp: Long = System.currentTimeMillis()
 )

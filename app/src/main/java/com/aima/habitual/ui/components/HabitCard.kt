@@ -1,3 +1,4 @@
+/** HabitCard.kt **/
 package com.aima.habitual.ui.components
 
 import androidx.compose.foundation.background
@@ -18,6 +19,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.model.Habit
 
+/**
+ * HabitCard updated to reflect the Forest Green & Soft Sage theme.
+ */
 @Composable
 fun HabitCard(
     habit: Habit,
@@ -25,9 +29,18 @@ fun HabitCard(
     onCardClick: () -> Unit,
     onCheckClick: () -> Unit
 ) {
-    // Determine colors based on completion to avoid the "white shadow" alpha glitch
+    // 1. Visual States: Logic for completed vs. active rituals
     val contentAlpha = if (habit.isCompleted) 0.5f else 1f
     val textDecoration = if (habit.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+
+    // Using theme colors for Forest Green and Soft Sage
+    val forestGreen = MaterialTheme.colorScheme.primary
+    val softSage = MaterialTheme.colorScheme.surfaceVariant
+
+    val cardContainerColor = if (habit.isCompleted)
+        softSage.copy(alpha = 0.6f) // Faded sage for completed rituals
+    else
+        softSage // Vibrant sage for active rituals
 
     ElevatedCard(
         onClick = onCardClick,
@@ -35,15 +48,10 @@ fun HabitCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(20.dp),
-        // Use a flatter look for completed items to reduce shadow artifacts
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = if (habit.isCompleted) 0.dp else 2.dp
         ),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = if (habit.isCompleted)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            else MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors = CardDefaults.elevatedCardColors(containerColor = cardContainerColor)
     ) {
         Row(
             modifier = Modifier
@@ -56,29 +64,30 @@ fun HabitCard(
                     text = habit.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    textDecoration = textDecoration, // Professional strike-through
+                    textDecoration = textDecoration,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
                 )
                 Text(
                     text = habit.category,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha)
+                    // Uses Forest Green for the ritual category
+                    color = forestGreen.copy(alpha = contentAlpha)
                 )
             }
 
-            // Circular Completion Button
+            // 2. Branded Completion Button with Forest Green accents
             IconButton(
                 onClick = onCheckClick,
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(
-                        if (habit.isCompleted) Color(0xFF004D40).copy(alpha = 0.6f)
+                        if (habit.isCompleted) forestGreen
                         else Color.Transparent
                     )
                     .border(
                         width = 2.dp,
-                        color = Color(0xFF004D40).copy(alpha = contentAlpha),
+                        color = forestGreen.copy(alpha = contentAlpha),
                         shape = CircleShape
                     )
             ) {
@@ -86,7 +95,7 @@ fun HabitCard(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Completed",
-                        tint = Color.White.copy(alpha = 0.9f)
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

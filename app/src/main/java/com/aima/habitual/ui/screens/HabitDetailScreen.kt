@@ -5,13 +5,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.aima.habitual.R
 import com.aima.habitual.ui.components.HabitForm
 import com.aima.habitual.viewmodel.HabitViewModel
 
+/**
+ * HabitDetailScreen provides the container for the HabitForm, managing edit vs. create modes.
+ * Now includes Delete functionality for existing rituals.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitDetailScreen(
@@ -19,25 +27,51 @@ fun HabitDetailScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    // Logic: If habitId is not "new", find the existing habit to edit
-    val existingHabit = if (habitId != "new") {
+    // 1. Logic: Determine if we are editing an existing habit
+    val existingHabit = if (habitId != null && habitId != "new") {
         viewModel.habits.find { it.id == habitId }
     } else null
+
+    // State for the Delete Confirmation Dialog
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (existingHabit == null) "Add Ritual" else "Edit Ritual")
+                    Text(
+                        text = if (existingHabit == null)
+                            stringResource(R.string.add_habit_title)
+                        else
+                            stringResource(R.string.edit_habit_title),
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
-                }
+                },
+                // Action button for deletion (only visible if editing)
+                actions = {
+                    if (existingHabit != null) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Ritual",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     ) { padding ->
@@ -47,12 +81,41 @@ fun HabitDetailScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // pass the existingHabit to the form for pre-filling
+
+            // 2. Integration: HabitForm handles the actual data entry logic
             HabitForm(
                 viewModel = viewModel,
                 initialHabit = existingHabit,
                 onSave = { navController.popBackStack() }
             )
+
+            // 3. Delete Confirmation Dialog
+            if (showDeleteDialog && existingHabit != null) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = { Text(text = "Delete Ritual?") },
+                    text = { Text(text = "This will permanently remove '${existingHabit.title}' and all its completion history. This action cannot be undone.") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.deleteHabit(existingHabit.id)
+                                showDeleteDialog = false
+                                navController.popBackStack()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Delete")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
         }
     }
 }
