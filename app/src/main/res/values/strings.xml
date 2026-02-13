@@ -45,4 +45,7 @@
     <string name="consistency_header">Consistency</string>
     <string name="history_header">History</string>
     <string name="profile_streak_label">Total Streak: %1$d days</string>
+    <string name="streak_icon_desc">Streak Fire Icon</string>
+
+
 </resources>
