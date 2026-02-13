@@ -82,7 +82,7 @@ fun NavGraph(
                 navController = navController,
                 viewModel = viewModel,
                 onEntryClick = { entryId ->
-                    navController.navigate("diary_detail/$entryId")
+                    navController.navigate(Screen.DiaryView.createRoute(entryId))
                 }
             )
         }
@@ -136,6 +136,17 @@ fun NavGraph(
             val habitId = backStackEntry.arguments?.getString("habitId")
             HabitStatsScreen(
                  habitId = habitId,
+                 navController = navController,
+                 viewModel = viewModel
+            )
+        }
+        composable(
+            route = Screen.DiaryView.route,
+            arguments = listOf(navArgument("entryId") { defaultValue = "" })
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            DiaryViewScreen(
+                 entryId = entryId,
                  navController = navController,
                  viewModel = viewModel
             )

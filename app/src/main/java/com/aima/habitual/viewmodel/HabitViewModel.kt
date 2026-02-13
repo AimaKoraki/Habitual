@@ -2,6 +2,8 @@ package com.aima.habitual.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.getValue
@@ -41,6 +43,24 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit().putString("user_name", newName).apply()
     }
 
+    // --- 3.1 PROFILE PICTURE ---
+    var profileImageUri by mutableStateOf<Uri?>(null)
+        private set
+
+    fun updateProfileImage(uri: Uri) {
+        // 1. Take persistable permission so we can read this later
+        try {
+            val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            getApplication<Application>().contentResolver.takePersistableUriPermission(uri, takeFlags)
+        } catch (e: Exception) {
+            e.printStackTrace() // Handle potential failure (e.g. if URI is not from document provider)
+        }
+
+        // 2. Save
+        profileImageUri = uri
+        prefs.edit().putString("user_image", uri.toString()).apply()
+    }
+
     // --- 4. WELLBEING STATS (Date-Aware) ---
     // Stores stats for each specific day (Key = EpochDay)
     private val _dailyStats = mutableStateMapOf<Long, WellbeingStats>()
@@ -74,6 +94,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // 1. Initialize State from Storage
         loadData()
+        
+        // Load Profile Image
+        val savedImage = prefs.getString("user_image", null)
+        if (savedImage != null) {
+            try {
+                profileImageUri = Uri.parse(savedImage)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
         val todayEpoch = LocalDate.now().toEpochDay()

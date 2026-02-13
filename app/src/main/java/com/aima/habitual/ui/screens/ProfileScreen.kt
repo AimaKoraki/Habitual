@@ -17,6 +17,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,11 +49,13 @@ fun ProfileScreen(
 ) {
     var showHabitsSheet by remember { mutableStateOf(false) }
 
-    // Image Picker State
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> if (uri != null) selectedImageUri = uri }
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri -> 
+            if (uri != null) {
+                viewModel.updateProfileImage(uri)
+            }
+        }
     )
 
     // Name Editing State
@@ -72,23 +76,21 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(HabitualTheme.components.iconLarge))
 
         // --- 1. AVATAR SECTION ---
-        Box(contentAlignment = Alignment.BottomEnd) {
+        Box(
+            contentAlignment = Alignment.BottomEnd,
+            modifier = Modifier.clickable { photoPickerLauncher.launch("image/*") }
+        ) {
             Box(
                 modifier = Modifier
                     .size(HabitualTheme.components.profileImage)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .clickable {
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedImageUri != null) {
+                if (viewModel.profileImageUri != null) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(selectedImageUri)
+                            .data(viewModel.profileImageUri)
                             .crossfade(true)
                             .build(),
                         contentDescription = stringResource(R.string.desc_profile_picture),
@@ -243,7 +245,7 @@ fun ProfileScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.ListAlt,
+                            imageVector = Icons.AutoMirrored.Filled.ListAlt,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -278,7 +280,7 @@ fun ProfileScreen(
             ),
             shape = RoundedCornerShape(HabitualTheme.radius.medium)
         ) {
-            Icon(imageVector = Icons.Default.Logout, contentDescription = null)
+            Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
             Text(
                 text = stringResource(R.string.profile_log_out),
