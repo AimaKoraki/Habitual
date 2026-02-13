@@ -2,7 +2,6 @@ package com.aima.habitual.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,60 +10,114 @@ import androidx.navigation.navArgument
 import com.aima.habitual.ui.screens.*
 import com.aima.habitual.viewmodel.HabitViewModel
 
+/**
+ * NavGraph manages the entire navigation structure.
+ * Updated to handle Auth flow and Master/Detail logic.
+ */
 @Composable
-fun SetupNavGraph(
+fun NavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier,
+    viewModel: HabitViewModel,
     isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    // 1. Initialize the shared ViewModel
-    val habitViewModel: HabitViewModel = viewModel()
-
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route,
+        // Start at Login if not authenticated, otherwise Dashboard
+        startDestination = if (viewModel.isLoggedIn) Screen.Dashboard.route else "login",
         modifier = modifier
     ) {
-        // 2. Dashboard Screen: Now receives the viewModel
-        composable(route = Screen.Dashboard.route) {
-            DashboardScreen(navController = navController, viewModel = habitViewModel)
+
+        // --- 1. AUTH FLOW ---
+
+        composable("login") {
+            LoginScreen(
+                onLoginSuccess = {
+                    viewModel.login()
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onNavigateToRegister = {
+                    navController.navigate("register")
+                }
+            )
         }
 
-        composable(route = Screen.WellBeing.route) { WellBeingScreen() }
-        composable(route = Screen.Diary.route) { DiaryScreen() }
+// Inside NavGraph.kt
+        composable("register") {
+            RegisterScreen(
+                onRegisterSuccess = { name ->
+                    viewModel.updateUserName(name)
+                    viewModel.login()
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = { navController.popBackStack() }
+            )
+        }
+        // --- 2. MAIN APP TABS ---
 
-        composable(route = Screen.Profile.route) {
-            ProfileScreen(isDarkTheme = isDarkTheme, onThemeChange = onThemeChange)
+        composable(Screen.Dashboard.route) {
+            DashboardScreen(navController = navController, viewModel = viewModel)
         }
 
-        // 3. Habit Detail Screen: Form now saves to the same viewModel
+        composable(Screen.WellBeing.route) {
+            WellBeingScreen(navController = navController, viewModel = viewModel)
+        }
+
+        composable(Screen.Diary.route) {
+            DiaryScreen(
+                navController = navController,
+                viewModel = viewModel,
+                onEntryClick = { entryId ->
+                    navController.navigate("diary_detail/$entryId")
+                }
+            )
+        }
+
+        // --- 3. PROFILE & LOGOUT ---
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                viewModel = viewModel,
+                // FIX: Added the missing onLogout parameter here
+                onLogout = {
+                    viewModel.logout()
+                    navController.navigate("login") {
+                        // Clears all history so user is fully logged out
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- 4. DETAILS & OTHER SCREENS ---
+
+        composable(
+            route = Screen.DiaryDetail.route,
+            arguments = listOf(navArgument("entryId") { defaultValue = "new" })
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: "new"
+            DiaryDetailScreen(
+                entryId = if (entryId == "new") null else entryId,
+                navController = navController,
+                viewModel = viewModel
+            )
+        }
+
         composable(
             route = Screen.HabitDetail.route,
-            arguments = listOf(navArgument("habitId") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = "new"
-            })
+            arguments = listOf(navArgument("habitId") { defaultValue = "new" })
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
             HabitDetailScreen(
                 habitId = habitId,
                 navController = navController,
-                viewModel = habitViewModel // Shared instance
-            )
-        }
-
-        // 4. Habit Stats Screen: Uses records from the viewModel
-        composable(
-            route = Screen.HabitStats.route,
-            arguments = listOf(navArgument("habitId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val habitId = backStackEntry.arguments?.getString("habitId")
-            HabitStatsScreen(
-                habitId = habitId,
-                navController = navController,
-                viewModel = habitViewModel // Shared instance
+                viewModel = viewModel
             )
         }
     }

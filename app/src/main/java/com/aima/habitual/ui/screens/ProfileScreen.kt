@@ -1,157 +1,365 @@
 package com.aima.habitual.ui.screens
 
-import androidx.compose.foundation.Image
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Badge
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.aima.habitual.R
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.aima.habitual.viewmodel.HabitViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    isDarkTheme: Boolean,            // Received from NavGraph -> MainScreen
-    onThemeChange: (Boolean) -> Unit // Received from NavGraph -> MainScreen
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit,
+    viewModel: HabitViewModel,
+    onLogout: () -> Unit // <--- ADDED: Callback for logout logic
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
+    var showHabitsSheet by remember { mutableStateOf(false) }
+
+    // Image Picker State
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> if (uri != null) selectedImageUri = uri }
+    )
+
+    // Name Editing State
+    var isEditingName by remember { mutableStateOf(false) }
+    var tempName by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+
+    val habits = viewModel.habits
+    val level = viewModel.wellbeingStats.stepsCount / 1000
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "User Profile",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // --- 1. AVATAR SECTION ---
+        Box(contentAlignment = Alignment.BottomEnd) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .clickable {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (selectedImageUri != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(selectedImageUri)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Profile Picture",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            // Edit Badge (Camera Icon)
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .offset(x = 4.dp, y = 4.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // REQUIREMENT: Optimized Media (using WebP or SVG)
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.profile_placeholder),
-                contentDescription = "Profile Picture",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+        // --- 2. EDITABLE NAME SECTION ---
+        if (isEditingName) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = tempName,
+                    onValueChange = { tempName = it },
+                    singleLine = true,
+                    modifier = Modifier.width(200.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        viewModel.updateUserName(tempName)
+                        isEditingName = false
+                        focusManager.clearFocus()
+                    })
+                )
+                IconButton(onClick = {
+                    viewModel.updateUserName(tempName)
+                    isEditingName = false
+                    focusManager.clearFocus()
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Save Name",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        tempName = viewModel.userName
+                        isEditingName = true
+                    }
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = viewModel.userName,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Name",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // REQUIREMENT: Suitably formatted text with Material3 Typography
-        Text(text = "Computer Science Student", style = MaterialTheme.typography.titleLarge)
         Text(
-            text = "Joined: January 2026",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary
+            text = "Mastery Level: $level",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // REQUIREMENT: Card Component for layout organization
+        // --- 3. SETTINGS CARD ---
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            shape = MaterialTheme.shapes.large
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Account Settings", style = MaterialTheme.typography.labelLarge)
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
-                ProfileSettingItem(
-                    icon = Icons.Default.Badge,
-                    label = "User ID",
-                    value = "CS-2023-04"
-                )
-                ProfileSettingItem(
-                    icon = Icons.Default.Email,
-                    label = "Email",
-                    value = "student@aima.habitual.lk"
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // REQUIREMENT: Component Variety (Switches for Preferences)
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Preferences", style = MaterialTheme.typography.labelLarge)
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                // Notification Toggle
+                // Theme Toggle
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Notifications, contentDescription = null)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Notifications")
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "Dark Mode",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    Switch(
-                        checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Manual Theme Toggle (Requirement: Changes app mode)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.DarkMode, contentDescription = null)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Dark Mode")
-                    }
-                    // This Switch now controls the GLOBAL theme state
                     Switch(
                         checked = isDarkTheme,
-                        onCheckedChange = { onThemeChange(it) }
+                        onCheckedChange = { onThemeChange(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    )
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+
+                // Habits List Button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showHabitsSheet = true }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.ListAlt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "My Rituals",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
-    }
-}
 
-@Composable
-fun ProfileSettingItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
-            Text(text = value, style = MaterialTheme.typography.bodyLarge)
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // --- 4. LOG OUT BUTTON ---
+        // Satisfies the Logout requirement and fixes the missing parameter error
+        Button(
+            onClick = onLogout,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(imageVector = Icons.Default.Logout, contentDescription = null)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Log Out",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+
+    // --- HABITS SHEET ---
+    if (showHabitsSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showHabitsSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Your Rituals",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                if (habits.isEmpty()) {
+                    Text("No rituals added yet.", style = MaterialTheme.typography.bodyLarge)
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(habits) { habit ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(
+                                                text = habit.title,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
+                                            Text(
+                                                text = habit.category,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                                            )
+                                        }
+                                    }
+                                    IconButton(onClick = { viewModel.deleteHabit(habit.id) }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

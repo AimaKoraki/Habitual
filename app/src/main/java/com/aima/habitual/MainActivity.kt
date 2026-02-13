@@ -1,27 +1,46 @@
 package com.aima.habitual
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
-import com.aima.habitual.navigation.SetupNavGraph
-import com.aima.habitual.ui.components.BottomNavigationBar
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.aima.habitual.ui.screens.MainScreen
 import com.aima.habitual.ui.theme.HabitualTheme
 
 class MainActivity : ComponentActivity() {
+
+    // 1. Permission Launcher: Required for Step Counter on Android 10+ (API 29+)
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        // Permission handled. If granted, StepSensorManager in ViewModel starts receiving data.
+        // If denied, the app continues running without step updates.
+    }
+
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Edge-to-edge configuration for a modern immersive UI
+        // 2. Request Permission: Ask user immediately on app launch
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+
+        // 3. Edge-to-Edge: Configured for your "Pure White" theme
+        // We use 'SystemBarStyle.light' to ensure status bar icons (time/battery) are Dark
+        // so they are visible against your white background.
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(
-                android.graphics.Color.TRANSPARENT
+            statusBarStyle = SystemBarStyle.light(
+                android.graphics.Color.TRANSPARENT, // Scrim
+                android.graphics.Color.TRANSPARENT  // Dark Scrim
             ),
             navigationBarStyle = SystemBarStyle.light(
                 android.graphics.Color.TRANSPARENT,
@@ -30,27 +49,18 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            // Theme state management
-            var isDarkTheme by remember { mutableStateOf(false) }
+            // 4. IMPROVEMENT: Use 'rememberSaveable'
+            // This ensures the Theme doesn't reset to Light Mode if the user rotates the screen.
+            var isDarkTheme by rememberSaveable { mutableStateOf(false) }
+
+            val windowSizeClass = calculateWindowSizeClass(this)
 
             HabitualTheme(darkTheme = isDarkTheme) {
-                // The NavController is the central point for screen transitions
-                val navController = rememberNavController()
-
-                Scaffold(
-                    bottomBar = {
-                        // Provides the 4-tab menu at the bottom
-                        BottomNavigationBar(navController = navController)
-                    }
-                ) { innerPadding ->
-                    // The NavGraph manages the screens and the shared HabitViewModel
-                    SetupNavGraph(
-                        navController = navController,
-                        modifier = Modifier.padding(innerPadding),
-                        isDarkTheme = isDarkTheme,
-                        onThemeChange = { isDarkTheme = it }
-                    )
-                }
+                MainScreen(
+                    windowSizeClass = windowSizeClass.widthSizeClass,
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = { isDarkTheme = it }
+                )
             }
         }
     }
