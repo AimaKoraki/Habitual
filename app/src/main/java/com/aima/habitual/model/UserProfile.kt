@@ -1,3 +1,4 @@
+/** UserProfile.kt **/
 package com.aima.habitual.model
 
 data class UserProfile(
