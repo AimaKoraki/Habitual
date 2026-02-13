@@ -6,38 +6,51 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 /**
- * Light Color Scheme optimized for a calm habit tracking experience.
+ * Light Mode Configuration:
+ * Focuses on a clean, nature-inspired "Forest Green" and "Soft Sage" palette.
  */
 private val LightColorScheme = lightColorScheme(
-    primary = DeepTeal,               // Calm, professional buttons
-    onPrimary = Color.White,          // White text on deep teal
-    secondary = SageGreen,            // Accent color
-    surfaceVariant = SoftSage,        // Calm habit card color
-    onSurfaceVariant = DeepTeal,      // High contrast text on cards
-    background = Color(0xFFFDFDFD),   // Off-white background to reduce glare
-    onBackground = Color(0xFF1A1C1E)  // Soft black text
+    primary = ForestGreen,
+    onPrimary = White,
+
+    // Core Layout colors
+    background = White,
+    surface = White,
+    onBackground = ForestGreen,
+    onSurface = ForestGreen,
+
+    // Component/Card colors
+    surfaceVariant = SoftSage,
+    onSurfaceVariant = Color(0xFF1B5E20),
+
+    secondary = SoftSage,
+    onSecondary = ForestGreen
 )
 
 /**
- * Dark Color Scheme designed to reduce eye strain in low-light environments.
+ * Dark Mode Configuration:
+ * Swaps to high-contrast "LimeSage" for primary actions and deep greys for eye comfort.
  */
 private val DarkColorScheme = darkColorScheme(
-    primary = DarkSage,               // Soft green buttons
-    onPrimary = Color(0xFF00390A),    // Dark text on light green buttons
-    secondary = MutedSlate,
-    surfaceVariant = DarkCard,        // Dark forest-toned cards
-    onSurfaceVariant = Color.White,   // Clear white text on dark cards
-    background = DarkBackground,      // Near black for less strain
-    onBackground = DarkText           // Off-white text to prevent "haloing"
+    primary = LimeSageAccent,
+    onPrimary = Color(0xFF1B5E20),
+    secondary = DarkCardGrey,
+
+    background = DarkBackground,
+    surface = DarkBackground,
+    onSurface = White,
+
+    surfaceVariant = DarkCardGrey,
+    onSurfaceVariant = DarkTextSecondary
 )
 
 /**
- * HabitualTheme manages the global look and feel, including system UI colors.
+ * HabitualTheme: The root styling engine for the application.
+ * Manages Dynamic Colors, Typography, and System UI (Status/Navigation Bars).
  */
 @Composable
 fun HabitualTheme(
@@ -47,28 +60,21 @@ fun HabitualTheme(
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
 
-    // Modern System UI Management Logic
+    // System UI logic (Status Bar and Navigation Bar colors)
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-
-
-            window.statusBarColor = colorScheme.primary.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
-
             val insetsController = WindowCompat.getInsetsController(window, view)
 
-
-            insetsController.isAppearanceLightStatusBars = false
-
-
+            // Adjusts status bar icons: Dark icons on Light backgrounds, Light icons on Dark backgrounds
+            insetsController.isAppearanceLightStatusBars = !darkTheme
             insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Defined in your Type.kt file
+        typography = Typography,
         content = content
     )
 }
