@@ -40,7 +40,7 @@ fun DashboardScreen(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Screen.HabitDetail.route) },
+                onClick = { navController.navigate(Screen.HabitDetail.createRoute("new")) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 // JSON: "fab.radius": 24
@@ -117,7 +117,16 @@ fun DashboardScreen(
                     contentPadding = PaddingValues(bottom = HabitualTheme.spacing.listBottom)
                 ) {
                     items(habits) { habit ->
-                        PremiumHabitCard(habit = habit, isDark = isDark)
+                        val isCompleted = viewModel.records.any { 
+                            it.habitId == habit.id && it.timestamp == LocalDate.now().toEpochDay() && it.isCompleted 
+                        }
+                        PremiumHabitCard(
+                            habit = habit,
+                            isDark = isDark,
+                            isCompleted = isCompleted,
+                            onClick = { navController.navigate(Screen.HabitStats.createRoute(habit.id)) },
+                            onToggle = { viewModel.toggleHabitCompletion(habit.id, LocalDate.now()) }
+                        )
                     }
                 }
             }
@@ -129,13 +138,20 @@ fun DashboardScreen(
  * Premium Card using centralized design tokens for shadow, radius, and padding.
  */
 @Composable
-fun PremiumHabitCard(habit: Habit, isDark: Boolean) {
+fun PremiumHabitCard(
+    habit: Habit,
+    isDark: Boolean,
+    isCompleted: Boolean = false, // Add state parameter
+    onClick: () -> Unit,
+    onToggle: () -> Unit // Add toggle callback
+) {
     Card(
         // JSON: "card.radius": 20
         shape = RoundedCornerShape(HabitualTheme.radius.large),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
+        onClick = onClick,
         elevation = CardDefaults.cardElevation(
             // Premium Rule: Soft shadow in light mode, NO shadow in dark mode
             defaultElevation = if (isDark) 0.dp else 4.dp
@@ -152,7 +168,7 @@ fun PremiumHabitCard(habit: Habit, isDark: Boolean) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = habit.title,
                     style = MaterialTheme.typography.headlineMedium,
@@ -169,13 +185,16 @@ fun PremiumHabitCard(habit: Habit, isDark: Boolean) {
                 )
             }
 
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = stringResource(R.string.desc_complete),
-                tint = MaterialTheme.colorScheme.primary,
-                // Premium Rule: Min touch target sizing
-                modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
-            )
+            // Interactive Checkmark
+            IconButton(onClick = onToggle) {
+                Icon(
+                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.CheckCircle, // Could use Outlined for incomplete
+                    contentDescription = stringResource(if (isCompleted) R.string.desc_complete else R.string.desc_complete),
+                    tint = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                    // Premium Rule: Min touch target sizing
+                    modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
+                )
+            }
         }
     }
 }

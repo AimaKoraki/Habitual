@@ -10,6 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.aima.habitual.model.*
 import com.aima.habitual.model.StepSensorManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.time.LocalDate
 
 /**
@@ -25,6 +27,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- 2. PREFERENCES (Storage) ---
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
+    private val gson = Gson()
 
     // --- 3. USER PROFILE LOGIC ---
     // Loads saved name or defaults to "Ritual Specialist"
@@ -55,44 +58,96 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         return _dailyStats[date.toEpochDay()] ?: WellbeingStats()
     }
 
-    // --- 5. SENSOR & STEP LOGIC ---
+    // --- 5. PERSISTENT SENSOR & STEP LOGIC ---
+    // Keys for SharedPreferences
+    private val KEY_STEPS_TODAY = "saved_steps_today"
+    private val KEY_LAST_SENSOR = "last_sensor_value"
+    private val KEY_LAST_DATE = "last_step_date"
+    private val KEY_REWARDS = "saved_rewards_today"
+
     private val stepSensor = StepSensorManager(application)
-    private var startSteps = -1       // Sensor value at app start
-    private var currentSensorSteps = 0 // Steps walked in this session
-    private var rewardSteps = 0       // Steps earned from habits
+    
+    // In-memory definition, but backed by Prefs
+    private var currentSensorSteps = 0 
+    private var rewardSteps = 0
 
     init {
-        // A. Load saved reward steps for today (optional refinement)
-        rewardSteps = prefs.getInt("saved_rewards_today", 0)
+        // 1. Initialize State from Storage
+        loadData()
 
-        // B. Start listening to hardware sensor
+        val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
+        val todayEpoch = LocalDate.now().toEpochDay()
+
+        if (storedDate != todayEpoch) {
+            // New Day: Reset counters
+            currentSensorSteps = 0
+            rewardSteps = 0
+            saveStepState(0, 0, todayEpoch) 
+            // Note: We don't reset last_sensor_value yet, we wait for the first reading
+        } else {
+            // Same Day: Load counters
+            currentSensorSteps = prefs.getInt(KEY_STEPS_TODAY, 0)
+            rewardSteps = prefs.getInt(KEY_REWARDS, 0)
+        }
+
+        // 2. Start Listening
         stepSensor.startListening { totalDeviceSteps ->
-            if (startSteps == -1) {
-                startSteps = totalDeviceSteps
-            }
-            // Calculate active steps
-            currentSensorSteps = totalDeviceSteps - startSteps
-
-            // Sensor data always updates TODAY's record
-            updateStepsForDate(LocalDate.now())
+            handleSensorUpdate(totalDeviceSteps)
         }
     }
 
-    /**
-     * Syncs current steps and saves to storage.
-     * Call this when the "Sync" button is clicked.
-     */
-    fun syncSteps() {
-        // Force UI update
-        updateStepsForDate(LocalDate.now())
+    private fun handleSensorUpdate(totalDeviceSteps: Int) {
+        val todayEpoch = LocalDate.now().toEpochDay()
+        val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
+        
+        // Use -2 as "uninitialized" marker for last sensor value
+        val lastSensorValue = prefs.getInt(KEY_LAST_SENSOR, -2)
 
-        // Save total to prevent data loss
-        val totalStepsToSave = currentSensorSteps + rewardSteps
-        prefs.edit().apply {
-            putInt("saved_rewards_today", rewardSteps) // Simplified persistence logic
-            putLong("last_sync_time", System.currentTimeMillis())
-            apply()
+        // Day Change Check (in case app was open overnight)
+        if (storedDate != todayEpoch) {
+            currentSensorSteps = 0
+            rewardSteps = 0 // Optional: Reset rewards too? Yes, usually daily.
+            // valid lastSensorValue is still relevant for delta calculation if no reboot occurred
         }
+
+        var delta = 0
+        if (lastSensorValue != -2) {
+            if (totalDeviceSteps >= lastSensorValue) {
+                // Normal case: user walked
+                delta = totalDeviceSteps - lastSensorValue
+            } else {
+                // Reboot case: sensor reset to 0
+                // We assume all steps since boot (totalDeviceSteps) are new
+                delta = totalDeviceSteps
+            }
+        } 
+        // If lastSensorValue IS -2 (First run), we assume delta = 0 to establish baseline
+        // Alternatively, if we want to count steps walked BEFORE app install as 0, this is correct.
+
+        if (delta > 0) {
+            currentSensorSteps += delta
+            
+            // Commit to Storage
+            prefs.edit().apply {
+                putInt(KEY_STEPS_TODAY, currentSensorSteps)
+                putInt(KEY_LAST_SENSOR, totalDeviceSteps)
+                putLong(KEY_LAST_DATE, todayEpoch)
+                apply()
+            }
+            
+            // Update UI
+            updateStepsForDate(LocalDate.now())
+        } else {
+            // Even if no delta (standing still), we update the baseline
+            if (lastSensorValue != totalDeviceSteps) {
+                 prefs.edit().putInt(KEY_LAST_SENSOR, totalDeviceSteps).apply()
+            }
+        }
+    }
+
+    fun syncSteps() {
+        // Now just a visual force-refresh, as persistence is automatic
+        updateStepsForDate(LocalDate.now())
     }
 
     private fun updateStepsForDate(date: LocalDate) {
@@ -104,6 +159,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             lastSyncTimestamp = System.currentTimeMillis()
         )
     }
+
+    private fun saveStepState(steps: Int, sensorVal: Int, date: Long) {
+         prefs.edit().apply {
+            putInt(KEY_STEPS_TODAY, steps)
+            if (sensorVal != 0) putInt(KEY_LAST_SENSOR, sensorVal) // specific case logic
+            putLong(KEY_LAST_DATE, date)
+            apply()
+        }
+    }
+
 
     override fun onCleared() {
         super.onCleared()
@@ -134,6 +199,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addSteps(steps: Int) {
         rewardSteps += steps
+        // Persist rewards immediately
+        prefs.edit().putInt(KEY_REWARDS, rewardSteps).apply()
         updateStepsForDate(LocalDate.now())
     }
 
@@ -141,18 +208,22 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addHabit(habit: Habit) {
         habits.add(habit)
+        saveHabits()
     }
 
     fun updateHabit(updatedHabit: Habit) {
         val index = habits.indexOfFirst { it.id == updatedHabit.id }
         if (index != -1) {
             habits[index] = updatedHabit
+            saveHabits()
         }
     }
 
     fun deleteHabit(habitId: String) {
         habits.removeAll { it.id == habitId }
         records.removeAll { it.habitId == habitId }
+        saveHabits()
+        saveRecords()
     }
 
     fun toggleHabitCompletion(habitId: String, date: LocalDate) {
@@ -174,23 +245,73 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             // Reward: Add 300 steps
             addSteps(300)
         }
+        saveRecords()
     }
 
     // --- 8. DIARY CRUD LOGIC ---
 
     fun addDiaryEntry(entry: DiaryEntry) {
         diaryEntries.add(0, entry)
+        saveDiary()
     }
 
     fun updateDiaryEntry(updatedEntry: DiaryEntry) {
         val index = diaryEntries.indexOfFirst { it.id == updatedEntry.id }
         if (index != -1) {
             diaryEntries[index] = updatedEntry
+            saveDiary()
         }
     }
 
     fun deleteDiaryEntry(entryId: String) {
         diaryEntries.removeAll { it.id == entryId }
+        saveDiary()
+    }
+
+    // --- PERSISTENCE HELPER METHODS ---
+
+    private fun saveHabits() {
+        val json = gson.toJson(habits)
+        prefs.edit().putString("habits_data", json).apply()
+    }
+
+    private fun saveRecords() {
+        val json = gson.toJson(records)
+        prefs.edit().putString("records_data", json).apply()
+    }
+
+    private fun saveDiary() {
+        val json = gson.toJson(diaryEntries)
+        prefs.edit().putString("diary_data", json).apply()
+    }
+
+    private fun loadData() {
+        // Load Habits
+        val habitsJson = prefs.getString("habits_data", null)
+        if (habitsJson != null) {
+            val type = object : TypeToken<List<Habit>>() {}.type
+            val loadedHabits: List<Habit> = gson.fromJson(habitsJson, type)
+            habits.clear()
+            habits.addAll(loadedHabits)
+        }
+
+        // Load Records
+        val recordsJson = prefs.getString("records_data", null)
+        if (recordsJson != null) {
+            val type = object : TypeToken<List<HabitRecord>>() {}.type
+            val loadedRecords: List<HabitRecord> = gson.fromJson(recordsJson, type)
+            records.clear()
+            records.addAll(loadedRecords)
+        }
+
+        // Load Diary
+        val diaryJson = prefs.getString("diary_data", null)
+        if (diaryJson != null) {
+            val type = object : TypeToken<List<DiaryEntry>>() {}.type
+            val loadedDiary: List<DiaryEntry> = gson.fromJson(diaryJson, type)
+            diaryEntries.clear()
+            diaryEntries.addAll(loadedDiary)
+        }
     }
     // --- AUTH LOGIC ---
 // --- AUTHENTICATION LOGIC ---

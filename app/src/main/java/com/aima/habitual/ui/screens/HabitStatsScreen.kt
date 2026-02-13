@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -13,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
+import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.StreakCard
 import com.aima.habitual.ui.components.ConsistencyChart
 import com.aima.habitual.ui.components.HistoryCalendar
@@ -67,7 +69,20 @@ fun HabitStatsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = {
+                        if (habitId != null) {
+                            navController.navigate(Screen.HabitDetail.createRoute(habitId))
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.desc_edit_name), // Reusing existing string or generic edit
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             )
         }
     ) { padding ->
