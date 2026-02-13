@@ -1,3 +1,4 @@
+/** DateScroller.kt **/
 package com.aima.habitual.ui.components
 
 import androidx.compose.foundation.background
@@ -14,44 +15,60 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
+/**
+ * DatePickerScroller allows users to navigate ritual dates using a horizontal scroll.
+ * Optimized for the Forest Green & Soft Sage theme.
+ */
 @Composable
 fun DatePickerScroller(
-    selectedDate: LocalDate, // Received from Dashboard
-    onDateSelected: (LocalDate) -> Unit // Callback to update Dashboard
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
 ) {
     var startDate by remember { mutableStateOf(selectedDate.minusDays(2)) }
     val today = LocalDate.now()
     val days = remember(startDate) { (0..4).map { startDate.plusDays(it.toLong()) } }
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { startDate = startDate.minusDays(1) }) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary // Forest Green
+            )
         }
 
-        LazyRow(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             items(days) { date ->
                 DateItem(
-                    dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH),
+                    dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                     dayNumber = date.dayOfMonth.toString(),
                     isSelected = date.isEqual(selectedDate),
                     isToday = date.isEqual(today),
-                    onClick = { onDateSelected(date) } // Trigger the callback
+                    onClick = { onDateSelected(date) }
                 )
             }
         }
 
         IconButton(onClick = { startDate = startDate.plusDays(1) }) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary // Forest Green
+            )
         }
     }
 }
@@ -61,16 +78,24 @@ private fun DateItem(
     dayName: String,
     dayNumber: String,
     isSelected: Boolean,
-    isToday: Boolean, // New parameter to track the actual current date
+    isToday: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+    // Theme-driven color selection to match the new Forest & Sage aesthetic
+    val backgroundColor = if (isSelected)
+        MaterialTheme.colorScheme.primary // Forest Green
+    else
+        MaterialTheme.colorScheme.secondaryContainer // Soft Sage
+
+    val contentColor = if (isSelected)
+        MaterialTheme.colorScheme.onPrimary
+    else
+        MaterialTheme.colorScheme.onSecondaryContainer
 
     Column(
         modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .width(60.dp)
+            .padding(horizontal = 2.dp)
+            .width(62.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .clickable { onClick() }
@@ -80,7 +105,7 @@ private fun DateItem(
     ) {
         Text(
             text = dayName,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = contentColor.copy(alpha = 0.8f)
         )
         Text(
@@ -90,15 +115,20 @@ private fun DateItem(
             color = contentColor
         )
 
-        // REQUIREMENT: Persistent indicator for "Today"
+        // Indicator for "Today" aligned with the primary brand color
         if (isToday) {
             Spacer(modifier = Modifier.height(4.dp))
             Box(
                 modifier = Modifier
-                    .width(20.dp)
+                    .width(16.dp)
                     .height(3.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(if (isSelected) Color.White else Color(0xFF004D40)) // Contrasts based on selection
+                    .background(
+                        if (isSelected)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
+                            MaterialTheme.colorScheme.primary // Forest Green highlight
+                    )
             )
         }
     }
