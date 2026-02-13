@@ -128,5 +128,17 @@ fun NavGraph(
                 viewModel = viewModel
             )
         }
+
+        composable(
+            route = Screen.HabitStats.route,
+            arguments = listOf(navArgument("habitId") { defaultValue = "" })
+        ) { backStackEntry ->
+            val habitId = backStackEntry.arguments?.getString("habitId")
+            HabitStatsScreen(
+                 habitId = habitId,
+                 navController = navController,
+                 viewModel = viewModel
+            )
+        }
     }
 }
