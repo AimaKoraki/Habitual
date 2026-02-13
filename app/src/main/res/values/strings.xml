@@ -1,3 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Habitual</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+
+    <string name="nav_dashboard">Rituals</string>
+    <string name="nav_wellbeing">Wellbeing</string>
+    <string name="nav_diary">Diary</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="dashboard_header">Daily Rituals</string>
+    <string name="no_habits_msg">No rituals for today. Tap + to add one!</string>
+    <string name="add_habit_content_desc">Add Habit</string>
+
+    <string name="add_habit_title">Add Habit</string>
+    <string name="edit_habit_title">Edit Habit</string>
+    <string name="habit_name_label">Habit Name</string>
+    <string name="category_label">Category</string>
+    <string name="repeat_on_label">Repeat on</string>
+    <string name="target_duration_label">Target Duration: %1$d Months</string>
+    <string name="save_ritual">Save Ritual</string>
+    <string name="update_ritual">Update Ritual</string>
+
+    <string name="wellbeing_header">Health Insights</string>
+    <string name="steps_label">Steps Today</string>
+    <string name="daily_summary">Daily Summary</string>
+    <string name="sleep_label">Sleep</string>
+    <string name="distance_label">Distance</string>
+    <string name="screen_time_label">Screen Time</string>
+    <string name="log_water">Log Water</string>
+    <string name="wellbeing_sync_label">Last synced: %1$s</string>
+
+    <string name="diary_header">Recent entries</string>
+    <string name="nav_diary_label">My Journal</string>
+    <string name="sort_by">Sort by</string>
+    <string name="new_diary_entry">New Diary Entry</string>
+    <string name="diary_placeholder">How was your day?</string>
+    <string name="no_diary_entries">No entries yet. Write your first thought!</string>
+    <string name="diary_tag_label">Tags</string>
+
+    <string name="current_streak">Current Streak</string>
+    <string name="days_count">%1$d Days</string>
+    <string name="consistency_header">Consistency</string>
+    <string name="history_header">History</string>
+    <string name="profile_streak_label">Total Streak: %1$d days</string>
 </resources>
