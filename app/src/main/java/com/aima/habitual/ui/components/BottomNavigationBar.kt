@@ -1,14 +1,11 @@
+/** BottomNavigationBar.kt **/
+
 package com.aima.habitual.ui.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.SelfImprovement
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -17,49 +14,89 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aima.habitual.navigation.Screen
 
 /**
- * BottomNavigationBar provides the main navigation hub for the app.
+ * BottomNavigationBar: The main navigation control for the app.
+ * It sits at the bottom of the screen and allows switching between the
+ * four main sections: Dashboard, Wellbeing, Diary, and Profile.
  */
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
+
+    // 1. Define the tabs to display in the bar.
+    // These come from your sealed class 'Screen' in navigation/Screen.kt
     val items = listOf(
-        Screen.Dashboard to Icons.Default.Dashboard,
-        Screen.WellBeing to Icons.Default.SelfImprovement,
-        Screen.Diary to Icons.Default.Book,
-        Screen.Profile to Icons.Default.Person
+        Screen.Dashboard,
+        Screen.WellBeing,
+        Screen.Diary,
+        Screen.Profile
     )
 
+    // 2. Observe the current back stack entry.
+    // This makes the UI re-compose (update) whenever the user navigates to a new screen.
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Only show the bottom bar if the current screen is one of the main 4
-    val mainRoutes = items.map { it.first.route }
+    // 3. Determine if the bar should be visible.
+    // We only want to show the bottom bar on the top-level screens,
+    // not on detail screens (like a hypothetical "Edit Habit" screen).
+    val mainRoutes = items.map { it.route }
     val showBottomBar = currentDestination?.route in mainRoutes
 
     if (showBottomBar) {
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp
+            containerColor = MaterialTheme.colorScheme.surface, // Matches the Theme (White or Dark Grey)
+            tonalElevation = 8.dp // Adds a subtle shadow/tint to separate it from the content
         ) {
-            items.forEach { (screen, icon) ->
+            // 4. Loop through each screen item to create a tab
+            items.forEach { screen ->
+
+                // Check if this specific tab is currently active.
+                // hierarchy check ensures it stays selected even if we are in a sub-route of this tab.
                 val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
 
+                // Retrieve the localized title (e.g., "Home", "Journal") from strings.xml
+                val labelText = stringResource(id = screen.titleRes)
+
                 NavigationBarItem(
-                    icon = { Icon(icon, contentDescription = screen.route) },
-                    label = { Text(screen.route.replaceFirstChar { it.uppercase() }) },
+                    // Icon logic
+                    icon = {
+                        Icon(
+                            imageVector = screen.icon,
+                            contentDescription = labelText
+                        )
+                    },
+                    // Text label below the icon
+                    label = {
+                        Text(
+                            text = labelText,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
+                    // Highlight state
                     selected = isSelected,
+
+                    // 5. Navigation Logic (Crucial for proper tab behavior)
                     onClick = {
                         navController.navigate(screen.route) {
-                            // Standard navigation behavior: avoid multiple copies of same screen
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items.
                             popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                                saveState = true // Save the state of the screen we are leaving
                             }
+                            // Avoid multiple copies of the same destination when
+                            // re-selecting the same item
                             launchSingleTop = true
+                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     },
+                    // 6. Custom Colors (Forest Green & Sage Theme)
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF004D40), // Your Deep Teal
-                        indicatorColor = Color(0xFF004D40).copy(alpha = 0.1f)
+                        selectedIconColor = MaterialTheme.colorScheme.primary, // Forest Green (Active Icon)
+                        selectedTextColor = MaterialTheme.colorScheme.primary, // Forest Green (Active Text)
+                        indicatorColor = MaterialTheme.colorScheme.secondaryContainer, // Light Sage (Active Background Pill)
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant, // Grey (Inactive)
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             }
