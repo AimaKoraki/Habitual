@@ -67,23 +67,55 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                // JSON: "screen.horizontalPadding": 24
-                .padding(horizontal = HabitualTheme.spacing.xl)
         ) {
             // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
             // --- 1. HEADER SECTION ---
-            Text(
-                text = stringResource(R.string.greeting_morning),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.secondary)
-            )
-            Text(
-                text = viewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
-                style = MaterialTheme.typography.displayMedium, // Using new premium typography
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = HabitualTheme.spacing.xl),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // LEFT: Greeting & Name
+                Column {
+                    val currentHour = java.time.LocalTime.now().hour
+                    val greetingRes = when (currentHour) {
+                        in 5..11 -> R.string.greeting_morning
+                        in 12..16 -> R.string.greeting_afternoon
+                        else -> R.string.greeting_evening
+                    }
+
+                    Text(
+                        text = stringResource(greetingRes),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.secondary)
+                    )
+                    Text(
+                        text = viewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                // RIGHT: Date & Time
+                val now = java.time.LocalDateTime.now()
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = now.format(java.time.format.DateTimeFormatter.ofPattern("d MMM")),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.secondary)
+                    )
+                    Text(
+                        text = now.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
+                        style = MaterialTheme.typography.titleLarge, // Slightly smaller than DisplayMedium but prominent
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
 
             // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
@@ -100,7 +132,8 @@ fun DashboardScreen(
             Text(
                 text = stringResource(R.string.todays_rituals),
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl)
             )
 
             // JSON: "componentSpacing": 20 (Using xl for spacing between title and list)
@@ -112,7 +145,8 @@ fun DashboardScreen(
                     Text(
                         text = stringResource(R.string.no_rituals_today),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl)
                     )
                 }
             } else {
@@ -140,7 +174,11 @@ fun DashboardScreen(
 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
-                    contentPadding = PaddingValues(bottom = 100.dp)
+                    contentPadding = PaddingValues(
+                        bottom = 100.dp,
+                        start = HabitualTheme.spacing.xl,
+                        end = HabitualTheme.spacing.xl
+                    )
                 ) {
                     items(sortedHabits) { habit ->
                         val isCompleted = viewModel.records.any {

@@ -51,7 +51,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             // 4. IMPROVEMENT: Use 'rememberSaveable'
             // This ensures the Theme doesn't reset to Light Mode if the user rotates the screen.
-            var isDarkTheme by rememberSaveable { mutableStateOf(false) }
+            // 4. IMPROVEMENT: Use ViewModel for Theme Persistence
+            // This ensures the Theme is saved even if the app is killed.
+            val viewModel: com.aima.habitual.viewmodel.HabitViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val isDarkTheme = viewModel.isDarkTheme
 
             val windowSizeClass = calculateWindowSizeClass(this)
 
@@ -59,7 +62,8 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     windowSizeClass = windowSizeClass.widthSizeClass,
                     isDarkTheme = isDarkTheme,
-                    onThemeChange = { isDarkTheme = it }
+                    onThemeChange = { viewModel.toggleTheme(it) },
+                    viewModel = viewModel
                 )
             }
         }

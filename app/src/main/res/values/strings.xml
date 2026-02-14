@@ -139,6 +139,8 @@
     <string name="profile_name_empty_error">Name cannot be empty</string>
 
     <string name="greeting_morning">Good Morning,</string>
+    <string name="greeting_afternoon">Good Afternoon,</string>
+    <string name="greeting_evening">Good Evening,</string>
     <string name="default_user_name">Ritualist</string>
     <string name="todays_rituals">Today\'s Rituals</string>
     <string name="no_rituals_today">No rituals for today. Take a rest.</string>

@@ -29,7 +29,8 @@ import com.aima.habitual.viewmodel.HabitViewModel
 fun MainScreen(
     windowSizeClass: WindowWidthSizeClass,
     isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    viewModel: HabitViewModel
 ) {
     // 1. Core State
     val navController = rememberNavController()

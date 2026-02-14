@@ -59,6 +59,15 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     )
         private set
 
+    // --- THEME PREFERENCE ---
+    var isDarkTheme by mutableStateOf(prefs.getBoolean("is_dark_theme", false))
+        private set
+
+    fun toggleTheme(isDark: Boolean) {
+        isDarkTheme = isDark
+        prefs.edit().putBoolean("is_dark_theme", isDark).apply()
+    }
+
     fun updateUserName(newName: String) {
         val trimmed = newName.trim()
         if (trimmed.isNotBlank()) {
