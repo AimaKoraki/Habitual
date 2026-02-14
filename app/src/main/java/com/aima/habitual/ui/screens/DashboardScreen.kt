@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.room.util.copy
 import com.aima.habitual.R
 import com.aima.habitual.model.Habit
 import com.aima.habitual.navigation.Screen
@@ -35,6 +34,10 @@ import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 
+/**
+ * DashboardScreen: The main landing page displaying daily rituals,
+ * personalized greetings, and chronological navigation.
+ */
 @Composable
 fun DashboardScreen(
     navController: NavHostController,
@@ -42,6 +45,8 @@ fun DashboardScreen(
 ) {
     val habits = viewModel.habits
     val isDark = isSystemInDarkTheme()
+
+    // 1. CHRONOLOGICAL STATE: Tracks the currently viewed day
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
     Scaffold(
@@ -51,11 +56,10 @@ fun DashboardScreen(
                 onClick = { navController.navigate(Screen.HabitDetail.createRoute("new")) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                // Premium Rule: Perfect Circle 56dp
                 shape = androidx.compose.foundation.shape.CircleShape,
                 modifier = Modifier.size(HabitualTheme.components.fabSize),
                 elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = HabitualTheme.elevation.low, 
+                    defaultElevation = HabitualTheme.elevation.low,
                     pressedElevation = HabitualTheme.elevation.medium
                 )
             ) {
@@ -71,12 +75,10 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-
         ) {
-            // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-            // --- 1. HEADER SECTION ---
+            // --- HEADER SECTION: Greeting and Dynamic Time ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -84,7 +86,6 @@ fun DashboardScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // LEFT: Greeting & Name
                 Column {
                     val currentHour = java.time.LocalTime.now().hour
                     val greetingRes = when (currentHour) {
@@ -105,7 +106,6 @@ fun DashboardScreen(
                     )
                 }
 
-                // RIGHT: Date & Time
                 val now = java.time.LocalDateTime.now()
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
@@ -115,23 +115,21 @@ fun DashboardScreen(
                     )
                     Text(
                         text = now.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a")),
-                        style = MaterialTheme.typography.titleLarge, // Slightly smaller than DisplayMedium but prominent
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-            // --- 2. DATE SELECTOR ---
+            // --- DATE SELECTOR: Syncs scroller with screen state ---
             DatePickerScroller(
                 selectedDate = selectedDate,
                 onDateSelected = { selectedDate = it }
             )
 
-            // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
             Text(
@@ -141,16 +139,17 @@ fun DashboardScreen(
                 modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl)
             )
 
-            // JSON: "componentSpacing": 20 (Using xl for spacing between title and list)
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+
+            // 2. BACKGROUND TEXTURE: Applies the fading leaf pattern to the list area
             val leafColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.17f)
             Box(modifier = Modifier
                 .fillMaxSize()
                 .subtleLeafPattern(leafColor)
             ) {
-                // --- 3. HABIT LIST ---
+                // --- HABIT LIST LOGIC ---
                 if (habits.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter, ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                         Text(
                             text = stringResource(R.string.no_rituals_today),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -159,22 +158,18 @@ fun DashboardScreen(
                         )
                     }
                 } else {
-                    // Filter habits to only those scheduled for the selected day AND created on/before that date
-                    val dayOfWeek = selectedDate.dayOfWeek.value % 7  // Mon=1..Sun=7 → 0=Sun convention
+                    // Logic: Filters rituals based on selected date and creation timestamp
+                    val dayOfWeek = selectedDate.dayOfWeek.value % 7
                     val filteredHabits = habits.filter { habit ->
-                        // Check creation date
                         val creationDate = java.time.Instant.ofEpochMilli(habit.createdAt)
                             .atZone(java.time.ZoneId.systemDefault())
                             .toLocalDate()
                         val isCreated = !selectedDate.isBefore(creationDate)
-
-                        // Check schedule
                         val isScheduled = habit.repeatDays.isEmpty() || habit.repeatDays.contains(dayOfWeek)
-
                         isCreated && isScheduled
                     }
 
-                    // Sort: incomplete habits first, completed habits at bottom
+                    // Sorting: Pushes completed rituals to the bottom of the list
                     val sortedHabits = filteredHabits.partition { habit ->
                         !viewModel.records.any {
                             it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
@@ -183,12 +178,7 @@ fun DashboardScreen(
 
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
-
-                        contentPadding = PaddingValues(
-                            bottom = 100.dp,
-                            start = HabitualTheme.spacing.xl,
-                            end = HabitualTheme.spacing.xl,
-                        )
+                        contentPadding = PaddingValues(bottom = 100.dp, start = HabitualTheme.spacing.xl, end = HabitualTheme.spacing.xl)
                     ) {
                         items(sortedHabits) { habit ->
                             val isCompleted = viewModel.records.any {
@@ -205,25 +195,25 @@ fun DashboardScreen(
                     }
                 }
             }
-
         }
     }
 }
 
 /**
- * Premium Card using centralized design tokens for shadow, radius, and padding.
+ * PremiumHabitCard: Individual ritual item with micro-interactions.
+ * Utilizes updateTransition for high-performance animation during state toggles.
  */
 @Composable
 fun PremiumHabitCard(
     habit: Habit,
     isDark: Boolean,
-    isCompleted: Boolean = false, // Add state parameter
+    isCompleted: Boolean = false,
     onClick: () -> Unit,
-    onToggle: () -> Unit // Add toggle callback
+    onToggle: () -> Unit
 ) {
-    // Animation State
+    // 3. ANIMATION: Smoothly transitions color and scale during completion
     val transition = updateTransition(targetState = isCompleted, label = "CheckmarkTransition")
-    
+
     val tint by transition.animateColor(label = "Tint") { completed ->
         if (completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
     }
@@ -232,40 +222,28 @@ fun PremiumHabitCard(
         label = "Scale",
         transitionSpec = {
             if (targetState) {
-                // Bounce effect when checking
                 spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
             } else {
-                // Smooth shrinking when unchecking
                 tween(durationMillis = 200)
             }
         }
     ) { completed ->
-        if (completed) 1.2f else 1.0f // Slightly larger when checked for emphasis
+        if (completed) 1.2f else 1.0f
     }
 
-    // Greyed-out styling for completed habits
-    val containerColor = if (isCompleted) 
-        MaterialTheme.colorScheme.surfaceVariant 
-        else MaterialTheme.colorScheme.surface
-    
+    val containerColor = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
     val textAlpha = if (isCompleted) HabitualTheme.alpha.muted else 1f
 
     Card(
         shape = RoundedCornerShape(HabitualTheme.radius.lg),
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor
-        ),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.elevation.none), // No shadow for flat feel
-        // Premium Glow: 1px border with very low alpha
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                // JSON: "card.padding": 20
-                .padding(HabitualTheme.components.cardPadding)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(HabitualTheme.components.cardPadding).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -275,10 +253,7 @@ fun PremiumHabitCard(
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha)
                 )
-
-                // JSON: "spacing.xs": 4
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
-
                 Text(
                     text = habit.category,
                     style = MaterialTheme.typography.bodyMedium,
@@ -286,35 +261,35 @@ fun PremiumHabitCard(
                 )
             }
 
-            // Interactive Checkmark
             IconButton(onClick = onToggle) {
                 Icon(
-                    // Unchecked = Thin Outlined Circle. Checked = Filled Soft Circle.
-                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle, 
-                    contentDescription = stringResource(if (isCompleted) R.string.desc_complete else R.string.desc_complete),
+                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = stringResource(R.string.desc_complete),
                     tint = tint,
-                    modifier = Modifier
-                        .size(HabitualTheme.components.minTouchTarget)
-                        .scale(scale)
+                    modifier = Modifier.size(HabitualTheme.components.minTouchTarget).scale(scale)
                 )
             }
         }
     }
-
 }
+
+/**
+ * subtleLeafPattern: A procedural drawing modifier.
+ * Uses a vertical fade mask to ensure the pattern disappears near the header for better readability.
+ */
 @Composable
 fun Modifier.subtleLeafPattern(
-    baseColor: Color // Pass the resolved color here
+    baseColor: Color
 ): Modifier = this.drawBehind {
     val leafSize = 38.dp.toPx()
     val gap = 40.dp.toPx()
-
     val rows = (size.height / gap).toInt() + 2
     val cols = (size.width / gap).toInt() + 2
 
-    // The fade mask logic remains the same
     for (r in 0..rows) {
         val rowY = r * gap
+
+        // 4. FADE MASK: Calculates alpha based on vertical position
         val fadeFactor = ((rowY - 0f) / (150.dp.toPx() - 0f)).coerceIn(0f, 1f)
 
         for (c in 0..cols) {
@@ -339,7 +314,6 @@ fun Modifier.subtleLeafPattern(
 
             drawPath(
                 path = leafPath,
-                // Use the passed color and apply your 7% alpha + fade mask
                 color = baseColor.copy(alpha = baseColor.alpha * fadeFactor),
                 style = Stroke(width = 1.2.dp.toPx())
             )

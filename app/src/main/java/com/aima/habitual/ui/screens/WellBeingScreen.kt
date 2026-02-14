@@ -77,13 +77,18 @@ fun WellBeingScreen(
 
             // Steps Circle
             // ─── Steps Section Card ───
-            Surface(
+            // Steps Circle
+            // ─── Steps Section Card ───
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = HabitualTheme.spacing.md), // Matches horizontal padding of cards below
-                shape = RoundedCornerShape(HabitualTheme.radius.lg), // Rounded corners like your other cards
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), // Subtle background color
-                tonalElevation = 1.dp // Optional: adds a slight "lifted" look
+                    .padding(horizontal = HabitualTheme.spacing.md),
+                shape = RoundedCornerShape(HabitualTheme.radius.lg),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -128,7 +133,7 @@ fun WellBeingScreen(
                         Text(
                             text = String.format("%,d", stats.stepsCount),
                             style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.primary // Pop of color
                         )
                         Text(
                             text = stringResource(R.string.wellbeing_steps),

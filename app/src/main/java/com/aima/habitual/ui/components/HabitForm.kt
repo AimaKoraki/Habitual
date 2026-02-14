@@ -8,13 +8,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,16 +24,22 @@ import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.model.Habit
 import com.aima.habitual.viewmodel.HabitViewModel
 
+/**
+ * HabitForm: A comprehensive input form for creating or editing rituals.
+ * It utilizes local state for draft management and integrates with the ViewModel for persistence.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitForm(
     viewModel: HabitViewModel,
-    initialHabit: Habit? = null,
-    onSave: () -> Unit
+    initialHabit: Habit? = null, // If provided, the form enters "Edit Mode"
+    onSave: () -> Unit           // Callback to handle navigation after a successful save
 ) {
-    // 1. Form State
+    // 1. FORM STATE MANAGEMENT:
+    // Tracks user input before it is committed to the database.
     var habitName by remember { mutableStateOf(initialHabit?.title ?: "") }
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) } // State for Category Dropdown
+
     val categories = listOf(
         stringResource(R.string.category_health),
         stringResource(R.string.category_study),
@@ -43,6 +47,7 @@ fun HabitForm(
         stringResource(R.string.category_work),
         stringResource(R.string.category_wellbeing)
     )
+
     var selectedCategory by remember { mutableStateOf(initialHabit?.category ?: categories[0]) }
     var targetMonths by remember { mutableFloatStateOf(initialHabit?.targetMonths?.toFloat() ?: 1f) }
 
@@ -51,7 +56,7 @@ fun HabitForm(
 
     val isEveryDaySelected = selectedDays.size == 7
 
-    // Helper for Section Labels (14sp, Medium, Muted)
+    /** Helper: SectionLabel creates consistent, accessible subtitles for form sections. */
     @Composable
     fun SectionLabel(text: String) {
         Text(
@@ -59,43 +64,39 @@ fun HabitForm(
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
             ),
-            modifier = Modifier.padding(bottom = HabitualTheme.spacing.md) // 12dp spacing (Rhythm)
+            modifier = Modifier.padding(bottom = HabitualTheme.spacing.md)
         )
     }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(HabitualTheme.spacing.lg) 
-            // Theme surface is used by parent Surface/Scaffold usually. 
-            // If explicit warmth needed: .background(MaterialTheme.colorScheme.surface)
+            .padding(HabitualTheme.spacing.lg)
     ) {
-        // --- HIERARCHY ---
-        // 1. Subtle Back Label / Eyebrow
+        // --- VISUAL HIERARCHY: HEADER ---
+        // Uses an 'Eyebrow' label for a premium, structured look.
         Text(
-            text = stringResource(R.string.add_habit_title).uppercase(), // "ADD HABIT"
+            text = stringResource(R.string.add_habit_title).uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
                 letterSpacing = 1.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
-
             )
         )
-        
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs)) // Small gap
 
-        // 2. Dominant Title
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
+
         Text(
             text = if (initialHabit == null) stringResource(R.string.add_habit_header) else stringResource(R.string.edit_habit_header),
             style = MaterialTheme.typography.headlineMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface
             )
         )
-        
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp (Section Gap)
 
-        // --- FIELD 1: NAME ---
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
+        // --- FIELD 1: HABIT NAME ---
         SectionLabel(stringResource(R.string.habit_name_label))
-        
+
         TextField(
             value = habitName,
             onValueChange = { habitName = it },
@@ -105,22 +106,22 @@ fun HabitForm(
                 .border(
                     width = HabitualTheme.components.borderThin,
                     color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
-                    shape = RoundedCornerShape(HabitualTheme.radius.xl) // 20dp
+                    shape = RoundedCornerShape(HabitualTheme.radius.xl) // Custom pill-shape
                 ),
             shape = RoundedCornerShape(HabitualTheme.radius.xl),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent, // Removes the standard bottom line for a cleaner look
                 unfocusedIndicatorColor = Color.Transparent
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
         )
 
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp (Input Gap)
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
-        // --- FIELD 2: CATEGORY (Refined Dropdown) ---
+        // --- FIELD 2: CATEGORY SELECTION ---
         SectionLabel(stringResource(R.string.category_label))
 
         ExposedDropdownMenuBox(
@@ -130,7 +131,7 @@ fun HabitForm(
             TextField(
                 value = selectedCategory,
                 onValueChange = {},
-                readOnly = true,
+                readOnly = true, // Prevents keyboard entry to ensure data integrity
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
                     .menuAnchor()
@@ -153,15 +154,15 @@ fun HabitForm(
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface)
-                    .clip(RoundedCornerShape(HabitualTheme.radius.md)) // Rounded Menu
+                    .clip(RoundedCornerShape(HabitualTheme.radius.md))
             ) {
                 categories.forEach { category ->
                     DropdownMenuItem(
-                        text = { 
+                        text = {
                             Text(
-                                text = category, 
-                                modifier = Modifier.padding(vertical = HabitualTheme.spacing.xs) // More vertical padding
-                            ) 
+                                text = category,
+                                modifier = Modifier.padding(vertical = HabitualTheme.spacing.xs)
+                            )
                         },
                         onClick = {
                             selectedCategory = category
@@ -172,30 +173,27 @@ fun HabitForm(
             }
         }
 
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp (Section Gap)
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-        // --- FIELD 3: DAYS ---
+        // --- FIELD 3: REPEAT SCHEDULE (Day Selection) ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Label with Rhythm
-            Column {
-                SectionLabel(stringResource(R.string.repeat_on_label))
-            }
-            
-            // "Every Day" Toggle
+            SectionLabel(stringResource(R.string.repeat_on_label))
+
+            // "Every Day" Quick-Select Toggle
             TextButton(
                 onClick = {
-                    if (isEveryDaySelected) selectedDays = emptySet() else selectedDays = (0..6).toSet() 
+                    selectedDays = if (isEveryDaySelected) emptySet() else (0..6).toSet()
                 }
             ) {
                 Text(stringResource(R.string.every_day), color = MaterialTheme.colorScheme.primary)
             }
         }
 
-        // Day Chips
+        // Custom Selection Chips for Days of the Week
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -204,13 +202,15 @@ fun HabitForm(
                 val isSelected = selectedDays.contains(index)
                 Box(
                     modifier = Modifier
-                        .size(HabitualTheme.components.chipSize) // 40dp
+                        .size(HabitualTheme.components.chipSize)
                         .clip(CircleShape)
                         .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary
+                            if (isSelected) MaterialTheme.colorScheme.primary // Forest Green
                             else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
                         )
-                        .clickable { selectedDays = if (isSelected) selectedDays - index else selectedDays + index },
+                        .clickable {
+                            selectedDays = if (isSelected) selectedDays - index else selectedDays + index
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -223,9 +223,9 @@ fun HabitForm(
             }
         }
 
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-        // --- FIELD 4: DURATION ---
+        // --- FIELD 4: DURATION (Target Months) ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -238,7 +238,7 @@ fun HabitForm(
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
-        
+
         Slider(
             value = targetMonths,
             onValueChange = { targetMonths = it },
@@ -252,12 +252,14 @@ fun HabitForm(
             modifier = Modifier.padding(vertical = HabitualTheme.spacing.sm)
         )
 
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-        // --- ACTION BUTTON ---
+        // --- SUBMIT ACTION ---
         Button(
             onClick = {
+                // Default to "Every Day" if no specific days are selected
                 val daysToSave = if (selectedDays.isEmpty()) (0..6).toList() else selectedDays.toList()
+
                 if (initialHabit == null) {
                     val newHabit = Habit(
                         title = habitName,
@@ -281,8 +283,9 @@ fun HabitForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(HabitualTheme.components.buttonHeight),
-            shape = RoundedCornerShape(HabitualTheme.radius.md), // 16dp
+            shape = RoundedCornerShape(HabitualTheme.radius.md),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            // Input Validation: Ensures a habit cannot be saved without a name
             enabled = habitName.isNotBlank()
         ) {
             Text(

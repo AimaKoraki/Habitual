@@ -25,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -89,6 +90,7 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .size(HabitualTheme.components.profileImage)
+                    .shadow(4.dp, CircleShape) // Depth
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     // Premium: Subtle Avatar Ring
@@ -155,6 +157,11 @@ fun ProfileScreen(
                         singleLine = true,
                         isError = nameError,
                         modifier = Modifier.width(ProfileLayout.nameFieldWidth),
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl), // Rounded
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
+                        ),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
                             if (tempName.trim().isBlank()) {
@@ -334,9 +341,10 @@ fun ProfileScreen(
                 .fillMaxWidth()
                 .height(HabitualTheme.components.buttonHeight),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
             ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(HabitualTheme.radius.md)
         ) {
             Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)

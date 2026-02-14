@@ -27,17 +27,21 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 /**
- * HistoryCalendar visualizes ritual completion over a full month.
- * Optimized for the Forest Green & Soft Sage palette.
+ * HistoryCalendar: A monthly heat-map visualization for ritual completion.
+ * Optimized for the Forest Green & Soft Sage palette to provide a calm,
+ * data-rich overview of user progress.
  */
 @Composable
 fun HistoryCalendar(records: List<HabitRecord>) {
+    // 1. CALENDAR CALCULATIONS:
+    // We use the java.time API to dynamically calculate month bounds.
     val currentMonth = YearMonth.now()
     val today = LocalDate.now()
     val firstDayOfMonth = currentMonth.atDay(1)
     val daysInMonth = currentMonth.lengthOfMonth()
 
-    // Offset calculation: ensure the grid starts on the correct day of the week
+    // 2. GRID OFFSET LOGIC:
+    // Ensures the 1st of the month aligns with the correct day of the week (e.g., Tuesday).
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
     val daysOfWeek = listOf(
         stringResource(R.string.day_sun),
@@ -50,11 +54,11 @@ fun HistoryCalendar(records: List<HabitRecord>) {
     )
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Branded Month Header in Forest Green
+        // 3. BRANDED HEADER:
+        // Displays the Month and Year (e.g., "February 2026") in high-contrast Forest Green.
         Text(
             text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
             style = MaterialTheme.typography.headlineMedium,
@@ -62,14 +66,16 @@ fun HistoryCalendar(records: List<HabitRecord>) {
             modifier = Modifier.padding(bottom = HabitualTheme.spacing.section)
         )
 
+        // 4. THE CALENDAR GRID:
+        // Uses LazyVerticalGrid with 7 fixed columns to represent the days of the week.
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.height(StatsLayout.calendarGridHeight),
-            userScrollEnabled = false,
+            userScrollEnabled = false, // Static display; scrolling handled by parent if needed
             horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs),
             verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs)
         ) {
-            // Day Labels using muted Sage text
+            // Day Labels: Sun, Mon, Tue, etc.
             items(daysOfWeek) { day ->
                 Text(
                     text = day,
@@ -80,26 +86,30 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                 )
             }
 
-            // Empty slots for the start of the month
+            // Offset slots: Fill empty spaces before the 1st of the month begins.
             items(firstDayOfWeek) {
                 Spacer(modifier = Modifier.size(HabitualTheme.components.calendarCellSize))
             }
 
-            // Individual Day Cells
+            // 5. INDIVIDUAL DAY CELLS:
             items(daysInMonth) { index ->
                 val dayNumber = index + 1
                 val date = currentMonth.atDay(dayNumber)
+
+                // DATA MAPPING: Checks if a completion record exists for this specific day.
                 val isDone = records.any { it.timestamp == date.toEpochDay() && it.isCompleted }
                 val isCurrentDay = date.isEqual(today)
 
                 Box(
                     modifier = Modifier
-                        .aspectRatio(1f)
+                        .aspectRatio(1f) // Ensures cells remain perfect circles
                         .clip(CircleShape)
                         .background(
                             when {
-                                isDone -> MaterialTheme.colorScheme.primary // Forest Green
-                                isCurrentDay -> MaterialTheme.colorScheme.surfaceContainerHigh // Consistent accent
+                                // Completed rituals use the Primary 'Forest Green' color
+                                isDone -> MaterialTheme.colorScheme.primary
+                                // Current day highlighted with a subtle Sage 'lift'
+                                isCurrentDay -> MaterialTheme.colorScheme.surfaceContainerHigh
                                 else -> Color.Transparent
                             }
                         ),
@@ -110,7 +120,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (isDone || isCurrentDay) FontWeight.Bold else FontWeight.Normal,
                         color = when {
-                            isDone -> MaterialTheme.colorScheme.onPrimary
+                            isDone -> MaterialTheme.colorScheme.onPrimary // White text on green
                             isCurrentDay -> MaterialTheme.colorScheme.onSurface
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }

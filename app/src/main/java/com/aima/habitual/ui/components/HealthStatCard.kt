@@ -14,7 +14,8 @@ import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * HealthStatCard: A specialized card for displaying health metrics like Sleep and Water.
- * Redesigned for a "Premium" look with a flat elevation and subtle borders.
+ * Designed with a "Flat Premium" aesthetic, prioritizing crispness on high-density
+ * displays like the Pixel 7 emulator.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,45 +25,51 @@ fun HealthStatCard(
     icon: ImageVector,
     color: Color,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {} // Added: Enables interactive stat editing
+    onClick: () -> Unit = {} // Added: Enables interactive stat editing (e.g., logging water/sleep)
 ) {
     Card(
-        onClick = onClick, // Connects the click action to the card surface
+        onClick = onClick, // Connects the click action to the card surface for better accessibility
         modifier = modifier,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface // Modern flat/glassy aesthetic
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        // 1. VISUAL REFINEMENT:
+        // Uses a subtle 1dp border instead of heavy shadows (elevation).
+        // This 'Stroke' approach is a hallmark of modern Material 3 'Surface' design.
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        shape = RoundedCornerShape(HabitualTheme.radius.lg) // Standardized radius from design tokens
+        shape = RoundedCornerShape(HabitualTheme.radius.lg) // Follows project-wide corner radius tokens
     ) {
         Column(
             modifier = Modifier
-                .padding(HabitualTheme.spacing.xl) // 2. AIRY PADDING: Provides a spacious, high-end feel
+                .padding(HabitualTheme.spacing.xl) // Generous internal padding (Airy)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {
-            // 1. ICONOGRAPHY:
-            // Uses the color passed from the screen (e.g., Primary for Water, Secondary for Sleep).
+            // 2. ICONOGRAPHY:
+            // The tint color is passed from the parent screen to distinguish metrics at a glance.
             Icon(
                 imageVector = icon,
-                contentDescription = null, // Visual decoration only
+                contentDescription = null, // Set to null as the 'label' text provides the context
                 tint = color,
                 modifier = Modifier.size(HabitualTheme.components.iconLg)
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
-            // 2. VALUE DISPLAY:
-            // High-contrast headline text for quick readability.
+            // 3. DATA DISPLAY:
+            // Uses 'headlineSmall' for the metric value to ensure quick scanning on the dashboard.
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // 3. LABEL:
-            // Uses a secondary alpha to create a clear visual hierarchy.
+            // 4. METRIC LABEL:
+            // Uses a secondary alpha (opacity) to create a visual hierarchy between the value and its unit.
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
