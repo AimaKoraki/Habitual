@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,7 @@ fun HabitCard(
             }
 
             // 2. Branded Completion Button with Forest Green accents
+            val completeDesc = stringResource(R.string.desc_complete)
             IconButton(
                 onClick = onCheckClick,
                 modifier = Modifier
@@ -93,6 +96,7 @@ fun HabitCard(
                         color = forestGreen.copy(alpha = if (isCompleted) 1f else HabitualTheme.alpha.secondary),
                         shape = CircleShape
                     )
+                    .semantics { contentDescription = completeDesc }
             ) {
                 if (isCompleted) {
                     Icon(

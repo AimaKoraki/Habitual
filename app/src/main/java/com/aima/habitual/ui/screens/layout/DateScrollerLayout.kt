@@ -5,6 +5,6 @@ import androidx.compose.ui.unit.dp
 
 /** Screen-specific dimensions for the DateScroller component. */
 object DateScrollerLayout {
-    val dateItemWidth: Dp = 62.dp         // Individual date item width
+    val dateItemWidth: Dp = 48.dp         // Individual date item width
     val indicatorHeight: Dp = 3.dp        // Today indicator bar
 }

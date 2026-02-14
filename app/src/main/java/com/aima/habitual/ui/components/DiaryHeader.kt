@@ -41,7 +41,7 @@ fun DiaryHeader(
             )
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.desc_sort_options),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
