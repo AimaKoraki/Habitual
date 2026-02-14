@@ -144,7 +144,7 @@ fun WellBeingScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         HealthStatCard(
                             label = stringResource(R.string.wellbeing_sleep),
-                            value = "${stats.sleepDurationHours}h",
+                            value = String.format("%.1fh", stats.sleepDurationHours), // Fix: Rounds to "4.0h"
                             icon = Icons.Default.NightsStay,
                             color = MaterialTheme.colorScheme.secondary,
                             onClick = { showSleepDialog = true }
@@ -219,7 +219,7 @@ fun WellBeingScreen(
 
                     // 3. Value Label (Strong Emphasis)
                     Text(
-                        text = String.format("%.1f", stats.sleepDurationHours) + " " + stringResource(R.string.wellbeing_sleep),
+                        text = String.format("%.1f Hours", stats.sleepDurationHours),
                         style = MaterialTheme.typography.headlineSmall, // Strong
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
