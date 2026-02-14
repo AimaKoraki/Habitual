@@ -66,7 +66,16 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
-    
+
     // 6. Data Persistence
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // ─── TESTING DEPENDENCIES  ───
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
+    
 }
