@@ -17,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.aima.habitual.R
 import com.aima.habitual.model.HabitRecord
 import com.aima.habitual.ui.theme.HabitualTheme
@@ -51,22 +50,21 @@ fun HistoryCalendar(records: List<HabitRecord>) {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(HabitualTheme.spacing.lg),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Branded Month Header in Forest Green
         Text(
             text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = HabitualTheme.spacing.xxl)
         )
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
-            modifier = Modifier.height(320.dp),
+            modifier = Modifier.height(HabitualTheme.components.calendarGridHeight),
             userScrollEnabled = false,
             horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs),
             verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs)
@@ -76,7 +74,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                 Text(
                     text = day,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = HabitualTheme.spacing.md)
                 )
@@ -101,7 +99,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                         .background(
                             when {
                                 isDone -> MaterialTheme.colorScheme.primary // Forest Green
-                                isCurrentDay -> MaterialTheme.colorScheme.secondaryContainer // Soft Sage
+                                isCurrentDay -> MaterialTheme.colorScheme.primaryContainer // Consistent accent
                                 else -> Color.Transparent
                             }
                         ),
@@ -109,12 +107,14 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                 ) {
                     Text(
                         text = dayNumber.toString(),
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (isDone || isCurrentDay) FontWeight.Bold else FontWeight.Normal,
                         color = when {
                             isDone -> MaterialTheme.colorScheme.onPrimary
-                            isCurrentDay -> MaterialTheme.colorScheme.onSecondaryContainer
-                            else -> MaterialTheme.colorScheme.onSurface
+                            isCurrentDay -> MaterialTheme.colorScheme.onPrimaryContainer
+                            else -> MaterialTheme.colorScheme.onSurface.copy(
+                                alpha = HabitualTheme.alpha.calendarInactive
+                            )
                         }
                     )
                 }

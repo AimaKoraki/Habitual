@@ -1,5 +1,7 @@
 package com.aima.habitual.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -81,7 +84,7 @@ fun WellBeingScreen(
                 CircularProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.size(HabitualTheme.components.progressRingSize),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), // Subtle track
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.subtle), // Subtle track
                     strokeWidth = HabitualTheme.components.progressTrackThick, // 8.dp
                 )
                 CircularProgressIndicator(
@@ -182,82 +185,195 @@ fun WellBeingScreen(
     // --- DIALOGS (Use Theme Colors) ---
 
     if (showSleepDialog) {
-        AlertDialog(
-            onDismissRequest = { showSleepDialog = false },
-            title = { Text(stringResource(R.string.dialog_update_sleep)) },
-            text = {
-                Column {
-                    Text(stringResource(R.string.dialog_sleep_prompt))
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showSleepDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge), // 24dp
+                color = MaterialTheme.colorScheme.surface, // Warm white
+                tonalElevation = HabitualTheme.components.dialogTonalElevation,
+                shadowElevation = HabitualTheme.components.dialogShadowElevation, // Diffused shadow
+                modifier = Modifier.padding(HabitualTheme.spacing.md)
+            ) {
+                Column(
+                    modifier = Modifier.padding(HabitualTheme.spacing.xxl), // 24dp Internal Padding
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 1. Header
+                    Text(
+                        text = stringResource(R.string.dialog_update_sleep),
+                        style = MaterialTheme.typography.titleLarge, // 22sp
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.md)) // 12dp
+
+                    // 2. Subtitle (Muted)
+                    Text(
+                        text = stringResource(R.string.dialog_sleep_prompt),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
+
+                    // 3. Value Label (Strong Emphasis)
+                    Text(
+                        text = String.format("%.1f", stats.sleepDurationHours) + " " + stringResource(R.string.wellbeing_sleep),
+                        style = MaterialTheme.typography.headlineSmall, // Strong
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp
+
+                    // 4. Slider (Visual Balance)
                     Slider(
                         value = stats.sleepDurationHours.toFloat(),
                         onValueChange = {
                             viewModel.updateSleep(selectedDate, it.toDouble())
                         },
                         valueRange = 0f..12f,
-                        steps = 23
+                        steps = 23,
+                        colors = SliderDefaults.colors(
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=HabitualTheme.alpha.muted)
+                        )
                     )
-                    Text(
-                        text = String.format("%.1f", stats.sleepDurationHours) + " " + stringResource(R.string.wellbeing_sleep),
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
+
+                    // 5. Action
+                    Button(
+                        onClick = { showSleepDialog = false },
+                        shape = RoundedCornerShape(HabitualTheme.radius.medium),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.btn_done),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
-            },
-            confirmButton = { TextButton(onClick = { showSleepDialog = false }) { Text(stringResource(R.string.btn_done)) } },
-            // FIX 2: Use Theme Surface Color
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            }
+        }
     }
 
     if (showWaterDialog) {
-        AlertDialog(
-            onDismissRequest = { showWaterDialog = false },
-            title = { Text(stringResource(R.string.dialog_log_water_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showWaterDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(HabitualTheme.radius.large),
+                // Premium: Softer surface tone & shadow
+                color = MaterialTheme.colorScheme.surface, // Use surface (warm) or surfaceContainerLow if available. 
+                // Using surface as base, but maybe add tonal elevation
+                tonalElevation = HabitualTheme.components.dialogTonalElevation, 
+                shadowElevation = HabitualTheme.components.dialogShadowElevation,
+                modifier = Modifier.padding(HabitualTheme.spacing.md)
+            ) {
+                Column(
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl), // Generous internal padding
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 1. Header
+                    Text(
+                        text = stringResource(R.string.dialog_log_water_title),
+                        style = MaterialTheme.typography.titleLarge, // Larger
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+
+                    // 2. Input
                     OutlinedTextField(
                         value = waterAmountInput,
                         onValueChange = { if (it.all { char -> char.isDigit() }) waterAmountInput = it },
                         label = { Text(stringResource(R.string.wellbeing_amount_label, selectedUnit)) },
+                        placeholder = { Text("0") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(HabitualTheme.radius.input), // 20dp
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle), // Softer border
+                        )
                     )
+
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+
+                    // 3. Unit Chips (Borderless)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         unitOptions.forEach { unit ->
-                            FilterChip(
-                                selected = selectedUnit == unit,
-                                onClick = { selectedUnit = unit },
-                                label = { Text(unit) }
-                            )
+                            val isSelected = selectedUnit == unit
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(HabitualTheme.components.chipSize)
+                                    .clip(RoundedCornerShape(HabitualTheme.radius.tag))
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
+                                    )
+                                    .clickable { selectedUnit = unit },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = unit,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
+                    // 4. Actions (Clean Baseline)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = { showWaterDialog = false },
+                            shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                        ) {
+                            Text(stringResource(R.string.btn_cancel), style = MaterialTheme.typography.labelLarge)
+                        }
+                        
+                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+                        
+                        Button(
+                            onClick = {
+                                val amount = waterAmountInput.toIntOrNull() ?: 0
+                                if (amount > 0) {
+                                    val amountInMl = when (selectedUnit) {
+                                        "ml" -> amount
+                                        "Cups" -> amount * 250
+                                        "Oz" -> amount * 30
+                                        else -> amount
+                                    }
+                                    viewModel.logWater(selectedDate, amountInMl)
+                                    showWaterDialog = false
+                                }
+                            },
+                            shape = RoundedCornerShape(HabitualTheme.radius.medium),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text(stringResource(R.string.btn_add), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val amount = waterAmountInput.toIntOrNull() ?: 0
-                        if (amount > 0) {
-                            val amountInMl = when (selectedUnit) {
-                                "ml" -> amount
-                                "Cups" -> amount * 250
-                                "Oz" -> amount * 30
-                                else -> amount
-                            }
-                            viewModel.logWater(selectedDate, amountInMl)
-                            showWaterDialog = false
-                        }
-                    }
-                ) { Text(stringResource(R.string.btn_add)) }
-            },
-            dismissButton = { TextButton(onClick = { showWaterDialog = false }) { Text(stringResource(R.string.btn_cancel)) } },
-            // FIX 3: Use Theme Surface Color
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            }
+        }
     }
 }

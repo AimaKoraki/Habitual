@@ -1,5 +1,7 @@
 package com.aima.habitual.ui.screens
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -11,9 +13,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.model.DiaryEntry
@@ -48,12 +54,15 @@ fun DiaryDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            // Using a simple Row for custom header control or CenterAlignedTopAppBar
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = if (existingEntry == null) stringResource(R.string.diary_new_entry)
                         else stringResource(R.string.diary_edit_entry),
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
                     )
                 },
                 navigationIcon = {
@@ -89,50 +98,73 @@ fun DiaryDetailScreen(
                             contentDescription = stringResource(R.string.desc_save),
                             tint = if (title.isNotBlank() && content.isNotBlank())
                                 MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface // Warm surface
+                )
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface // Warm background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                // JSON Token: "screenPadding": 24
-                .padding(horizontal = HabitualTheme.spacing.screen),
-            // JSON Token: "spacing.lg": 16
-            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)
+                .padding(horizontal = HabitualTheme.spacing.screen)
         ) {
 
-            // JSON Token: "spacing.lg": 16 (Top breathing room)
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra breathing room below header
 
-            // A. Title Field
-            OutlinedTextField(
+            // A. Title Field (Soft Surface Style)
+            TextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text(stringResource(R.string.diary_label_title)) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = HabitualTheme.components.borderThin,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder), // Subtle border
+                        shape = RoundedCornerShape(HabitualTheme.radius.input) // 20dp
+                    ),
                 singleLine = true,
-                // Soften the harsh square corners of default text fields
-                shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                shape = RoundedCornerShape(HabitualTheme.radius.input),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface, // Warm
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp Rhythm
 
             // B. Tag Input Section
             Column(
-                // JSON Token: "spacing.sm": 8
-                verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+                verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md) // 12dp gap
             ) {
-                OutlinedTextField(
+                TextField(
                     value = currentTagInput,
                     onValueChange = { currentTagInput = it },
                     label = { Text(stringResource(R.string.diary_label_add_tag)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = HabitualTheme.components.borderThin,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
+                            shape = RoundedCornerShape(HabitualTheme.radius.input)
+                        ),
                     singleLine = true,
-                    shape = RoundedCornerShape(HabitualTheme.radius.medium),
+                    shape = RoundedCornerShape(HabitualTheme.radius.input),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
                         if (currentTagInput.isNotBlank()) {
@@ -141,12 +173,17 @@ fun DiaryDetailScreen(
                         }
                     }),
                     trailingIcon = {
-                        IconButton(onClick = {
-                            if (currentTagInput.isNotBlank()) {
-                                tags.add(currentTagInput.trim())
-                                currentTagInput = ""
-                            }
-                        }) {
+                        // Centered Action
+                        Box(
+                            modifier = Modifier
+                                .padding(end = HabitualTheme.spacing.lg) // Right padding
+                                .clickable {
+                                    if (currentTagInput.isNotBlank()) {
+                                        tags.add(currentTagInput.trim())
+                                        currentTagInput = ""
+                                    }
+                                }
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = stringResource(R.string.desc_add_tag),
@@ -160,7 +197,6 @@ fun DiaryDetailScreen(
                 if (tags.isNotEmpty()) {
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        // JSON Token: "spacing.sm": 8
                         horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
                         verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
                     ) {
@@ -180,7 +216,6 @@ fun DiaryDetailScreen(
                                     selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 ),
-                                // JSON Token: "radius.medium": 16
                                 shape = RoundedCornerShape(HabitualTheme.radius.medium)
                             )
                         }
@@ -188,15 +223,34 @@ fun DiaryDetailScreen(
                 }
             }
 
-            // D. Content Field
-            OutlinedTextField(
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Section Break
+
+            // D. Content Field (Large)
+            TextField(
                 value = content,
                 onValueChange = { content = it },
                 label = { Text(stringResource(R.string.diary_label_content)) },
+                placeholder = { 
+                    Text(
+                        "Write your thoughts...", // Hardcoded for now to avoid resource error if missing
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted) // Muted
+                    ) 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f), // Fills remaining space so the user has a large typing area
-                shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                    .weight(1f)
+                    .border(
+                        width = HabitualTheme.components.borderThin,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
+                        shape = RoundedCornerShape(HabitualTheme.radius.input)
+                    ),
+                shape = RoundedCornerShape(HabitualTheme.radius.input),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
 
             // Bottom breathing room

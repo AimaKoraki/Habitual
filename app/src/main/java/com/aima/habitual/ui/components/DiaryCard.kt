@@ -65,7 +65,7 @@ fun DiaryCard(
                 ) {
                     Text(
                         text = entry.date,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = HabitualTheme.alpha.secondary),
                         style = MaterialTheme.typography.labelLarge
                     )
 
@@ -93,7 +93,7 @@ fun DiaryCard(
 
                 Text(
                     text = entry.content,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = HabitualTheme.alpha.bodyText),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis

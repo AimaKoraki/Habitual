@@ -32,7 +32,7 @@ fun HealthStatCard(
             containerColor = MaterialTheme.colorScheme.surface // Glassy/Flat
         ),
         // Premium: Subtle alpha border
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
+        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
         shape = RoundedCornerShape(HabitualTheme.radius.extraLarge)
     ) {
         Column(
@@ -60,7 +60,7 @@ fun HealthStatCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.nearFull)
             )
         }
     }

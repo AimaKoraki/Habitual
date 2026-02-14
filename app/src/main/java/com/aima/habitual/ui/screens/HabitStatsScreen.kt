@@ -2,6 +2,7 @@ package com.aima.habitual.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -11,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.navigation.Screen
@@ -23,7 +23,8 @@ import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 
 /**
- * HabitStatsScreen visualizes progress for a specific habit using charts and a calendar.
+ * HabitStatsScreen — Premium visualization of habit progress.
+ * Uses section cards with warm off-white background for depth and cohesion.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,11 +33,9 @@ fun HabitStatsScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    // 1. Data Retrieval: Find the habit and its specific completion history
     val habit = viewModel.habits.find { it.id == habitId }
     val habitRecords = viewModel.records.filter { it.habitId == habitId }
 
-    // 2. Logic: Calculate current streak (Counting backwards from today)
     val currentStreak = remember(habitRecords) {
         var streak = 0
         var checkDate = LocalDate.now()
@@ -48,12 +47,13 @@ fun HabitStatsScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = habit?.title ?: stringResource(R.string.history_header),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -62,7 +62,7 @@ fun HabitStatsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
-                            tint = MaterialTheme.colorScheme.primary // Branded Deep Teal
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -78,7 +78,7 @@ fun HabitStatsScreen(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.desc_edit_name), // Reusing existing string or generic edit
+                            contentDescription = stringResource(R.string.desc_edit_name),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -92,32 +92,56 @@ fun HabitStatsScreen(
                 .padding(padding)
                 .padding(horizontal = HabitualTheme.spacing.lg)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xxl)
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sectionLg)
         ) {
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
-            // 1. Visual Highlight: The Streak Card (Peach)
+            // 1. Streak Card — Hero section
             StreakCard(streakCount = currentStreak)
 
-            // 2. Weekly Insight: Consistency Chart (Teal Bars)
-            Text(
-                text = stringResource(R.string.consistency_header),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
-            ConsistencyChart(records = habitRecords)
+            // 2. Consistency Chart — wrapped in a section card
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = HabitualTheme.components.cardElevationLight
+            ) {
+                Column(
+                    modifier = Modifier.padding(HabitualTheme.spacing.xxl)
+                ) {
+                    Text(
+                        text = stringResource(R.string.consistency_header),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+                    ConsistencyChart(records = habitRecords)
+                }
+            }
 
-            // 3. Monthly Overview: History Calendar
-            Text(
-                text = stringResource(R.string.history_header),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
-            HistoryCalendar(records = habitRecords)
+            // 3. History Calendar — wrapped in a section card
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = HabitualTheme.components.cardElevationLight
+            ) {
+                Column(
+                    modifier = Modifier.padding(HabitualTheme.spacing.xxl)
+                ) {
+                    Text(
+                        text = stringResource(R.string.history_header),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+                    HistoryCalendar(records = habitRecords)
+                }
+            }
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra padding for bottom
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
         }
     }
 }

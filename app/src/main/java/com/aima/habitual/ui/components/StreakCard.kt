@@ -14,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
 import com.aima.habitual.ui.theme.HabitualTheme
-import com.aima.habitual.ui.theme.WarningGold
 
 /**
  * StreakCard: Displays the user's momentum.
@@ -27,30 +26,30 @@ fun StreakCard(streakCount: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         // JSON Token: "card.radius": 20
-        shape = RoundedCornerShape(HabitualTheme.radius.large),
+        shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
         // Premium Shadow/Border Logic
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDark) 0.dp else 4.dp
+            defaultElevation = if (isDark) HabitualTheme.components.cardElevationNone else HabitualTheme.components.cardElevationLight
         ),
-        border = if (isDark) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+        border = if (isDark) BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant) else null
     ) {
         Column(
             modifier = Modifier
-                // JSON Token: "sectionSpacing": 32
-                .padding(HabitualTheme.spacing.section)
+                .padding(
+                    horizontal = HabitualTheme.components.streakCardPadding,
+                    vertical = HabitualTheme.spacing.section
+                )
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            // JSON Token: "spacing.sm": 8
-            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
         ) {
             Icon(
                 imageVector = Icons.Default.Whatshot,
                 contentDescription = stringResource(R.string.streak_icon_desc),
-                // Uses the premium WarningGold from our design system instead of generic orange
-                tint = WarningGold,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(HabitualTheme.components.iconLarge)
             )
 

@@ -15,6 +15,9 @@ val LightAccentPrimary = Color(0xFF1B4D3E)
 val LightAccentHover = Color(0xFF246454)
 val LightAccentSoft = Color(0xFFCDE8DC)
 
+val LightSecondaryContainer = Color(0xFFDAEDE3)   // Warm sage container
+val LightOnSecondaryContainer = Color(0xFF1B4D3E)  // Dark green text on sage
+
 val LightBorderSubtle = Color.Black.copy(alpha = 0.06f)
 val LightBorderStrong = Color.Black.copy(alpha = 0.12f)
 
@@ -30,6 +33,9 @@ val DarkTextMuted = Color.White.copy(alpha = 0.50f)
 val DarkAccentPrimary = Color(0xFFB7D9C9)
 val DarkAccentHover = Color(0xFFCDE8DC)
 val DarkAccentSoft = Color(0xFFB7D9C9).copy(alpha = 0.15f)
+
+val DarkSecondaryContainer = Color(0xFF1E2E27)      // Deep green container
+val DarkOnSecondaryContainer = Color(0xFFB7D9C9)    // Light sage text
 
 val DarkBorderSubtle = Color.White.copy(alpha = 0.06f)
 val DarkBorderStrong = Color.White.copy(alpha = 0.12f)

@@ -33,7 +33,7 @@ fun HabitCard(
     onCheckClick: () -> Unit
 ) {
     // 1. Visual States: Logic for completed vs. active rituals
-    val contentAlpha = if (habit.isCompleted) 0.5f else 1f
+    val contentAlpha = if (habit.isCompleted) HabitualTheme.alpha.muted else 1f
     val textDecoration = if (habit.isCompleted) TextDecoration.LineThrough else TextDecoration.None
 
     // Using theme colors for Forest Green and Soft Sage
@@ -41,7 +41,7 @@ fun HabitCard(
     val softSage = MaterialTheme.colorScheme.surfaceVariant
 
     val cardContainerColor = if (habit.isCompleted)
-        softSage.copy(alpha = 0.6f) // Faded sage for completed rituals
+        softSage.copy(alpha = HabitualTheme.alpha.muted + 0.1f) // Faded sage for completed rituals
     else
         softSage // Vibrant sage for active rituals
 
@@ -52,7 +52,7 @@ fun HabitCard(
             .padding(horizontal = HabitualTheme.spacing.lg, vertical = HabitualTheme.spacing.sm),
         shape = RoundedCornerShape(HabitualTheme.radius.large),
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = if (habit.isCompleted) 0.dp else 2.dp
+            defaultElevation = if (habit.isCompleted) HabitualTheme.components.cardElevationNone else HabitualTheme.components.cardElevationLight
         ),
         colors = CardDefaults.elevatedCardColors(containerColor = cardContainerColor)
     ) {
@@ -89,7 +89,7 @@ fun HabitCard(
                         else Color.Transparent
                     )
                     .border(
-                        width = 2.dp,
+                        width = HabitualTheme.components.borderMedium,
                         color = forestGreen.copy(alpha = contentAlpha),
                         shape = CircleShape
                     )

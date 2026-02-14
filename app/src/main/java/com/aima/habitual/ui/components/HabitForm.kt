@@ -57,7 +57,6 @@ fun HabitForm(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.medium)
             ),
@@ -79,7 +78,7 @@ fun HabitForm(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.secondary)
             )
         )
         
@@ -89,7 +88,6 @@ fun HabitForm(
         Text(
             text = if (initialHabit == null) stringResource(R.string.add_habit_header) else stringResource(R.string.edit_habit_header),
             style = MaterialTheme.typography.headlineMedium.copy(
-                fontSize = 28.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -103,11 +101,11 @@ fun HabitForm(
         TextField(
             value = habitName,
             onValueChange = { habitName = it },
-            placeholder = { Text(stringResource(R.string.habit_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+            placeholder = { Text(stringResource(R.string.habit_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .border(
-                    width = 1.dp,
+                    width = HabitualTheme.components.borderThin,
                     color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
                     shape = RoundedCornerShape(HabitualTheme.radius.input) // 20dp
                 ),
@@ -140,7 +138,7 @@ fun HabitForm(
                     .menuAnchor()
                     .fillMaxWidth()
                     .border(
-                        width = 1.dp,
+                        width = HabitualTheme.components.borderThin,
                         color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
                         shape = RoundedCornerShape(HabitualTheme.radius.input)
                     ),
@@ -164,7 +162,7 @@ fun HabitForm(
                         text = { 
                             Text(
                                 text = category, 
-                                modifier = Modifier.padding(vertical = 4.dp) // More vertical padding
+                                modifier = Modifier.padding(vertical = HabitualTheme.spacing.xs) // More vertical padding
                             ) 
                         },
                         onClick = {
@@ -212,7 +210,7 @@ fun HabitForm(
                         .clip(CircleShape)
                         .background(
                             if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
                         )
                         .clickable { selectedDays = if (isSelected) selectedDays - index else selectedDays + index },
                     contentAlignment = Alignment.Center

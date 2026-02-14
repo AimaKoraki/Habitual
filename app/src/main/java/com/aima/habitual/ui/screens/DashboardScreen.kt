@@ -58,7 +58,7 @@ fun DashboardScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.desc_add_ritual),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(HabitualTheme.components.addIconSize)
                 )
             }
         }
@@ -179,9 +179,9 @@ fun PremiumHabitCard(
             containerColor = MaterialTheme.colorScheme.surface // Flat surface color
         ),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // No shadow for flat feel
+        elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.components.cardElevationNone), // No shadow for flat feel
         // Premium Glow: 1px border with very low alpha
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
+        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(

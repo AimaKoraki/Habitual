@@ -80,7 +80,7 @@ fun RegisterScreen(
             Text(stringResource(R.string.register_terms), style = MaterialTheme.typography.bodySmall)
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
         Button(
             // CHANGED: Pass all three fields to save them

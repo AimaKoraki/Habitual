@@ -12,6 +12,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aima.habitual.navigation.Screen
+import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * BottomNavigationBar: The main navigation control for the app.
@@ -44,7 +45,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     if (showBottomBar) {
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.surface, // Matches the Theme (White or Dark Grey)
-            tonalElevation = 8.dp // Adds a subtle shadow/tint to separate it from the content
+            tonalElevation = HabitualTheme.components.navBarElevation // Adds a subtle shadow/tint to separate it from the content
         ) {
             // 4. Loop through each screen item to create a tab
             items.forEach { screen ->

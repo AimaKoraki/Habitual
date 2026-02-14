@@ -88,7 +88,7 @@ fun ProfileScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     // Premium: Subtle Avatar Ring
-                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                    .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.avatarRing), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 if (viewModel.profileImageUri != null) {
@@ -113,11 +113,11 @@ fun ProfileScreen(
             // Edit Badge (Camera Icon)
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .offset(x = 4.dp, y = 4.dp)
+                    .size(HabitualTheme.components.editBadgeSize)
+                    .offset(x = HabitualTheme.components.editBadgeOffset, y = HabitualTheme.components.editBadgeOffset)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
-                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                    .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.surface, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -142,7 +142,7 @@ fun ProfileScreen(
                     value = tempName,
                     onValueChange = { tempName = it },
                     singleLine = true,
-                    modifier = Modifier.width(200.dp),
+                    modifier = Modifier.width(HabitualTheme.components.nameFieldWidth),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
                         viewModel.updateUserName(tempName)
@@ -183,7 +183,7 @@ fun ProfileScreen(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = stringResource(R.string.desc_edit_name),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted),
                     modifier = Modifier.size(HabitualTheme.components.iconMedium)
                 )
             }
@@ -205,17 +205,17 @@ fun ProfileScreen(
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier
-                    .width(120.dp)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
+                    .width(HabitualTheme.components.progressBarWidth)
+                    .height(HabitualTheme.components.progressBarHeight)
+                    .clip(RoundedCornerShape(HabitualTheme.radius.xs)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
             Text(
                 text = "$toNextLevel habits to Level ${level + 1}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
             )
         }
 
@@ -376,7 +376,7 @@ fun ProfileScreen(
                                             Text(
                                                 text = habit.category,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = HabitualTheme.alpha.secondary)
                                             )
                                         }
                                     }

@@ -83,7 +83,7 @@ fun DiaryViewScreen(
             Text(
                 text = entry.date,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.secondary)
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
@@ -113,7 +113,7 @@ fun DiaryViewScreen(
                                 text = stringResource(R.string.tag_prefix, tag),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = 6.dp)
+                                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.tagVertical)
                             )
                         }
                     }
@@ -121,9 +121,9 @@ fun DiaryViewScreen(
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
             }
 
-            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = HabitualTheme.alpha.muted))
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
 
             // 6. The Content (Readable Body Text)
 // 6. The Content (Readable Body Text)
@@ -133,7 +133,7 @@ fun DiaryViewScreen(
                 style = MaterialTheme.typography.bodyLarge.copy(
                     lineHeight = androidx.compose.ui.unit.TextUnit(1.6f, androidx.compose.ui.unit.TextUnitType.Em)
                 ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.bodyText)
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.components.iconLarge))

@@ -95,8 +95,8 @@ private fun DateItem(
 
     Column(
         modifier = Modifier
-            .padding(horizontal = 2.dp)
-            .width(62.dp)
+            .padding(horizontal = HabitualTheme.spacing.xxs)
+            .width(HabitualTheme.components.dateItemWidth)
             .clip(RoundedCornerShape(HabitualTheme.radius.medium))
             .background(backgroundColor)
             .clickable { onClick() }
@@ -107,7 +107,7 @@ private fun DateItem(
         Text(
             text = dayName,
             style = MaterialTheme.typography.labelSmall,
-            color = contentColor.copy(alpha = 0.8f)
+            color = contentColor.copy(alpha = HabitualTheme.alpha.nearFull)
         )
         Text(
             text = dayNumber,
@@ -122,8 +122,8 @@ private fun DateItem(
             Box(
                 modifier = Modifier
                     .width(HabitualTheme.components.iconSmall)
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(2.dp))
+                    .height(HabitualTheme.components.indicatorHeight)
+                    .clip(RoundedCornerShape(HabitualTheme.radius.indicator))
                     .background(
                         if (isSelected)
                             MaterialTheme.colorScheme.onPrimary
