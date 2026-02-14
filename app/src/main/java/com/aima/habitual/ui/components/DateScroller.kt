@@ -52,7 +52,7 @@ fun DatePickerScroller(
 
         LazyRow(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs, Alignment.CenterHorizontally)
         ) {
             items(days) { date ->
                 DateItem(
