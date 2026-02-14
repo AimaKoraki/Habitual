@@ -54,7 +54,6 @@ fun WellBeingScreen(
     val stepProgress = (stats.stepsCount.toFloat() / stepGoal).coerceIn(0f, 1f)
 
     Scaffold(
-        // FIX 1: Remove Color.White -> Use Theme Background
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
@@ -77,57 +76,71 @@ fun WellBeingScreen(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
             // Steps Circle
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().padding(vertical = HabitualTheme.spacing.lg)
+            // ─── Steps Section Card ───
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = HabitualTheme.spacing.md), // Matches horizontal padding of cards below
+                shape = RoundedCornerShape(HabitualTheme.radius.lg), // Rounded corners like your other cards
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), // Subtle background color
+                tonalElevation = 1.dp // Optional: adds a slight "lifted" look
             ) {
-                CircularProgressIndicator(
-                    progress = { 1f },
-                    modifier = Modifier.size(HabitualTheme.components.progressRingSize),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.subtle), // Subtle track
-                    strokeWidth = HabitualTheme.components.progressTrackThick, // 8.dp
-                )
-                CircularProgressIndicator(
-                    progress = { stepProgress },
-                    modifier = Modifier.size(HabitualTheme.components.progressRingSize),
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = HabitualTheme.components.progressArcThick, // 16.dp
-                    strokeCap = StrokeCap.Round
-                )
-
-                // SYNC BUTTON
-                IconButton(
-                    onClick = { viewModel.syncSteps() },
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(end = HabitualTheme.spacing.section)
+                        .fillMaxWidth()
+                        .padding(vertical = HabitualTheme.spacing.lg)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Sync,
-                        contentDescription = stringResource(R.string.desc_sync_steps),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(HabitualTheme.components.iconLg)
+                    // Background Progress Track
+                    CircularProgressIndicator(
+                        progress = { 1f },
+                        modifier = Modifier.size(HabitualTheme.components.progressRingSize),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        strokeWidth = HabitualTheme.components.progressTrackThick,
                     )
-                }
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = String.format("%,d", stats.stepsCount),
-                        style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.onBackground // Fix text color
+                    // Active Progress Arc
+                    CircularProgressIndicator(
+                        progress = { stepProgress },
+                        modifier = Modifier.size(HabitualTheme.components.progressRingSize),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = HabitualTheme.components.progressArcThick,
+                        strokeCap = StrokeCap.Round
                     )
-                    Text(
-                        text = stringResource(R.string.wellbeing_steps),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                    // Sync Button (Repositioned slightly for the new card layout)
+                    IconButton(
+                        onClick = { viewModel.syncSteps() },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = HabitualTheme.spacing.sm)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = stringResource(R.string.desc_sync_steps),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(HabitualTheme.components.iconLg)
+                        )
+                    }
+
+                    // Center Text Labels
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = String.format("%,d", stats.stepsCount),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.wellbeing_steps),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
-
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
             // Stats Grid
-            Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)) {
+            Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md)) {
                 Text(
                     text = stringResource(R.string.wellbeing_daily_summary),
                     style = MaterialTheme.typography.titleLarge,

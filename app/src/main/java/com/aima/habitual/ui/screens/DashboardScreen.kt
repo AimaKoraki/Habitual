@@ -17,12 +17,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.room.util.copy
 import com.aima.habitual.R
 import com.aima.habitual.model.Habit
 import com.aima.habitual.navigation.Screen
@@ -67,6 +71,7 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+
         ) {
             // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
@@ -138,62 +143,69 @@ fun DashboardScreen(
 
             // JSON: "componentSpacing": 20 (Using xl for spacing between title and list)
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
-
-            // --- 3. HABIT LIST ---
-            if (habits.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    Text(
-                        text = stringResource(R.string.no_rituals_today),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl)
-                    )
-                }
-            } else {
-                // Filter habits to only those scheduled for the selected day AND created on/before that date
-                val dayOfWeek = selectedDate.dayOfWeek.value % 7  // Mon=1..Sun=7 → 0=Sun convention
-                val filteredHabits = habits.filter { habit ->
-                    // Check creation date
-                    val creationDate = java.time.Instant.ofEpochMilli(habit.createdAt)
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toLocalDate()
-                    val isCreated = !selectedDate.isBefore(creationDate)
-
-                    // Check schedule
-                    val isScheduled = habit.repeatDays.isEmpty() || habit.repeatDays.contains(dayOfWeek)
-
-                    isCreated && isScheduled
-                }
-
-                // Sort: incomplete habits first, completed habits at bottom
-                val sortedHabits = filteredHabits.partition { habit ->
-                    !viewModel.records.any {
-                        it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
+            val leafColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.17f)
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .subtleLeafPattern(leafColor)
+            ) {
+                // --- 3. HABIT LIST ---
+                if (habits.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter, ) {
+                        Text(
+                            text = stringResource(R.string.no_rituals_today),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl)
+                        )
                     }
-                }.let { (incomplete, complete) -> incomplete + complete }
+                } else {
+                    // Filter habits to only those scheduled for the selected day AND created on/before that date
+                    val dayOfWeek = selectedDate.dayOfWeek.value % 7  // Mon=1..Sun=7 → 0=Sun convention
+                    val filteredHabits = habits.filter { habit ->
+                        // Check creation date
+                        val creationDate = java.time.Instant.ofEpochMilli(habit.createdAt)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
+                        val isCreated = !selectedDate.isBefore(creationDate)
 
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
-                    contentPadding = PaddingValues(
-                        bottom = 100.dp,
-                        start = HabitualTheme.spacing.xl,
-                        end = HabitualTheme.spacing.xl
-                    )
-                ) {
-                    items(sortedHabits) { habit ->
-                        val isCompleted = viewModel.records.any {
+                        // Check schedule
+                        val isScheduled = habit.repeatDays.isEmpty() || habit.repeatDays.contains(dayOfWeek)
+
+                        isCreated && isScheduled
+                    }
+
+                    // Sort: incomplete habits first, completed habits at bottom
+                    val sortedHabits = filteredHabits.partition { habit ->
+                        !viewModel.records.any {
                             it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
                         }
-                        PremiumHabitCard(
-                            habit = habit,
-                            isDark = isDark,
-                            isCompleted = isCompleted,
-                            onClick = { navController.navigate(Screen.HabitStats.createRoute(habit.id)) },
-                            onToggle = { viewModel.toggleHabitCompletion(habit.id, selectedDate) }
+                    }.let { (incomplete, complete) -> incomplete + complete }
+
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
+
+                        contentPadding = PaddingValues(
+                            bottom = 100.dp,
+                            start = HabitualTheme.spacing.xl,
+                            end = HabitualTheme.spacing.xl,
                         )
+                    ) {
+                        items(sortedHabits) { habit ->
+                            val isCompleted = viewModel.records.any {
+                                it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
+                            }
+                            PremiumHabitCard(
+                                habit = habit,
+                                isDark = isDark,
+                                isCompleted = isCompleted,
+                                onClick = { navController.navigate(Screen.HabitStats.createRoute(habit.id)) },
+                                onToggle = { viewModel.toggleHabitCompletion(habit.id, selectedDate) }
+                            )
+                        }
                     }
                 }
             }
+
         }
     }
 }
@@ -286,6 +298,52 @@ fun PremiumHabitCard(
                         .scale(scale)
                 )
             }
+        }
+    }
+
+}
+@Composable
+fun Modifier.subtleLeafPattern(
+    baseColor: Color // Pass the resolved color here
+): Modifier = this.drawBehind {
+    val leafSize = 38.dp.toPx()
+    val gap = 40.dp.toPx()
+
+    val rows = (size.height / gap).toInt() + 2
+    val cols = (size.width / gap).toInt() + 2
+
+    // The fade mask logic remains the same
+    for (r in 0..rows) {
+        val rowY = r * gap
+        val fadeFactor = ((rowY - 0f) / (150.dp.toPx() - 0f)).coerceIn(0f, 1f)
+
+        for (c in 0..cols) {
+            val seed = (r * 31 + c).toLong()
+            val random = java.util.Random(seed)
+
+            val offsetX = random.nextFloat() * (gap * 0.7f)
+            val offsetY = random.nextFloat() * (gap * 0.7f)
+            val randomRotation = random.nextFloat() * 360f
+
+            drawContext.canvas.save()
+            drawContext.transform.translate(c * gap + offsetX, rowY + offsetY)
+            drawContext.transform.rotate(randomRotation)
+
+            val leafPath = Path().apply {
+                moveTo(0f, 0f)
+                quadraticBezierTo(leafSize / 2, -leafSize / 3, leafSize, 0f)
+                quadraticBezierTo(leafSize / 2, leafSize / 3, 0f, 0f)
+                moveTo(0f, 0f)
+                lineTo(leafSize * 0.75f, 0f)
+            }
+
+            drawPath(
+                path = leafPath,
+                // Use the passed color and apply your 7% alpha + fade mask
+                color = baseColor.copy(alpha = baseColor.alpha * fadeFactor),
+                style = Stroke(width = 1.2.dp.toPx())
+            )
+            drawContext.canvas.restore()
         }
     }
 }
