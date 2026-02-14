@@ -66,7 +66,6 @@ fun HabitCard(
                 Text(
                     text = habit.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
                     textDecoration = textDecoration,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
                 )

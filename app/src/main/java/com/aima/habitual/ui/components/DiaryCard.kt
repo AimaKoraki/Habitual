@@ -86,7 +86,6 @@ fun DiaryCard(
                     text = entry.title,
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))

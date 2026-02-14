@@ -91,8 +91,7 @@ fun DiaryViewScreen(
             // 4. Main Title
             Text(
                 text = entry.title,
-                style = MaterialTheme.typography.displaySmall, // Big, bold header
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.displaySmall, // Big header
                 color = MaterialTheme.colorScheme.onSurface
             )
 

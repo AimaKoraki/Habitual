@@ -30,7 +30,6 @@ fun DiaryHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary // Forest Green
         )
 

@@ -57,7 +57,6 @@ fun HistoryCalendar(records: List<HabitRecord>) {
         Text(
             text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = HabitualTheme.spacing.xxl)
         )

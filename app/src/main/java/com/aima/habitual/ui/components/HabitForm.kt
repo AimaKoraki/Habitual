@@ -57,7 +57,6 @@ fun HabitForm(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.medium)
             ),
             modifier = Modifier.padding(bottom = HabitualTheme.spacing.md) // 12dp spacing (Rhythm)
@@ -76,7 +75,6 @@ fun HabitForm(
         Text(
             text = stringResource(R.string.add_habit_title).uppercase(), // "ADD HABIT"
             style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.secondary)
             )
@@ -88,7 +86,6 @@ fun HabitForm(
         Text(
             text = if (initialHabit == null) stringResource(R.string.add_habit_header) else stringResource(R.string.edit_habit_header),
             style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         )
@@ -219,7 +216,7 @@ fun HabitForm(
                         text = label,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                     )
                 }
             }
@@ -238,7 +235,6 @@ fun HabitForm(
                 text = "${targetMonths.toInt()} Months",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
             )
         }
         
@@ -292,7 +288,6 @@ fun HabitForm(
             Text(
                 text = if (initialHabit == null) stringResource(R.string.save_ritual) else stringResource(R.string.update_ritual),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
             )
         }
     }

@@ -32,7 +32,6 @@ fun LoginScreen(
             text = stringResource(R.string.login_welcome),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))

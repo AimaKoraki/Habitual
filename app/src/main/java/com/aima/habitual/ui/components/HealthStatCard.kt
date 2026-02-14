@@ -53,7 +53,6 @@ fun HealthStatCard(
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 

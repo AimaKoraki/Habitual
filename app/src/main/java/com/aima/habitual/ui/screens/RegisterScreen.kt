@@ -33,7 +33,6 @@ fun RegisterScreen(
             text = stringResource(R.string.register_title),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))

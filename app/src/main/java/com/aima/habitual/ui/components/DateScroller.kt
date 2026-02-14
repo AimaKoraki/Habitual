@@ -112,7 +112,6 @@ private fun DateItem(
         Text(
             text = dayNumber,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             color = contentColor
         )
 

@@ -60,9 +60,7 @@ fun DiaryDetailScreen(
                     Text(
                         text = if (existingEntry == null) stringResource(R.string.diary_new_entry)
                         else stringResource(R.string.diary_edit_entry),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        style = MaterialTheme.typography.titleLarge
                     )
                 },
                 navigationIcon = {

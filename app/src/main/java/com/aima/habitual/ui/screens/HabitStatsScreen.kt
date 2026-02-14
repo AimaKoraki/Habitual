@@ -54,7 +54,6 @@ fun HabitStatsScreen(
                     Text(
                         text = habit?.title ?: stringResource(R.string.history_header),
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
@@ -112,7 +111,6 @@ fun HabitStatsScreen(
                     Text(
                         text = stringResource(R.string.consistency_header),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
@@ -133,7 +131,6 @@ fun HabitStatsScreen(
                     Text(
                         text = stringResource(R.string.history_header),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))

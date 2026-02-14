@@ -21,7 +21,6 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier) {
         text = title,
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.primary, // Forest Green
-        fontWeight = FontWeight.Bold,
         modifier = modifier.padding(vertical = HabitualTheme.spacing.lg)
     )
 }

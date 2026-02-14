@@ -313,7 +313,6 @@ fun ProfileScreen(
             Text(
                 text = stringResource(R.string.profile_log_out),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
             )
         }
 

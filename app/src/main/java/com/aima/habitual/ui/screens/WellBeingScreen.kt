@@ -114,7 +114,6 @@ fun WellBeingScreen(
                     Text(
                         text = String.format("%,d", stats.stepsCount),
                         style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground // Fix text color
                     )
                     Text(
@@ -132,7 +131,6 @@ fun WellBeingScreen(
                 Text(
                     text = stringResource(R.string.wellbeing_daily_summary),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground // Fix text color
                 )
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
@@ -201,7 +199,6 @@ fun WellBeingScreen(
                     Text(
                         text = stringResource(R.string.dialog_update_sleep),
                         style = MaterialTheme.typography.titleLarge, // 22sp
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
@@ -221,7 +218,6 @@ fun WellBeingScreen(
                     Text(
                         text = String.format("%.1f Hours", stats.sleepDurationHours),
                         style = MaterialTheme.typography.headlineSmall, // Strong
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
 
@@ -254,7 +250,6 @@ fun WellBeingScreen(
                         Text(
                             text = stringResource(R.string.btn_done),
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -281,7 +276,6 @@ fun WellBeingScreen(
                     Text(
                         text = stringResource(R.string.dialog_log_water_title),
                         style = MaterialTheme.typography.titleLarge, // Larger
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     
@@ -329,7 +323,7 @@ fun WellBeingScreen(
                                     text = unit,
                                     style = MaterialTheme.typography.labelLarge,
                                     color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                 )
                             }
                         }
