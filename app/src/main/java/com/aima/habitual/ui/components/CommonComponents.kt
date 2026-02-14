@@ -1,14 +1,10 @@
 package com.aima.habitual.ui.components
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
@@ -24,35 +20,3 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier) {
         modifier = modifier.padding(vertical = HabitualTheme.spacing.lg)
     )
 }
-
-/**
- * A reusable primary button styled with the app's theme.
- * Used for "Save Ritual" or "Update Ritual" actions.
- */
-@Composable
-fun PrimaryActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(HabitualTheme.components.buttonHeight),
-        shape = RoundedCornerShape(HabitualTheme.radius.lg),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary, // Forest Green
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        enabled = enabled
-    ) {
-        Text(text = text, style = MaterialTheme.typography.titleMedium)
-    }
-}
-
-/**
- * HealthStatCard (formerly InfoCard) specifically styled for Wellbeing metrics.
- * Now supports dynamic icon coloring to match your Health Insights grid.
- */

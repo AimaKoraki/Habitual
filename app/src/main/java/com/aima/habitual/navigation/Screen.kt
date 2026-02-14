@@ -7,8 +7,6 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Book
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import com.aima.habitual.R
 
 /**
@@ -20,6 +18,10 @@ sealed class Screen(
     @StringRes val titleRes: Int,
     val icon: ImageVector = Icons.Default.Dashboard
 ) {
+    // --- Auth Flow ---
+    object Login : Screen("login", R.string.nav_dashboard)
+    object Register : Screen("register", R.string.nav_dashboard)
+
     // --- Bottom Navigation Destinations ---
     object Dashboard : Screen("dashboard", R.string.nav_dashboard, Icons.Default.Dashboard)
     object WellBeing : Screen("wellbeing", R.string.nav_wellbeing, Icons.Default.SelfImprovement)
@@ -38,17 +40,9 @@ sealed class Screen(
     // --- Journaling Module ---
     object DiaryDetail : Screen("diary_detail/{entryId}", R.string.new_diary_entry) {
         fun createRoute(entryId: String) = "diary_detail/$entryId"
-
-        val arguments = listOf(
-            navArgument("entryId") { type = NavType.StringType }
-        )
     }
 
     object DiaryView : Screen("diary_view/{entryId}", R.string.diary_header) {
         fun createRoute(entryId: String) = "diary_view/$entryId"
-
-        val arguments = listOf(
-            navArgument("entryId") { type = NavType.StringType }
-        )
     }
 }

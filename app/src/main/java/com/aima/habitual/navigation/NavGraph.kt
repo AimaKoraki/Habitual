@@ -28,7 +28,7 @@ fun NavGraph(
     NavHost(
         navController = navController,
         // Start at Login if not authenticated, otherwise Dashboard
-        startDestination = if (viewModel.isLoggedIn) Screen.Dashboard.route else "login",
+        startDestination = if (viewModel.isLoggedIn) Screen.Dashboard.route else Screen.Login.route,
         modifier = modifier,
         enterTransition = { slideInHorizontally(animationSpec = tween(300)) { it } },
         exitTransition = { slideOutHorizontally(animationSpec = tween(300)) { -it } },
@@ -38,7 +38,7 @@ fun NavGraph(
 
         // --- 1. AUTH FLOW ---
 
-        composable("login") {
+        composable(Screen.Login.route) {
             LoginScreen(
                 errorMessage = viewModel.loginError, // Pass the error state
                 onLoginAttempt = { email, password ->
@@ -46,25 +46,25 @@ fun NavGraph(
                     val isSuccess = viewModel.validateLogin(email, password)
                     if (isSuccess) {
                         navController.navigate(Screen.Dashboard.route) {
-                            popUpTo("login") { inclusive = true }
+                            popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     }
                 },
                 onNavigateToRegister = {
                     viewModel.clearLoginError() // Clear errors when switching screens
-                    navController.navigate("register")
+                    navController.navigate(Screen.Register.route)
                 }
             )
         }
 
-        composable("register") {
+        composable(Screen.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = { name, email, password ->
                     // Save user to SharedPreferences
                     viewModel.registerUser(name, email, password)
 
                     navController.navigate(Screen.Dashboard.route) {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
                 onNavigateToLogin = {
@@ -105,14 +105,14 @@ fun NavGraph(
                 viewModel = viewModel,
                 onLogout = {
                     viewModel.logout()
-                    navController.navigate("login") {
+                    navController.navigate(Screen.Login.route) {
                         // Clears all history so user is fully logged out
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onDeleteProfile = {
                     viewModel.deleteProfile()
-                    navController.navigate("login") {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
