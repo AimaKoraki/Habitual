@@ -116,10 +116,19 @@ fun DashboardScreen(
                     )
                 }
             } else {
-                // Filter habits to only those scheduled for the selected day
+                // Filter habits to only those scheduled for the selected day AND created on/before that date
                 val dayOfWeek = selectedDate.dayOfWeek.value % 7  // Mon=1..Sun=7 → 0=Sun convention
-                val filteredHabits = habits.filter {
-                    it.repeatDays.isEmpty() || it.repeatDays.contains(dayOfWeek)
+                val filteredHabits = habits.filter { habit ->
+                    // Check creation date
+                    val creationDate = java.time.Instant.ofEpochMilli(habit.createdAt)
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toLocalDate()
+                    val isCreated = !selectedDate.isBefore(creationDate)
+
+                    // Check schedule
+                    val isScheduled = habit.repeatDays.isEmpty() || habit.repeatDays.contains(dayOfWeek)
+
+                    isCreated && isScheduled
                 }
 
                 LazyColumn(
