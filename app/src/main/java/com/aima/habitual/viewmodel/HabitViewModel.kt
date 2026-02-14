@@ -200,6 +200,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             stepsCount = currentSensorSteps + rewardSteps,
             lastSyncTimestamp = System.currentTimeMillis()
         )
+        saveDailyStats()
     }
 
     private fun saveStepState(steps: Int, sensorVal: Int, date: Long) {
@@ -227,6 +228,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             waterIntakeMl = currentStats.waterIntakeMl + amountMl,
             lastSyncTimestamp = System.currentTimeMillis()
         )
+        saveDailyStats()
     }
 
     fun updateSleep(date: LocalDate, hours: Double) {
@@ -237,6 +239,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             sleepDurationHours = hours,
             lastSyncTimestamp = System.currentTimeMillis()
         )
+        saveDailyStats()
     }
 
     fun addSteps(steps: Int) {
@@ -327,6 +330,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit().putString("diary_data", json).apply()
     }
 
+    private fun saveDailyStats() {
+        // Convert mutableStateMap to a plain Map<Long, WellbeingStats> for Gson
+        val statsMap: Map<Long, WellbeingStats> = _dailyStats.toMap()
+        val json = gson.toJson(statsMap)
+        prefs.edit().putString("daily_stats_data", json).apply()
+    }
+
     private fun loadData() {
         // Load Habits
         val habitsJson = prefs.getString("habits_data", null)
@@ -353,6 +363,15 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             val loadedDiary: List<DiaryEntry> = gson.fromJson(diaryJson, type)
             diaryEntries.clear()
             diaryEntries.addAll(loadedDiary)
+        }
+
+        // Load Daily Wellbeing Stats
+        val statsJson = prefs.getString("daily_stats_data", null)
+        if (statsJson != null) {
+            val type = object : TypeToken<Map<Long, WellbeingStats>>() {}.type
+            val loadedStats: Map<Long, WellbeingStats> = gson.fromJson(statsJson, type)
+            _dailyStats.clear()
+            _dailyStats.putAll(loadedStats)
         }
     }
     // --- AUTH LOGIC ---
