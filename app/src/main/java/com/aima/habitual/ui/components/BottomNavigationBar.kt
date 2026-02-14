@@ -24,6 +24,7 @@ import com.aima.habitual.ui.theme.HabitualTheme
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
+    // 1. Define the top-level screens accessible from the Bottom Bar
     val items = listOf(
         Screen.Dashboard,
         Screen.WellBeing,
@@ -31,15 +32,20 @@ fun BottomNavigationBar(navController: NavHostController) {
         Screen.Profile
     )
 
+    // 2. Observe the current back stack to track where the user is in the app
+    // This allows the bar to highlight the correct icon automatically.
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     NavigationBar(
+        // Material3 surface styling for a modern, clean look
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = HabitualTheme.elevation.medium
     ) {
         items.forEach { screen ->
 
+            // 3. Determine if this specific item is currently selected
+            // We check the destination hierarchy to ensure parent routes are matched correctly.
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
             val labelText = stringResource(id = screen.titleRes)
 
@@ -47,7 +53,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                 icon = {
                     Icon(
                         imageVector = screen.icon,
-                        contentDescription = labelText
+                        contentDescription = labelText // Accessibility support for Screen Readers
                     )
                 },
                 label = {
@@ -58,14 +64,23 @@ fun BottomNavigationBar(navController: NavHostController) {
                 },
                 selected = isSelected,
                 onClick = {
+                    // 4. Handle Navigation Logic
                     navController.navigate(screen.route) {
+                        // Pop up to the start destination to avoid building a massive backstack
+                        // when switching between main tabs.
                         popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                            saveState = true // Preserves scroll position and text field state
                         }
+
+                        // Avoid multiple copies of the same destination when re-selecting the same tab
                         launchSingleTop = true
+
+                        // Restore previous state when re-selecting a previously visited tab
                         restoreState = true
                     }
                 },
+                // 5. Define Theme-aware Colors
+                // Ensures accessibility contrast ratios are met for both Light and Dark themes.
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,

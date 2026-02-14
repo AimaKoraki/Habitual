@@ -8,12 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-
+import androidx.compose.ui.unit.dp
 
 import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
- * HealthStatCard with click support for editing stats.
+ * HealthStatCard: A specialized card for displaying health metrics like Sleep and Water.
+ * Redesigned for a "Premium" look with a flat elevation and subtle borders.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,39 +24,45 @@ fun HealthStatCard(
     icon: ImageVector,
     color: Color,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {} // Added: Default empty click action
+    onClick: () -> Unit = {} // Added: Enables interactive stat editing
 ) {
     Card(
-        onClick = onClick, // Added: Connects the click action
+        onClick = onClick, // Connects the click action to the card surface
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Glassy/Flat
+            containerColor = MaterialTheme.colorScheme.surface // Modern flat/glassy aesthetic
         ),
-        // Premium: Subtle alpha border
-        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant),
-        shape = RoundedCornerShape(HabitualTheme.radius.lg)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(HabitualTheme.radius.lg) // Standardized radius from design tokens
     ) {
         Column(
             modifier = Modifier
-                .padding(HabitualTheme.spacing.xl) // Airy padding
+                .padding(HabitualTheme.spacing.xl) // 2. AIRY PADDING: Provides a spacious, high-end feel
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {
+            // 1. ICONOGRAPHY:
+            // Uses the color passed from the screen (e.g., Primary for Water, Secondary for Sleep).
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = null, // Visual decoration only
                 tint = color,
                 modifier = Modifier.size(HabitualTheme.components.iconLg)
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
+            // 2. VALUE DISPLAY:
+            // High-contrast headline text for quick readability.
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
+            // 3. LABEL:
+            // Uses a secondary alpha to create a clear visual hierarchy.
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,

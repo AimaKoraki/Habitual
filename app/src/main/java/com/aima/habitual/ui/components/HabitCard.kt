@@ -25,7 +25,9 @@ import com.aima.habitual.model.Habit
 import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
- * HabitCard updated to reflect the Forest Green & Soft Sage theme.
+ * HabitCard: The primary interaction component for ritual tracking.
+ * Redesigned to reflect the Forest Green & Soft Sage theme.
+ * Handles complex state changes (elevation, text decoration, and alpha) based on completion status.
  */
 @Composable
 fun HabitCard(
@@ -35,18 +37,21 @@ fun HabitCard(
     onCardClick: () -> Unit,
     onCheckClick: () -> Unit
 ) {
-    // 1. Visual States: Logic for completed vs. active rituals
+    // 1. VISUAL STATE LOGIC:
+    // We adjust transparency and text styling to give immediate visual feedback.
+    // Completed rituals are "strikethrough" and faded to lower the cognitive load on the user.
     val contentAlpha = if (isCompleted) HabitualTheme.alpha.muted else 1f
     val textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
 
-    // Using theme colors for Forest Green and Soft Sage
+    // Using theme-aware colors for brand consistency
     val forestGreen = MaterialTheme.colorScheme.primary
     val softSage = MaterialTheme.colorScheme.surfaceContainer
 
+    // Dynamic background color: Completed cards become more subtle to let active ones pop.
     val cardContainerColor = if (isCompleted)
-        softSage.copy(alpha = HabitualTheme.alpha.muted + 0.1f) // Faded sage for completed rituals
+        softSage.copy(alpha = HabitualTheme.alpha.muted + 0.1f)
     else
-        softSage // Vibrant sage for active rituals
+        softSage
 
     ElevatedCard(
         onClick = onCardClick,
@@ -54,6 +59,8 @@ fun HabitCard(
             .fillMaxWidth()
             .padding(horizontal = HabitualTheme.spacing.lg, vertical = HabitualTheme.spacing.sm),
         shape = RoundedCornerShape(HabitualTheme.radius.lg),
+        // 2. ADAPTIVE ELEVATION:
+        // Removing elevation for completed cards makes them look "pressed" into the background.
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = if (isCompleted) HabitualTheme.elevation.none else HabitualTheme.elevation.low
         ),
@@ -65,6 +72,7 @@ fun HabitCard(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 3. TEXT CONTENT SECTION:
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = habit.title,
@@ -75,12 +83,13 @@ fun HabitCard(
                 Text(
                     text = habit.category,
                     style = MaterialTheme.typography.bodyMedium,
-                    // Uses Forest Green for the ritual category
+                    // Category labels use secondary alpha to maintain clear hierarchy
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
                 )
             }
 
-            // 2. Branded Completion Button with Forest Green accents
+            // 4. INTERACTIVE COMPLETION CHECKBOX:
+            // Custom-built check button using CircleShape and Forest Green accents.
             val completeDesc = stringResource(R.string.desc_complete)
             IconButton(
                 onClick = onCheckClick,
@@ -91,11 +100,14 @@ fun HabitCard(
                         if (isCompleted) forestGreen
                         else Color.Transparent
                     )
+                    // Border provides a visible target even when the habit is not yet checked
                     .border(
                         width = HabitualTheme.components.borderMedium,
                         color = forestGreen.copy(alpha = if (isCompleted) 1f else HabitualTheme.alpha.secondary),
                         shape = CircleShape
                     )
+                    // 5. ACCESSIBILITY (A11Y):
+                    // Essential for screen readers and your automated test suite to identify the check action.
                     .semantics { contentDescription = completeDesc }
             ) {
                 if (isCompleted) {

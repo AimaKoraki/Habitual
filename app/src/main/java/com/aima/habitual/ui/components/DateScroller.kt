@@ -26,14 +26,20 @@ import java.util.Locale
 /**
  * DatePickerScroller allows users to navigate ritual dates using a horizontal scroll.
  * Optimized for the Forest Green & Soft Sage theme.
+ * This component manages its own horizontal window state while syncing with the parent selection.
  */
 @Composable
 fun DatePickerScroller(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit
 ) {
+    // 1. STATE: Maintains the "window" of dates currently visible in the scroller.
+    // By default, it centers around the selected date.
     var startDate by remember { mutableStateOf(selectedDate.minusDays(2)) }
     val today = LocalDate.now()
+
+    // 2. LOGIC: Generates a list of 5 consecutive days based on the current window.
+    // 'remember' ensures we only recalculate when the startDate actually changes.
     val days = remember(startDate) { (0..4).map { startDate.plusDays(it.toLong()) } }
 
     Row(
@@ -42,14 +48,16 @@ fun DatePickerScroller(
             .padding(horizontal = HabitualTheme.spacing.lg),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Navigation: Shifts the date window back by one day
         IconButton(onClick = { startDate = startDate.minusDays(1) }) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant // Forest Green
+                contentDescription = "Previous Days", // Accessibility support
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
+        // 3. SCROLLABLE LIST: Displays the calculated days in a horizontal row.
         LazyRow(
             modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs, Alignment.CenterHorizontally)
@@ -65,16 +73,21 @@ fun DatePickerScroller(
             }
         }
 
+        // Navigation: Shifts the date window forward by one day
         IconButton(onClick = { startDate = startDate.plusDays(1) }) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant // Forest Green
+                contentDescription = "Next Days", // Accessibility support
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
+/**
+ * DateItem: Represents a single date card within the scroller.
+ * Uses conditional logic to highlight the active selection and the current "Today" marker.
+ */
 @Composable
 private fun DateItem(
     dayName: String,
@@ -83,7 +96,7 @@ private fun DateItem(
     isToday: Boolean,
     onClick: () -> Unit
 ) {
-    // Theme-driven color selection to match the new Forest & Sage aesthetic
+    // 4. THEME-DRIVEN COLORS: Adapts the background and content based on selection state.
     val backgroundColor = if (isSelected)
         MaterialTheme.colorScheme.primary // Forest Green
     else
@@ -98,7 +111,7 @@ private fun DateItem(
         modifier = Modifier
             .padding(horizontal = HabitualTheme.spacing.xxs)
             .width(DateScrollerLayout.dateItemWidth)
-            .clip(RoundedCornerShape(HabitualTheme.radius.md))
+            .clip(RoundedCornerShape(HabitualTheme.radius.md)) // Modern rounded aesthetic
             .background(backgroundColor)
             .clickable { onClick() }
             .padding(vertical = HabitualTheme.spacing.md),
@@ -116,7 +129,7 @@ private fun DateItem(
             color = contentColor
         )
 
-        // Indicator for "Today" aligned with the primary brand color
+        // 5. TODAY INDICATOR: A subtle dash to anchor the user to the current date.
         if (isToday) {
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
             Box(
@@ -128,7 +141,7 @@ private fun DateItem(
                         if (isSelected)
                             MaterialTheme.colorScheme.onPrimary
                         else
-                            MaterialTheme.colorScheme.secondaryContainer // Forest Green highlight
+                            MaterialTheme.colorScheme.secondaryContainer
                     )
             )
         }
