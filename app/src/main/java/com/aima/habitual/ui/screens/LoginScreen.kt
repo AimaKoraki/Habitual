@@ -68,7 +68,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        width = 1.dp,
+                        width = HabitualTheme.components.borderThin,
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(HabitualTheme.radius.xl)
                     ),
@@ -98,7 +98,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        width = 1.dp,
+                        width = HabitualTheme.components.borderThin,
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(HabitualTheme.radius.xl)
                     ),

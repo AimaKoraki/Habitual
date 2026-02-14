@@ -88,8 +88,8 @@ fun WellBeingScreen(
                     .padding(horizontal = HabitualTheme.spacing.md),
                 shape = RoundedCornerShape(HabitualTheme.radius.lg),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                border = androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.elevation.none)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,

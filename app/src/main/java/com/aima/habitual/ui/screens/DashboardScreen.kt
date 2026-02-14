@@ -5,7 +5,18 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import com.aima.habitual.ui.screens.layout.DashboardLayout
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -281,8 +292,8 @@ fun PremiumHabitCard(
 fun Modifier.subtleLeafPattern(
     baseColor: Color
 ): Modifier = this.drawBehind {
-    val leafSize = 38.dp.toPx()
-    val gap = 40.dp.toPx()
+    val leafSize = DashboardLayout.leafSize.toPx()
+    val gap = DashboardLayout.patternGap.toPx()
     val rows = (size.height / gap).toInt() + 2
     val cols = (size.width / gap).toInt() + 2
 
@@ -290,7 +301,7 @@ fun Modifier.subtleLeafPattern(
         val rowY = r * gap
 
         // 4. FADE MASK: Calculates alpha based on vertical position
-        val fadeFactor = ((rowY - 0f) / (150.dp.toPx() - 0f)).coerceIn(0f, 1f)
+        val fadeFactor = ((rowY - 0f) / (DashboardLayout.patternFadeRange.toPx() - 0f)).coerceIn(0f, 1f)
 
         for (c in 0..cols) {
             val seed = (r * 31 + c).toLong()
@@ -315,7 +326,7 @@ fun Modifier.subtleLeafPattern(
             drawPath(
                 path = leafPath,
                 color = baseColor.copy(alpha = baseColor.alpha * fadeFactor),
-                style = Stroke(width = 1.2.dp.toPx())
+                style = Stroke(width = DashboardLayout.leafStrokeWidth.toPx())
             )
             drawContext.canvas.restore()
         }

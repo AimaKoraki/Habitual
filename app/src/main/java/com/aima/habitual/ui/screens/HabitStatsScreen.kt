@@ -104,8 +104,8 @@ fun HabitStatsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(HabitualTheme.radius.xxl),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp, // Flat paper look
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                tonalElevation = HabitualTheme.elevation.none, // Flat paper look
+                border = androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(HabitualTheme.spacing.xl)
@@ -125,8 +125,8 @@ fun HabitStatsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(HabitualTheme.radius.xxl),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp, // Flat paper look
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                tonalElevation = HabitualTheme.elevation.none, // Flat paper look
+                border = androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(HabitualTheme.spacing.xl)
