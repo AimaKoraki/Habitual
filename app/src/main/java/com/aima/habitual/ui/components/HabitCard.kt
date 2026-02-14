@@ -38,7 +38,7 @@ fun HabitCard(
 
     // Using theme colors for Forest Green and Soft Sage
     val forestGreen = MaterialTheme.colorScheme.primary
-    val softSage = MaterialTheme.colorScheme.surfaceVariant
+    val softSage = MaterialTheme.colorScheme.surfaceContainer
 
     val cardContainerColor = if (habit.isCompleted)
         softSage.copy(alpha = HabitualTheme.alpha.muted + 0.1f) // Faded sage for completed rituals
@@ -67,13 +67,13 @@ fun HabitCard(
                     text = habit.title,
                     style = MaterialTheme.typography.titleLarge,
                     textDecoration = textDecoration,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
                 )
                 Text(
                     text = habit.category,
                     style = MaterialTheme.typography.bodyMedium,
                     // Uses Forest Green for the ritual category
-                    color = forestGreen.copy(alpha = contentAlpha)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
                 )
             }
 
@@ -89,7 +89,7 @@ fun HabitCard(
                     )
                     .border(
                         width = HabitualTheme.components.borderMedium,
-                        color = forestGreen.copy(alpha = contentAlpha),
+                        color = forestGreen.copy(alpha = if (habit.isCompleted) 1f else HabitualTheme.alpha.secondary),
                         shape = CircleShape
                     )
             ) {

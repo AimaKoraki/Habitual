@@ -20,7 +20,7 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         style = MaterialTheme.typography.headlineLarge,
-        color = MaterialTheme.colorScheme.primary, // Forest Green
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier.padding(vertical = HabitualTheme.spacing.lg)
     )
 }
@@ -41,7 +41,7 @@ fun PrimaryActionButton(
         modifier = modifier
             .fillMaxWidth()
             .height(HabitualTheme.components.buttonHeight),
-        shape = RoundedCornerShape(HabitualTheme.radius.md),
+        shape = RoundedCornerShape(HabitualTheme.radius.lg),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary, // Forest Green
             contentColor = MaterialTheme.colorScheme.onPrimary

@@ -44,8 +44,8 @@ fun BottomNavigationBar(navController: NavHostController) {
 
     if (showBottomBar) {
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surface, // Matches the Theme (White or Dark Grey)
-            tonalElevation = HabitualTheme.elevation.high // Adds a subtle shadow/tint to separate it from the content
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow, // Matches the Theme (White or Dark Grey)
+            tonalElevation = HabitualTheme.elevation.medium // Adds a subtle shadow/tint to separate it from the content
         ) {
             // 4. Loop through each screen item to create a tab
             items.forEach { screen ->
@@ -95,7 +95,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.primary, // Forest Green (Active Icon)
                         selectedTextColor = MaterialTheme.colorScheme.primary, // Forest Green (Active Text)
-                        indicatorColor = MaterialTheme.colorScheme.secondaryContainer, // Light Sage (Active Background Pill)
+                        indicatorColor = MaterialTheme.colorScheme.surfaceContainerHigh, //Subtle tonal layer
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant, // Grey (Inactive)
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )

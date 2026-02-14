@@ -37,6 +37,7 @@ private val LightColorScheme = lightColorScheme(
     outline = LightBorderStrong,
     outlineVariant = LightBorderSubtle,
 
+
     error = DangerRed,
     onError = Color.White,
     errorContainer = LightErrorContainer,
@@ -46,9 +47,9 @@ private val LightColorScheme = lightColorScheme(
 // ─── DARK COLOR SCHEME ───────────────────────────────────────────────────────
 private val DarkColorScheme = darkColorScheme(
     primary = DarkAccentPrimary,
-    onPrimary = Color(0xFF0F1110),                  // Explicit dark-on-primary
+    onPrimary = Color(0xFF0F1110),
     primaryContainer = DarkAccentSoft,
-    onPrimaryContainer = DarkBg, // Ensure high contrast on soft container
+    onPrimaryContainer = DarkTextPrimary,
 
     secondaryContainer = DarkSecondaryContainer,
     onSecondaryContainer = DarkOnSecondaryContainer,

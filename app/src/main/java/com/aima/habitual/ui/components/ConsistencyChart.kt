@@ -39,12 +39,12 @@ fun ConsistencyChart(records: List<HabitRecord>) {
                 Box(
                     modifier = Modifier
                         .width(StatsLayout.chartBarWidth)
-                        .fillMaxHeight(if (isDone) 0.8f else 0.2f)
+                        .fillMaxHeight(if (isDone) 0.7f else 0.25f)
                         .background(
                             color = if (isDone)
                                 MaterialTheme.colorScheme.primary
                             else
-                                MaterialTheme.colorScheme.surfaceVariant.copy(
+                                MaterialTheme.colorScheme.surfaceContainerHigh.copy(
                                     alpha = HabitualTheme.alpha.subtle
                                 ),
                             shape = RoundedCornerShape(

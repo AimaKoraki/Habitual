@@ -28,7 +28,7 @@ fun HabitualBottomBar(navController: NavHostController) {
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface, // Soft Sage
-        contentColor = MaterialTheme.colorScheme.primary
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         items.forEach { screen ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
@@ -41,7 +41,7 @@ fun HabitualBottomBar(navController: NavHostController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary, // Forest Green
                     selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer // Light Sage
+                    indicatorColor = MaterialTheme.colorScheme.surfaceContainerHigh // Subtle tonal layer
                 ),
                 onClick = {
                     navController.navigate(screen.route) {
@@ -85,7 +85,7 @@ fun HabitualNavigationRail(navController: NavHostController) {
                 colors = NavigationRailItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary, // Forest Green
                     selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer // Light Sage
+                    indicatorColor = MaterialTheme.colorScheme.surfaceContainerHigh // Subtle tonal layer
                 ),
                 onClick = {
                     navController.navigate(screen.route) {

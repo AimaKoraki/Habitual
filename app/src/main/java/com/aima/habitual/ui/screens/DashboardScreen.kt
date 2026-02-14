@@ -131,11 +131,18 @@ fun DashboardScreen(
                     isCreated && isScheduled
                 }
 
+                // Sort: incomplete habits first, completed habits at bottom
+                val sortedHabits = filteredHabits.partition { habit ->
+                    !viewModel.records.any {
+                        it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
+                    }
+                }.let { (incomplete, complete) -> incomplete + complete }
+
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
-                    items(filteredHabits) { habit ->
+                    items(sortedHabits) { habit ->
                         val isCompleted = viewModel.records.any {
                             it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
                         }
@@ -186,15 +193,22 @@ fun PremiumHabitCard(
         if (completed) 1.2f else 1.0f // Slightly larger when checked for emphasis
     }
 
+    // Greyed-out styling for completed habits
+    val containerColor = if (isCompleted) 
+        MaterialTheme.colorScheme.surfaceVariant 
+        else MaterialTheme.colorScheme.surface
+    
+    val textAlpha = if (isCompleted) HabitualTheme.alpha.muted else 1f
+
     Card(
         shape = RoundedCornerShape(HabitualTheme.radius.lg),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Flat surface color
+            containerColor = containerColor
         ),
         onClick = onClick,
         elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.elevation.none), // No shadow for flat feel
         // Premium Glow: 1px border with very low alpha
-        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
+        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -209,7 +223,7 @@ fun PremiumHabitCard(
                 Text(
                     text = habit.title,
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha)
                 )
 
                 // JSON: "spacing.xs": 4
@@ -218,7 +232,7 @@ fun PremiumHabitCard(
                 Text(
                     text = habit.category,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = textAlpha)
                 )
             }
 

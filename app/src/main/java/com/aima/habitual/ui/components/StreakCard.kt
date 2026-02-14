@@ -29,7 +29,7 @@ fun StreakCard(streakCount: Int) {
         // JSON Token: "card.radius": 20
         shape = RoundedCornerShape(HabitualTheme.radius.xxl),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
         // Premium Shadow/Border Logic
         elevation = CardDefaults.cardElevation(
@@ -50,14 +50,14 @@ fun StreakCard(streakCount: Int) {
             Icon(
                 imageVector = Icons.Default.Whatshot,
                 contentDescription = stringResource(R.string.streak_icon_desc),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = com.aima.habitual.ui.theme.StreakFire,
                 modifier = Modifier.size(HabitualTheme.components.iconXl)
             )
 
             Text(
                 text = stringResource(R.string.current_streak),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(

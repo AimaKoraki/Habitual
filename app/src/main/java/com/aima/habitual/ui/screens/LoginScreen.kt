@@ -33,7 +33,7 @@ fun LoginScreen(
         Text(
             text = stringResource(R.string.login_welcome),
             style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))  // 32dp breathing room

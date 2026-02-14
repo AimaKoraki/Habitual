@@ -30,19 +30,19 @@ fun DiaryHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary // Forest Green
+            color = MaterialTheme.colorScheme.onBackground // Forest Green
         )
 
         TextButton(onClick = onSortClick) {
             Text(
                 text = stringResource(R.string.sort_by),
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary // Forest Green
+                color = MaterialTheme.colorScheme.onSurfaceVariant // Forest Green
             )
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

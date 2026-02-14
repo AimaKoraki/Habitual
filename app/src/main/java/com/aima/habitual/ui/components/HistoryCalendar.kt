@@ -59,7 +59,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
             text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = HabitualTheme.spacing.xl)
+            modifier = Modifier.padding(bottom = HabitualTheme.spacing.section)
         )
 
         LazyVerticalGrid(
@@ -99,7 +99,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                         .background(
                             when {
                                 isDone -> MaterialTheme.colorScheme.primary // Forest Green
-                                isCurrentDay -> MaterialTheme.colorScheme.primaryContainer // Consistent accent
+                                isCurrentDay -> MaterialTheme.colorScheme.surfaceContainerHigh // Consistent accent
                                 else -> Color.Transparent
                             }
                         ),
@@ -111,10 +111,8 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                         fontWeight = if (isDone || isCurrentDay) FontWeight.Bold else FontWeight.Normal,
                         color = when {
                             isDone -> MaterialTheme.colorScheme.onPrimary
-                            isCurrentDay -> MaterialTheme.colorScheme.onPrimaryContainer
-                            else -> MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = HabitualTheme.alpha.muted
-                            )
+                            isCurrentDay -> MaterialTheme.colorScheme.onSurface
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 }

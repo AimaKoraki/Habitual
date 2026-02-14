@@ -44,7 +44,8 @@ fun DiaryCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(HabitualTheme.radius.xxl),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+
             )
         ) {
             Column(modifier = Modifier.padding(HabitualTheme.components.cardPadding)) {
@@ -55,7 +56,7 @@ fun DiaryCard(
                 ) {
                     Text(
                         text = entry.date,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = HabitualTheme.alpha.secondary),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelLarge
                     )
 
@@ -66,7 +67,7 @@ fun DiaryCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -74,7 +75,7 @@ fun DiaryCard(
 
                 Text(
                     text = entry.title,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
                 )
 
@@ -82,7 +83,7 @@ fun DiaryCard(
 
                 Text(
                     text = entry.content,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = HabitualTheme.alpha.high),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis

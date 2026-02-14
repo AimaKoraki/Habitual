@@ -7,9 +7,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +37,9 @@ fun DiaryViewScreen(
     // 1. Find the entry. If not found (deleted), handle gracefully.
     val entry = viewModel.diaryEntries.find { it.id == entryId }
 
+    // State for delete dialog
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     if (entry == null) {
         // Fallback if entry is missing
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -52,7 +60,16 @@ fun DiaryViewScreen(
                     }
                 },
                 actions = {
-                    // 2. Edit Button - Navigates to the "Form" screen
+                    // 2. Delete Button
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.desc_delete),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    // 3. Edit Button - Navigates to the "Form" screen
                     FloatingActionButton(
                         onClick = { navController.navigate(Screen.DiaryDetail.createRoute(entry.id)) },
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -84,7 +101,7 @@ fun DiaryViewScreen(
             Text(
                 text = entry.date,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.secondary)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
@@ -116,7 +133,6 @@ fun DiaryViewScreen(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
             // 6. The Content (Readable Body Text)
-// 6. The Content (Readable Body Text)
             Text(
                 text = entry.content,
                 // FIX: Changed 'height' to 'lineHeight'
@@ -127,6 +143,35 @@ fun DiaryViewScreen(
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.components.iconXl))
+        }
+
+        // --- DELETE DIALOG ---
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = stringResource(R.string.dialog_delete_entry_title)) },
+                text = { Text(text = stringResource(R.string.dialog_delete_entry_text)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteDiaryEntry(entry.id)
+                            showDeleteDialog = false
+                            navController.popBackStack()
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+
+                    ) {
+                        Text(stringResource(R.string.btn_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
+                }
+            )
         }
     }
 }

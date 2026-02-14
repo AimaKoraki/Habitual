@@ -52,7 +52,7 @@ fun DiaryHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary // Forest Green
+            color = MaterialTheme.colorScheme.onBackground // Forest Green
         )
 
         TextButton(onClick = onSortClick) {
@@ -60,12 +60,12 @@ fun DiaryHeader(
                 Text(
                     text = stringResource(R.string.sort_by), // Localized "Sort by"
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

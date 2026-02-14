@@ -92,7 +92,7 @@ fun ProfileScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     // Premium: Subtle Avatar Ring
-                    .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.subtle), CircleShape),
+                    .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.outlineVariant, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 if (viewModel.profileImageUri != null) {
@@ -272,7 +272,7 @@ fun ProfileScreen(
                         Icon(
                             imageVector = if (isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
                         Text(
@@ -306,7 +306,7 @@ fun ProfileScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ListAlt,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
                         Text(
@@ -434,7 +434,7 @@ fun ProfileScreen(
                 Text(
                     text = stringResource(R.string.profile_your_rituals),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = HabitualTheme.spacing.lg)
                 )
 
@@ -447,7 +447,7 @@ fun ProfileScreen(
                     ) {
                         items(habits) { habit ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Row(
@@ -469,12 +469,12 @@ fun ProfileScreen(
                                             Text(
                                                 text = habit.title,
                                                 style = MaterialTheme.typography.titleMedium,
-                                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Text(
                                                 text = habit.category,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = HabitualTheme.alpha.secondary)
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
                                             )
                                         }
                                     }

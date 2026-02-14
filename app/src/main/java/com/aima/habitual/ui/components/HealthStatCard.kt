@@ -32,8 +32,8 @@ fun HealthStatCard(
             containerColor = MaterialTheme.colorScheme.surface // Glassy/Flat
         ),
         // Premium: Subtle alpha border
-        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
-        shape = RoundedCornerShape(HabitualTheme.radius.xxl)
+        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant),
+        shape = RoundedCornerShape(HabitualTheme.radius.lg)
     ) {
         Column(
             modifier = Modifier

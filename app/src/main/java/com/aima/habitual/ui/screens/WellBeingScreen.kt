@@ -105,7 +105,7 @@ fun WellBeingScreen(
                     Icon(
                         imageVector = Icons.Default.Sync,
                         contentDescription = stringResource(R.string.desc_sync_steps),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(HabitualTheme.components.iconLg)
                     )
                 }
@@ -119,7 +119,7 @@ fun WellBeingScreen(
                     Text(
                         text = stringResource(R.string.wellbeing_steps),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -218,7 +218,7 @@ fun WellBeingScreen(
                     Text(
                         text = String.format("%.1f Hours", stats.sleepDurationHours),
                         style = MaterialTheme.typography.headlineSmall, // Strong
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp

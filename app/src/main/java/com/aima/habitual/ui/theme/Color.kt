@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 // --- LIGHT MODE COLORS ---
 val LightBg = Color(0xFFF8F9F7)
 val LightSurface = Color(0xFFFFFFFF)
-val LightSurfaceSubtle = Color(0xFFF1F4F2)
+val LightSurfaceSubtle = Color(0xFFF3F6F4)
 
 // Light surface containers (M3 tonal elevation)
 val LightSurfaceTint = Color(0xFF18463A)
@@ -28,7 +28,7 @@ val LightBorderStrong = Color.Black.copy(alpha = 0.12f)
 
 // --- DARK MODE COLORS ---
 val DarkBg = Color(0xFF0F1110)
-val DarkSurface = Color(0xFF171A18)
+val DarkSurface = Color(0xFF151816)
 val DarkSurfaceSubtle = Color(0xFF1F2421)
 
 // Dark surface containers (M3 tonal elevation)
@@ -54,6 +54,7 @@ val DarkBorderStrong = Color.White.copy(alpha = 0.12f)
 val SuccessGreen = Color(0xFF3A8F6E)
 val WarningGold = Color(0xFFD4A84F)
 val DangerRed = Color(0xFF8A2D2D)
+val StreakFire = Color(0xFFFF7043) // Deep Orange 400
 
 // Error container colors — earthy rose instead of M3's default pink
 val LightErrorContainer   = Color(0xFFF5DDDA)   // Muted warm rose

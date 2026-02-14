@@ -46,7 +46,7 @@ fun DatePickerScroller(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary // Forest Green
+                tint = MaterialTheme.colorScheme.onSurfaceVariant // Forest Green
             )
         }
 
@@ -69,7 +69,7 @@ fun DatePickerScroller(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary // Forest Green
+                tint = MaterialTheme.colorScheme.onSurfaceVariant // Forest Green
             )
         }
     }
@@ -87,12 +87,12 @@ private fun DateItem(
     val backgroundColor = if (isSelected)
         MaterialTheme.colorScheme.primary // Forest Green
     else
-        MaterialTheme.colorScheme.secondaryContainer // Soft Sage
+        MaterialTheme.colorScheme.surfaceContainerLow // Soft Sage
 
     val contentColor = if (isSelected)
         MaterialTheme.colorScheme.onPrimary
     else
-        MaterialTheme.colorScheme.onSecondaryContainer
+        MaterialTheme.colorScheme.onSurface
 
     Column(
         modifier = Modifier
@@ -128,7 +128,7 @@ private fun DateItem(
                         if (isSelected)
                             MaterialTheme.colorScheme.onPrimary
                         else
-                            MaterialTheme.colorScheme.primary // Forest Green highlight
+                            MaterialTheme.colorScheme.secondaryContainer // Forest Green highlight
                     )
             )
         }

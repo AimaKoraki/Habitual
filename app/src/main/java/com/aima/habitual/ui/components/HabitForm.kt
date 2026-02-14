@@ -76,7 +76,8 @@ fun HabitForm(
             text = stringResource(R.string.add_habit_title).uppercase(), // "ADD HABIT"
             style = MaterialTheme.typography.labelSmall.copy(
                 letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.secondary)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+
             )
         )
         
@@ -234,7 +235,7 @@ fun HabitForm(
             Text(
                 text = "${targetMonths.toInt()} Months",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
         
