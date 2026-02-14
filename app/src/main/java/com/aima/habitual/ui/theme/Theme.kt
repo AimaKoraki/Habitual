@@ -45,7 +45,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = DarkAccentPrimary,
     onPrimary = Color(0xFF0F1110),                  // Explicit dark-on-primary
     primaryContainer = DarkAccentSoft,
-    onPrimaryContainer = DarkAccentPrimary,
+    onPrimaryContainer = DarkBg, // Ensure high contrast on soft container
 
     secondaryContainer = DarkSecondaryContainer,
     onSecondaryContainer = DarkOnSecondaryContainer,

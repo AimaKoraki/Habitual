@@ -41,7 +41,7 @@ val DarkTextPrimary = Color(0xFFFFFFFF)
 val DarkTextSecondary = Color.White.copy(alpha = 0.75f)
 val DarkTextMuted = Color.White.copy(alpha = 0.50f)
 
-val DarkAccentPrimary = Color(0xFFB7D9C9)
+val DarkAccentPrimary = Color(0xFFB0C9BB) // Premium Sage (less minty)
 val DarkAccentSoft = Color(0xFFB7D9C9).copy(alpha = 0.15f)
 
 val DarkSecondaryContainer = Color(0xFF1E2E27)      // Deep green container
