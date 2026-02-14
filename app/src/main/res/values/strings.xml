@@ -79,6 +79,9 @@
 
     <string name="diary_header">Recent entries</string>
     <string name="sort_by">Sort by</string>
+    <string name="sort_newest">Newest First</string>
+    <string name="sort_oldest">Oldest First</string>
+    <string name="sort_alphabetical">Alphabetical</string>
     <string name="new_diary_entry">New Diary Entry</string>
     <string name="diary_placeholder">How was your day?</string>
     <string name="no_diary_entries">No entries yet. Write your first thought!</string>

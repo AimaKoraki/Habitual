@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.navigation.Screen
+import com.aima.habitual.ui.components.DiaryTag
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
@@ -104,23 +105,13 @@ fun DiaryViewScreen(
                     verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
                 ) {
                     entry.tags.forEach { tag ->
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(HabitualTheme.radius.sm)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.tag_prefix, tag),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.xs)
-                            )
-                        }
+                        DiaryTag(text = tag)
                     }
                 }
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
             }
 
-            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = HabitualTheme.alpha.muted))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = HabitualTheme.alpha.muted))
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 

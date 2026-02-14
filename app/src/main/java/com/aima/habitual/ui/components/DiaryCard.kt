@@ -34,17 +34,7 @@ fun DiaryCard(
                 horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
             ) {
                 entry.tags.forEach { tag ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(HabitualTheme.radius.md)
-                    ) {
-                        Text(
-                            text = tag,
-                            modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.xs),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
+                    DiaryTag(text = tag)
                 }
             }
         }
