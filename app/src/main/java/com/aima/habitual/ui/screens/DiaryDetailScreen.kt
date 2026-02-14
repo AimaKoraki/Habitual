@@ -111,7 +111,7 @@ fun DiaryDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = HabitualTheme.spacing.screen)
+                .padding(horizontal = HabitualTheme.spacing.xl)
         ) {
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra breathing room below header
@@ -125,11 +125,11 @@ fun DiaryDetailScreen(
                     .fillMaxWidth()
                     .border(
                         width = HabitualTheme.components.borderThin,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder), // Subtle border
-                        shape = RoundedCornerShape(HabitualTheme.radius.input) // 20dp
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle), // Subtle border
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl) // 20dp
                     ),
                 singleLine = true,
-                shape = RoundedCornerShape(HabitualTheme.radius.input),
+                shape = RoundedCornerShape(HabitualTheme.radius.xl),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface, // Warm
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -152,11 +152,11 @@ fun DiaryDetailScreen(
                         .fillMaxWidth()
                         .border(
                             width = HabitualTheme.components.borderThin,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
-                            shape = RoundedCornerShape(HabitualTheme.radius.input)
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
+                            shape = RoundedCornerShape(HabitualTheme.radius.xl)
                         ),
                     singleLine = true,
-                    shape = RoundedCornerShape(HabitualTheme.radius.input),
+                    shape = RoundedCornerShape(HabitualTheme.radius.xl),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -207,14 +207,14 @@ fun DiaryDetailScreen(
                                     Icon(
                                         imageVector = Icons.Default.Close,
                                         contentDescription = stringResource(R.string.desc_remove_tag),
-                                        modifier = Modifier.size(HabitualTheme.components.iconSmall)
+                                        modifier = Modifier.size(HabitualTheme.components.iconSm)
                                     )
                                 },
                                 colors = InputChipDefaults.inputChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 ),
-                                shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                                shape = RoundedCornerShape(HabitualTheme.radius.md)
                             )
                         }
                     }
@@ -239,10 +239,10 @@ fun DiaryDetailScreen(
                     .weight(1f)
                     .border(
                         width = HabitualTheme.components.borderThin,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
-                        shape = RoundedCornerShape(HabitualTheme.radius.input)
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
                     ),
-                shape = RoundedCornerShape(HabitualTheme.radius.input),
+                shape = RoundedCornerShape(HabitualTheme.radius.xl),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,

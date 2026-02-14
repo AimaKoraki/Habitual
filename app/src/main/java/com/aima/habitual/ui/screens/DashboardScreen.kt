@@ -51,8 +51,8 @@ fun DashboardScreen(
                 shape = androidx.compose.foundation.shape.CircleShape,
                 modifier = Modifier.size(HabitualTheme.components.fabSize),
                 elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = HabitualTheme.components.fabElevation, 
-                    pressedElevation = HabitualTheme.components.fabPressedElevation
+                    defaultElevation = HabitualTheme.elevation.low, 
+                    pressedElevation = HabitualTheme.elevation.medium
                 )
             ) {
                 Icon(
@@ -68,7 +68,7 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 // JSON: "screen.horizontalPadding": 24
-                .padding(horizontal = HabitualTheme.spacing.screen)
+                .padding(horizontal = HabitualTheme.spacing.xl)
         ) {
             // JSON: "sectionSpacing": 32
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
@@ -77,7 +77,7 @@ fun DashboardScreen(
             Text(
                 text = stringResource(R.string.greeting_morning),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.medium)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.secondary)
             )
             Text(
                 text = viewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
@@ -120,7 +120,7 @@ fun DashboardScreen(
                     // JSON: "spacing.lg": 16 (Space between cards)
                     verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
                     // Adding bottom padding so the FAB doesn't cover the last item
-                    contentPadding = PaddingValues(bottom = HabitualTheme.spacing.listBottom)
+                    contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
                     items(habits) { habit ->
                         val isCompleted = viewModel.records.any { 
@@ -174,12 +174,12 @@ fun PremiumHabitCard(
     }
 
     Card(
-        shape = RoundedCornerShape(HabitualTheme.radius.large),
+        shape = RoundedCornerShape(HabitualTheme.radius.lg),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface // Flat surface color
         ),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.components.cardElevationNone), // No shadow for flat feel
+        elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.elevation.none), // No shadow for flat feel
         // Premium Glow: 1px border with very low alpha
         border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
         modifier = Modifier.fillMaxWidth()

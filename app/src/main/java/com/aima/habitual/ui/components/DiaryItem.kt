@@ -22,7 +22,7 @@ import com.aima.habitual.ui.theme.HabitualTheme
 fun DiaryTag(text: String) {
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer, // Soft Sage
-        shape = RoundedCornerShape(HabitualTheme.radius.medium)
+        shape = RoundedCornerShape(HabitualTheme.radius.md)
     ) {
         Text(
             text = text,

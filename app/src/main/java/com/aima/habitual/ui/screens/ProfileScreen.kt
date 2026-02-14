@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aima.habitual.R
+import com.aima.habitual.ui.screens.layout.ProfileLayout
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
@@ -75,7 +76,7 @@ fun ProfileScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(HabitualTheme.components.iconLarge))
+        Spacer(modifier = Modifier.height(HabitualTheme.components.iconXl))
 
         // --- 1. AVATAR SECTION ---
         Box(
@@ -88,7 +89,7 @@ fun ProfileScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     // Premium: Subtle Avatar Ring
-                    .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.avatarRing), CircleShape),
+                    .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.primary.copy(alpha = HabitualTheme.alpha.subtle), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 if (viewModel.profileImageUri != null) {
@@ -105,7 +106,7 @@ fun ProfileScreen(
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = null,
-                        modifier = Modifier.size(HabitualTheme.components.profileImageSmall),
+                        modifier = Modifier.size(ProfileLayout.profileImageSmall),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -114,7 +115,7 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .size(HabitualTheme.components.editBadgeSize)
-                    .offset(x = HabitualTheme.components.editBadgeOffset, y = HabitualTheme.components.editBadgeOffset)
+                    .offset(x = ProfileLayout.editBadgeOffset, y = ProfileLayout.editBadgeOffset)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
                     .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.surface, CircleShape),
@@ -124,12 +125,12 @@ fun ProfileScreen(
                     imageVector = Icons.Default.Edit,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(HabitualTheme.components.iconSmall)
+                    modifier = Modifier.size(HabitualTheme.components.iconSm)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
         // --- 2. EDITABLE NAME SECTION ---
         if (isEditingName) {
@@ -142,7 +143,7 @@ fun ProfileScreen(
                     value = tempName,
                     onValueChange = { tempName = it },
                     singleLine = true,
-                    modifier = Modifier.width(HabitualTheme.components.nameFieldWidth),
+                    modifier = Modifier.width(ProfileLayout.nameFieldWidth),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
                         viewModel.updateUserName(tempName)
@@ -184,7 +185,7 @@ fun ProfileScreen(
                     imageVector = Icons.Default.Edit,
                     contentDescription = stringResource(R.string.desc_edit_name),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted),
-                    modifier = Modifier.size(HabitualTheme.components.iconMedium)
+                    modifier = Modifier.size(HabitualTheme.components.iconMd)
                 )
             }
         }
@@ -205,8 +206,8 @@ fun ProfileScreen(
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier
-                    .width(HabitualTheme.components.progressBarWidth)
-                    .height(HabitualTheme.components.progressBarHeight)
+                    .width(ProfileLayout.progressBarWidth)
+                    .height(ProfileLayout.progressBarHeight)
                     .clip(RoundedCornerShape(HabitualTheme.radius.xs)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -306,7 +307,7 @@ fun ProfileScreen(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
             ),
-            shape = RoundedCornerShape(HabitualTheme.radius.medium)
+            shape = RoundedCornerShape(HabitualTheme.radius.md)
         ) {
             Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))

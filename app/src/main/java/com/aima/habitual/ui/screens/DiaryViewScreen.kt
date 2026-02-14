@@ -59,11 +59,11 @@ fun DiaryViewScreen(
                         shape = androidx.compose.foundation.shape.CircleShape, // Standardized
                         modifier = Modifier.size(HabitualTheme.components.fabSize),
                         elevation = FloatingActionButtonDefaults.elevation(
-                            defaultElevation = HabitualTheme.components.fabElevation,
-                            pressedElevation = HabitualTheme.components.fabPressedElevation
+                            defaultElevation = HabitualTheme.elevation.low,
+                            pressedElevation = HabitualTheme.elevation.medium
                         )
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.desc_edit_entry), modifier = Modifier.size(HabitualTheme.components.iconMedium))
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.desc_edit_entry), modifier = Modifier.size(HabitualTheme.components.iconMd))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -76,7 +76,7 @@ fun DiaryViewScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = HabitualTheme.spacing.xxl) // Wider reading margins
+                .padding(horizontal = HabitualTheme.spacing.xl) // Wider reading margins
                 .verticalScroll(rememberScrollState())
         ) {
             // 3. Date Header
@@ -106,23 +106,23 @@ fun DiaryViewScreen(
                     entry.tags.forEach { tag ->
                         Surface(
                             color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(HabitualTheme.radius.tag)
+                            shape = RoundedCornerShape(HabitualTheme.radius.sm)
                         ) {
                             Text(
                                 text = stringResource(R.string.tag_prefix, tag),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.tagVertical)
+                                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.xs)
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
             }
 
             Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = HabitualTheme.alpha.muted))
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
             // 6. The Content (Readable Body Text)
 // 6. The Content (Readable Body Text)
@@ -132,10 +132,10 @@ fun DiaryViewScreen(
                 style = MaterialTheme.typography.bodyLarge.copy(
                     lineHeight = androidx.compose.ui.unit.TextUnit(1.6f, androidx.compose.ui.unit.TextUnitType.Em)
                 ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.bodyText)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.high)
             )
 
-            Spacer(modifier = Modifier.height(HabitualTheme.components.iconLarge))
+            Spacer(modifier = Modifier.height(HabitualTheme.components.iconXl))
         }
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
+import com.aima.habitual.ui.screens.layout.StatsLayout
 import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
@@ -26,20 +27,20 @@ fun StreakCard(streakCount: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         // JSON Token: "card.radius": 20
-        shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+        shape = RoundedCornerShape(HabitualTheme.radius.xxl),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
         // Premium Shadow/Border Logic
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDark) HabitualTheme.components.cardElevationNone else HabitualTheme.components.cardElevationLight
+            defaultElevation = if (isDark) HabitualTheme.elevation.none else HabitualTheme.elevation.low
         ),
         border = if (isDark) BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant) else null
     ) {
         Column(
             modifier = Modifier
                 .padding(
-                    horizontal = HabitualTheme.components.streakCardPadding,
+                    horizontal = StatsLayout.streakCardPadding,
                     vertical = HabitualTheme.spacing.section
                 )
                 .fillMaxWidth(),
@@ -50,7 +51,7 @@ fun StreakCard(streakCount: Int) {
                 imageVector = Icons.Default.Whatshot,
                 contentDescription = stringResource(R.string.streak_icon_desc),
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(HabitualTheme.components.iconLarge)
+                modifier = Modifier.size(HabitualTheme.components.iconXl)
             )
 
             Text(

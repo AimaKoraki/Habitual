@@ -36,7 +36,7 @@ fun DiaryCard(
                 entry.tags.forEach { tag ->
                     Surface(
                         color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                        shape = RoundedCornerShape(HabitualTheme.radius.md)
                     ) {
                         Text(
                             text = tag,
@@ -52,7 +52,7 @@ fun DiaryCard(
         // 2. Main Entry Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+            shape = RoundedCornerShape(HabitualTheme.radius.xxl),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
@@ -92,7 +92,7 @@ fun DiaryCard(
 
                 Text(
                     text = entry.content,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = HabitualTheme.alpha.bodyText),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = HabitualTheme.alpha.high),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis

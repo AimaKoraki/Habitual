@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
 import com.aima.habitual.model.HabitRecord
+import com.aima.habitual.ui.screens.layout.StatsLayout
 import com.aima.habitual.ui.theme.HabitualTheme
 import java.time.LocalDate
 import java.time.YearMonth
@@ -58,12 +59,12 @@ fun HistoryCalendar(records: List<HabitRecord>) {
             text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = HabitualTheme.spacing.xxl)
+            modifier = Modifier.padding(bottom = HabitualTheme.spacing.xl)
         )
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
-            modifier = Modifier.height(HabitualTheme.components.calendarGridHeight),
+            modifier = Modifier.height(StatsLayout.calendarGridHeight),
             userScrollEnabled = false,
             horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs),
             verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.xs)
@@ -112,7 +113,7 @@ fun HistoryCalendar(records: List<HabitRecord>) {
                             isDone -> MaterialTheme.colorScheme.onPrimary
                             isCurrentDay -> MaterialTheme.colorScheme.onPrimaryContainer
                             else -> MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = HabitualTheme.alpha.calendarInactive
+                                alpha = HabitualTheme.alpha.muted
                             )
                         }
                     )

@@ -91,7 +91,7 @@ fun HabitStatsScreen(
                 .padding(padding)
                 .padding(horizontal = HabitualTheme.spacing.lg)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sectionLg)
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.section)
         ) {
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
@@ -101,12 +101,12 @@ fun HabitStatsScreen(
             // 2. Consistency Chart — wrapped in a section card
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+                shape = RoundedCornerShape(HabitualTheme.radius.xxl),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = HabitualTheme.components.cardElevationLight
+                tonalElevation = HabitualTheme.elevation.low
             ) {
                 Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xxl)
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl)
                 ) {
                     Text(
                         text = stringResource(R.string.consistency_header),
@@ -121,12 +121,12 @@ fun HabitStatsScreen(
             // 3. History Calendar — wrapped in a section card
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge),
+                shape = RoundedCornerShape(HabitualTheme.radius.xxl),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = HabitualTheme.components.cardElevationLight
+                tonalElevation = HabitualTheme.elevation.low
             ) {
                 Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xxl)
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl)
                 ) {
                     Text(
                         text = stringResource(R.string.history_header),

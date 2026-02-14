@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.aima.habitual.model.HabitRecord
+import com.aima.habitual.ui.screens.layout.StatsLayout
 import com.aima.habitual.ui.theme.HabitualTheme
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -23,7 +24,7 @@ fun ConsistencyChart(records: List<HabitRecord>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(HabitualTheme.components.chartHeight)
+            .height(StatsLayout.chartHeight)
             .padding(horizontal = HabitualTheme.spacing.sm),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
@@ -37,7 +38,7 @@ fun ConsistencyChart(records: List<HabitRecord>) {
                 // Bar — wider with rounded top corners, softer inactive style
                 Box(
                     modifier = Modifier
-                        .width(HabitualTheme.components.chartBarWidth)
+                        .width(StatsLayout.chartBarWidth)
                         .fillMaxHeight(if (isDone) 0.8f else 0.2f)
                         .background(
                             color = if (isDone)
@@ -47,8 +48,8 @@ fun ConsistencyChart(records: List<HabitRecord>) {
                                     alpha = HabitualTheme.alpha.subtle
                                 ),
                             shape = RoundedCornerShape(
-                                topStart = HabitualTheme.radius.medium,
-                                topEnd = HabitualTheme.radius.medium
+                                topStart = HabitualTheme.radius.md,
+                                topEnd = HabitualTheme.radius.md
                             )
                         )
                 )

@@ -74,7 +74,7 @@ fun WellBeingScreen(
                 onDateSelected = { selectedDate = it }
             )
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
             // Steps Circle
             Box(
@@ -106,7 +106,7 @@ fun WellBeingScreen(
                         imageVector = Icons.Default.Sync,
                         contentDescription = stringResource(R.string.desc_sync_steps),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(HabitualTheme.components.iconDefault)
+                        modifier = Modifier.size(HabitualTheme.components.iconLg)
                     )
                 }
 
@@ -124,7 +124,7 @@ fun WellBeingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xxl))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
             // Stats Grid
             Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)) {
@@ -169,7 +169,7 @@ fun WellBeingScreen(
                     showWaterDialog = true
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
-                shape = RoundedCornerShape(HabitualTheme.radius.medium),
+                shape = RoundedCornerShape(HabitualTheme.radius.md),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.LocalDrink, contentDescription = null)
@@ -185,14 +185,14 @@ fun WellBeingScreen(
     if (showSleepDialog) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showSleepDialog = false }) {
             Surface(
-                shape = RoundedCornerShape(HabitualTheme.radius.extraLarge), // 24dp
+                shape = RoundedCornerShape(HabitualTheme.radius.xxl), // 24dp
                 color = MaterialTheme.colorScheme.surface, // Warm white
-                tonalElevation = HabitualTheme.components.dialogTonalElevation,
-                shadowElevation = HabitualTheme.components.dialogShadowElevation, // Diffused shadow
+                tonalElevation = HabitualTheme.elevation.medium,
+                shadowElevation = HabitualTheme.elevation.high, // Diffused shadow
                 modifier = Modifier.padding(HabitualTheme.spacing.md)
             ) {
                 Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xxl), // 24dp Internal Padding
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl), // 24dp Internal Padding
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // 1. Header
@@ -243,7 +243,7 @@ fun WellBeingScreen(
                     // 5. Action
                     Button(
                         onClick = { showSleepDialog = false },
-                        shape = RoundedCornerShape(HabitualTheme.radius.medium),
+                        shape = RoundedCornerShape(HabitualTheme.radius.md),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -260,12 +260,12 @@ fun WellBeingScreen(
     if (showWaterDialog) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showWaterDialog = false }) {
             Surface(
-                shape = RoundedCornerShape(HabitualTheme.radius.large),
+                shape = RoundedCornerShape(HabitualTheme.radius.lg),
                 // Premium: Softer surface tone & shadow
                 color = MaterialTheme.colorScheme.surface, // Use surface (warm) or surfaceContainerLow if available. 
                 // Using surface as base, but maybe add tonal elevation
-                tonalElevation = HabitualTheme.components.dialogTonalElevation, 
-                shadowElevation = HabitualTheme.components.dialogShadowElevation,
+                tonalElevation = HabitualTheme.elevation.medium, 
+                shadowElevation = HabitualTheme.elevation.high,
                 modifier = Modifier.padding(HabitualTheme.spacing.md)
             ) {
                 Column(
@@ -290,7 +290,7 @@ fun WellBeingScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(HabitualTheme.radius.input), // 20dp
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl), // 20dp
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle), // Softer border
@@ -311,7 +311,7 @@ fun WellBeingScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(HabitualTheme.components.chipSize)
-                                    .clip(RoundedCornerShape(HabitualTheme.radius.tag))
+                                    .clip(RoundedCornerShape(HabitualTheme.radius.sm))
                                     .background(
                                         if (isSelected) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
@@ -339,7 +339,7 @@ fun WellBeingScreen(
                     ) {
                         TextButton(
                             onClick = { showWaterDialog = false },
-                            shape = RoundedCornerShape(HabitualTheme.radius.medium)
+                            shape = RoundedCornerShape(HabitualTheme.radius.md)
                         ) {
                             Text(stringResource(R.string.btn_cancel), style = MaterialTheme.typography.labelLarge)
                         }
@@ -360,7 +360,7 @@ fun WellBeingScreen(
                                     showWaterDialog = false
                                 }
                             },
-                            shape = RoundedCornerShape(HabitualTheme.radius.medium),
+                            shape = RoundedCornerShape(HabitualTheme.radius.md),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Text(stringResource(R.string.btn_add), style = MaterialTheme.typography.labelLarge)

@@ -72,12 +72,12 @@ fun HabitualTheme(
         }
     }
 
-    // NEW: Provide our custom design tokens to the app
     CompositionLocalProvider(
         LocalSpacing provides HabitualSpacing(),
         LocalRadius provides HabitualRadius(),
-        LocalComponents provides HabitualComponents(),
-        LocalAlpha provides HabitualAlpha()
+        LocalElevation provides HabitualElevation(),
+        LocalAlpha provides HabitualAlpha(),
+        LocalComponents provides HabitualComponents()
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -87,21 +87,19 @@ fun HabitualTheme(
     }
 }
 
-// NEW: Create a custom object to easily access these tokens anywhere!
 object HabitualTheme {
     val spacing: HabitualSpacing
-        @Composable
-        get() = LocalSpacing.current
-    
+        @Composable get() = LocalSpacing.current
+
     val radius: HabitualRadius
-        @Composable
-        get() = LocalRadius.current
-        
-    val components: HabitualComponents
-        @Composable
-        get() = LocalComponents.current
+        @Composable get() = LocalRadius.current
+
+    val elevation: HabitualElevation
+        @Composable get() = LocalElevation.current
 
     val alpha: HabitualAlpha
-        @Composable
-        get() = LocalAlpha.current
+        @Composable get() = LocalAlpha.current
+
+    val components: HabitualComponents
+        @Composable get() = LocalComponents.current
 }

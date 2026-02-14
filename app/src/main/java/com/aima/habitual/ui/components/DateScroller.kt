@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aima.habitual.ui.screens.layout.DateScrollerLayout
 import com.aima.habitual.ui.theme.HabitualTheme
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -96,8 +97,8 @@ private fun DateItem(
     Column(
         modifier = Modifier
             .padding(horizontal = HabitualTheme.spacing.xxs)
-            .width(HabitualTheme.components.dateItemWidth)
-            .clip(RoundedCornerShape(HabitualTheme.radius.medium))
+            .width(DateScrollerLayout.dateItemWidth)
+            .clip(RoundedCornerShape(HabitualTheme.radius.md))
             .background(backgroundColor)
             .clickable { onClick() }
             .padding(vertical = HabitualTheme.spacing.md),
@@ -107,7 +108,7 @@ private fun DateItem(
         Text(
             text = dayName,
             style = MaterialTheme.typography.labelSmall,
-            color = contentColor.copy(alpha = HabitualTheme.alpha.nearFull)
+            color = contentColor.copy(alpha = HabitualTheme.alpha.secondary)
         )
         Text(
             text = dayNumber,
@@ -120,9 +121,9 @@ private fun DateItem(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
             Box(
                 modifier = Modifier
-                    .width(HabitualTheme.components.iconSmall)
-                    .height(HabitualTheme.components.indicatorHeight)
-                    .clip(RoundedCornerShape(HabitualTheme.radius.indicator))
+                    .width(HabitualTheme.components.iconSm)
+                    .height(DateScrollerLayout.indicatorHeight)
+                    .clip(RoundedCornerShape(HabitualTheme.radius.xs))
                     .background(
                         if (isSelected)
                             MaterialTheme.colorScheme.onPrimary

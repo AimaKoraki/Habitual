@@ -33,11 +33,11 @@ fun HealthStatCard(
         ),
         // Premium: Subtle alpha border
         border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.onSurface.copy(alpha = HabitualTheme.alpha.low)),
-        shape = RoundedCornerShape(HabitualTheme.radius.extraLarge)
+        shape = RoundedCornerShape(HabitualTheme.radius.xxl)
     ) {
         Column(
             modifier = Modifier
-                .padding(HabitualTheme.spacing.cardInternalLg) // Airy padding
+                .padding(HabitualTheme.spacing.xl) // Airy padding
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {
@@ -45,7 +45,7 @@ fun HealthStatCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(HabitualTheme.components.iconDefault)
+                modifier = Modifier.size(HabitualTheme.components.iconLg)
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
@@ -59,7 +59,7 @@ fun HealthStatCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.nearFull)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
             )
         }
     }

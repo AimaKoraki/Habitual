@@ -50,9 +50,9 @@ fun HabitCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = HabitualTheme.spacing.lg, vertical = HabitualTheme.spacing.sm),
-        shape = RoundedCornerShape(HabitualTheme.radius.large),
+        shape = RoundedCornerShape(HabitualTheme.radius.lg),
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = if (habit.isCompleted) HabitualTheme.components.cardElevationNone else HabitualTheme.components.cardElevationLight
+            defaultElevation = if (habit.isCompleted) HabitualTheme.elevation.none else HabitualTheme.elevation.low
         ),
         colors = CardDefaults.elevatedCardColors(containerColor = cardContainerColor)
     ) {

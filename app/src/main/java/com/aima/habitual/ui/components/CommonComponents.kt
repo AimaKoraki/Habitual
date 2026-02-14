@@ -41,7 +41,7 @@ fun PrimaryActionButton(
         modifier = modifier
             .fillMaxWidth()
             .height(HabitualTheme.components.buttonHeight),
-        shape = RoundedCornerShape(HabitualTheme.radius.medium),
+        shape = RoundedCornerShape(HabitualTheme.radius.md),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary, // Forest Green
             contentColor = MaterialTheme.colorScheme.onPrimary

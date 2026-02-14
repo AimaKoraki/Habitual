@@ -57,7 +57,7 @@ fun HabitForm(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.medium)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
             ),
             modifier = Modifier.padding(bottom = HabitualTheme.spacing.md) // 12dp spacing (Rhythm)
         )
@@ -103,10 +103,10 @@ fun HabitForm(
                 .fillMaxWidth()
                 .border(
                     width = HabitualTheme.components.borderThin,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
-                    shape = RoundedCornerShape(HabitualTheme.radius.input) // 20dp
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
+                    shape = RoundedCornerShape(HabitualTheme.radius.xl) // 20dp
                 ),
-            shape = RoundedCornerShape(HabitualTheme.radius.input),
+            shape = RoundedCornerShape(HabitualTheme.radius.xl),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -136,10 +136,10 @@ fun HabitForm(
                     .fillMaxWidth()
                     .border(
                         width = HabitualTheme.components.borderThin,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.inputBorder),
-                        shape = RoundedCornerShape(HabitualTheme.radius.input)
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
                     ),
-                shape = RoundedCornerShape(HabitualTheme.radius.input),
+                shape = RoundedCornerShape(HabitualTheme.radius.xl),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -152,7 +152,7 @@ fun HabitForm(
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface)
-                    .clip(RoundedCornerShape(HabitualTheme.radius.medium)) // Rounded Menu
+                    .clip(RoundedCornerShape(HabitualTheme.radius.md)) // Rounded Menu
             ) {
                 categories.forEach { category ->
                     DropdownMenuItem(
@@ -281,7 +281,7 @@ fun HabitForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(HabitualTheme.components.buttonHeight),
-            shape = RoundedCornerShape(HabitualTheme.radius.medium), // 16dp
+            shape = RoundedCornerShape(HabitualTheme.radius.md), // 16dp
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             enabled = habitName.isNotBlank()
         ) {

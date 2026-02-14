@@ -45,7 +45,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     if (showBottomBar) {
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.surface, // Matches the Theme (White or Dark Grey)
-            tonalElevation = HabitualTheme.components.navBarElevation // Adds a subtle shadow/tint to separate it from the content
+            tonalElevation = HabitualTheme.elevation.high // Adds a subtle shadow/tint to separate it from the content
         ) {
             // 4. Loop through each screen item to create a tab
             items.forEach { screen ->
