@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -54,14 +55,17 @@ fun DiaryCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val displayDate = remember(entry.timestamp) {
+                        java.time.Instant.ofEpochMilli(entry.timestamp)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM"))
+                    }
                     Text(
-                        text = entry.date,
+                        text = displayDate,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelLarge
                     )
 
-                    // Helper to safely check if 'categoryIcon' exists on your model
-                    // (Assuming your model has this field, if not, remove this block)
                     val icon = Icons.Default.Notes
 
                     Icon(

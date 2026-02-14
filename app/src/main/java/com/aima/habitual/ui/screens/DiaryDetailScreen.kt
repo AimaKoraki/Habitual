@@ -25,8 +25,6 @@ import com.aima.habitual.R
 import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /**
@@ -71,14 +69,12 @@ fun DiaryDetailScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            val todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM"))
-
                             val entry = DiaryEntry(
                                 id = existingEntry?.id ?: UUID.randomUUID().toString(),
                                 title = title,
                                 content = content,
-                                date = existingEntry?.date ?: todayDate,
-                                tags = tags.toList()
+                                tags = tags.toList(),
+                                timestamp = existingEntry?.timestamp ?: System.currentTimeMillis()
                             )
 
                             if (existingEntry == null) {

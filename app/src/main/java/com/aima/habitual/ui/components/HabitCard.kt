@@ -28,19 +28,20 @@ import com.aima.habitual.ui.theme.HabitualTheme
 @Composable
 fun HabitCard(
     habit: Habit,
+    isCompleted: Boolean = false,
     modifier: Modifier = Modifier,
     onCardClick: () -> Unit,
     onCheckClick: () -> Unit
 ) {
     // 1. Visual States: Logic for completed vs. active rituals
-    val contentAlpha = if (habit.isCompleted) HabitualTheme.alpha.muted else 1f
-    val textDecoration = if (habit.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+    val contentAlpha = if (isCompleted) HabitualTheme.alpha.muted else 1f
+    val textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
 
     // Using theme colors for Forest Green and Soft Sage
     val forestGreen = MaterialTheme.colorScheme.primary
     val softSage = MaterialTheme.colorScheme.surfaceContainer
 
-    val cardContainerColor = if (habit.isCompleted)
+    val cardContainerColor = if (isCompleted)
         softSage.copy(alpha = HabitualTheme.alpha.muted + 0.1f) // Faded sage for completed rituals
     else
         softSage // Vibrant sage for active rituals
@@ -52,7 +53,7 @@ fun HabitCard(
             .padding(horizontal = HabitualTheme.spacing.lg, vertical = HabitualTheme.spacing.sm),
         shape = RoundedCornerShape(HabitualTheme.radius.lg),
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = if (habit.isCompleted) HabitualTheme.elevation.none else HabitualTheme.elevation.low
+            defaultElevation = if (isCompleted) HabitualTheme.elevation.none else HabitualTheme.elevation.low
         ),
         colors = CardDefaults.elevatedCardColors(containerColor = cardContainerColor)
     ) {
@@ -84,16 +85,16 @@ fun HabitCard(
                     .size(HabitualTheme.components.chipSize)
                     .clip(CircleShape)
                     .background(
-                        if (habit.isCompleted) forestGreen
+                        if (isCompleted) forestGreen
                         else Color.Transparent
                     )
                     .border(
                         width = HabitualTheme.components.borderMedium,
-                        color = forestGreen.copy(alpha = if (habit.isCompleted) 1f else HabitualTheme.alpha.secondary),
+                        color = forestGreen.copy(alpha = if (isCompleted) 1f else HabitualTheme.alpha.secondary),
                         shape = CircleShape
                     )
             ) {
-                if (habit.isCompleted) {
+                if (isCompleted) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = stringResource(R.string.desc_completed_ritual),

@@ -17,8 +17,5 @@ data class HabitRecord(
     val timestamp: Long,
 
     // Completion state for the Dashboard UI
-    val isCompleted: Boolean,
-
-    // Metric value (e.g., liters, miles) for data visualization
-    val completionValue: Float? = null
+    val isCompleted: Boolean
 )

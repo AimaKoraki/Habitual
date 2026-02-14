@@ -17,7 +17,6 @@ enum class Priority { LOW, MEDIUM, HIGH }
  * @property priority The importance level of the habit.
  * @property repeatDays A list of integers representing the days of the week to repeat the habit (e.g., 0 for Sunday).
  * @property targetMonths The duration in months for which the user wants to follow the habit.
- * @property isCompleted Whether the habit is marked as completed for the current period.
  * @property createdAt The timestamp of when the habit was created.
  */
 data class Habit(
@@ -28,6 +27,5 @@ data class Habit(
     val priority: Priority = Priority.MEDIUM,
     val repeatDays: List<Int> = emptyList(),
     val targetMonths: Int = 1,
-    val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

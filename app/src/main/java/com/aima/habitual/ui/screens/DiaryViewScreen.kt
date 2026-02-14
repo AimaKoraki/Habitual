@@ -98,8 +98,13 @@ fun DiaryViewScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // 3. Date Header
+            val displayDate = remember(entry.timestamp) {
+                java.time.Instant.ofEpochMilli(entry.timestamp)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM"))
+            }
             Text(
-                text = entry.date,
+                text = displayDate,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
