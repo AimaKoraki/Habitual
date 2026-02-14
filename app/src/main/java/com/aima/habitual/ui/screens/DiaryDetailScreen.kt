@@ -3,9 +3,11 @@ package com.aima.habitual.ui.screens
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -97,158 +99,170 @@ fun DiaryDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface // Warm surface
+                    containerColor = Color.Transparent // Transparent to show pattern
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface // Warm background
+        containerColor = MaterialTheme.colorScheme.background // Base background for pattern
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = HabitualTheme.spacing.xl)
+                .wavePattern(MaterialTheme.colorScheme.primary) // Apply pattern here
         ) {
-
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra breathing room below header
-
-            // A. Title Field (Soft Surface Style)
-            TextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text(stringResource(R.string.diary_label_title)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = HabitualTheme.components.borderThin,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle), // Subtle border
-                        shape = RoundedCornerShape(HabitualTheme.radius.xl) // 20dp
-                    ),
-                singleLine = true,
-                shape = RoundedCornerShape(HabitualTheme.radius.xl),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface, // Warm
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp Rhythm
-
-            // B. Tag Input Section
             Column(
-                verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md) // 12dp gap
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = HabitualTheme.spacing.xl)
+                    .verticalScroll(rememberScrollState()) // Make scrollable
             ) {
+
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra breathing room below header
+
+                // A. Title Field (Soft Surface Style)
                 TextField(
-                    value = currentTagInput,
-                    onValueChange = { currentTagInput = it },
-                    label = { Text(stringResource(R.string.diary_label_add_tag)) },
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(stringResource(R.string.diary_label_title)) },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .border(
+                            width = HabitualTheme.components.borderThin,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle), // Subtle border
+                            shape = RoundedCornerShape(HabitualTheme.radius.xl) // 20dp
+                        ),
+                    singleLine = true,
+                    shape = RoundedCornerShape(HabitualTheme.radius.xl),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface, // Warm
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp Rhythm
+
+                // B. Tag Input Section
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md) // 12dp gap
+                ) {
+                    TextField(
+                        value = currentTagInput,
+                        onValueChange = { currentTagInput = it },
+                        label = { Text(stringResource(R.string.diary_label_add_tag)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = HabitualTheme.components.borderThin,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
+                                shape = RoundedCornerShape(HabitualTheme.radius.xl)
+                            ),
+                        singleLine = true,
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            if (currentTagInput.isNotBlank()) {
+                                tags.add(currentTagInput.trim())
+                                currentTagInput = ""
+                            }
+                        }),
+                        trailingIcon = {
+                            // Centered Action
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = HabitualTheme.spacing.lg) // Right padding
+                                    .clickable {
+                                        if (currentTagInput.isNotBlank()) {
+                                            tags.add(currentTagInput.trim())
+                                            currentTagInput = ""
+                                        }
+                                    }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.desc_add_tag),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    )
+
+                    // C. Tag Display Area
+                    if (tags.isNotEmpty()) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
+                            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+                        ) {
+                            tags.forEach { tag ->
+                                InputChip(
+                                    selected = true,
+                                    onClick = { tags.remove(tag) },
+                                    label = {
+                                        Text(
+                                            tag,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.desc_remove_tag),
+                                            modifier = Modifier.size(HabitualTheme.components.iconSm)
+                                        )
+                                    },
+                                    colors = InputChipDefaults.inputChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    shape = RoundedCornerShape(HabitualTheme.radius.md)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Section Break
+
+                // D. Content Field (Large)
+                TextField(
+                    value = content,
+                    onValueChange = { content = it },
+                    label = { Text(stringResource(R.string.diary_label_content)) },
+                    placeholder = {
+                        Text(
+                            "Write your thoughts...", // Hardcoded for now to avoid resource error if missing
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted) // Muted
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
                         .border(
                             width = HabitualTheme.components.borderThin,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
                             shape = RoundedCornerShape(HabitualTheme.radius.xl)
                         ),
-                    singleLine = true,
                     shape = RoundedCornerShape(HabitualTheme.radius.xl),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        if (currentTagInput.isNotBlank()) {
-                            tags.add(currentTagInput.trim())
-                            currentTagInput = ""
-                        }
-                    }),
-                    trailingIcon = {
-                        // Centered Action
-                        Box(
-                            modifier = Modifier
-                                .padding(end = HabitualTheme.spacing.lg) // Right padding
-                                .clickable {
-                                    if (currentTagInput.isNotBlank()) {
-                                        tags.add(currentTagInput.trim())
-                                        currentTagInput = ""
-                                    }
-                                }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = stringResource(R.string.desc_add_tag),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                    )
                 )
 
-                // C. Tag Display Area
-                if (tags.isNotEmpty()) {
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
-                        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
-                    ) {
-                        tags.forEach { tag ->
-                            InputChip(
-                                selected = true,
-                                onClick = { tags.remove(tag) },
-                                label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.desc_remove_tag),
-                                        modifier = Modifier.size(HabitualTheme.components.iconSm)
-                                    )
-                                },
-                                colors = InputChipDefaults.inputChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                ),
-                                shape = RoundedCornerShape(HabitualTheme.radius.md)
-                            )
-                        }
-                    }
-                }
+                // Bottom breathing room
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
             }
-
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Section Break
-
-            // D. Content Field (Large)
-            TextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text(stringResource(R.string.diary_label_content)) },
-                placeholder = { 
-                    Text(
-                        "Write your thoughts...", // Hardcoded for now to avoid resource error if missing
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted) // Muted
-                    ) 
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .border(
-                        width = HabitualTheme.components.borderThin,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
-                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
-                    ),
-                shape = RoundedCornerShape(HabitualTheme.radius.xl),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-
-            // Bottom breathing room
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
         }
     }
 }

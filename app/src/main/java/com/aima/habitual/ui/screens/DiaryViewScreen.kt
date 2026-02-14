@@ -50,7 +50,7 @@ fun DiaryViewScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface, // Soft Sage
+        containerColor = MaterialTheme.colorScheme.background, // Base background
         topBar = {
             TopAppBar(
                 title = { }, // Empty title for a cleaner look
@@ -85,18 +85,23 @@ fun DiaryViewScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent // Transparent
                 )
             )
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = HabitualTheme.spacing.xl) // Wider reading margins
-                .verticalScroll(rememberScrollState())
+                .wavePattern(MaterialTheme.colorScheme.primary) // Apply pattern here
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = HabitualTheme.spacing.xl) // Wider reading margins
+            ) {
             // 3. Date Header
             val displayDate = remember(entry.timestamp) {
                 java.time.Instant.ofEpochMilli(entry.timestamp)
@@ -179,4 +184,5 @@ fun DiaryViewScreen(
             )
         }
     }
+        }
 }

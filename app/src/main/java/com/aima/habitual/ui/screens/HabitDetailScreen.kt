@@ -69,54 +69,67 @@ fun HabitDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent, // Transparent
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background // Base background
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
 
-            // 2. Integration: HabitForm handles the actual data entry logic
-            HabitForm(
-                viewModel = viewModel,
-                initialHabit = existingHabit,
-                onSave = { navController.popBackStack() }
-            )
-
-            // 3. Delete Confirmation Dialog
-            if (showDeleteDialog && existingHabit != null) {
-                AlertDialog(
-                    onDismissRequest = { showDeleteDialog = false },
-                    title = { Text(text = stringResource(R.string.dialog_delete_title)) },
-                    text = { Text(text = stringResource(R.string.dialog_delete_text, existingHabit.title)) },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                viewModel.deleteHabit(existingHabit.id)
-                                showDeleteDialog = false
-                                navController.popBackStack()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            )
-
-                        ) {
-                            Text(stringResource(R.string.btn_delete))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDeleteDialog = false }) {
-                            Text(stringResource(R.string.btn_cancel))
-                        }
-                    }
+                // 2. Integration: HabitForm handles the actual data entry logic
+                HabitForm(
+                    viewModel = viewModel,
+                    initialHabit = existingHabit,
+                    onSave = { navController.popBackStack() }
                 )
+
+                // 3. Delete Confirmation Dialog
+                if (showDeleteDialog && existingHabit != null) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteDialog = false },
+                        title = { Text(text = stringResource(R.string.dialog_delete_title)) },
+                        text = {
+                            Text(
+                                text = stringResource(
+                                    R.string.dialog_delete_text,
+                                    existingHabit.title
+                                )
+                            )
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    viewModel.deleteHabit(existingHabit.id)
+                                    showDeleteDialog = false
+                                    navController.popBackStack()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                )
+
+                            ) {
+                                Text(stringResource(R.string.btn_delete))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDeleteDialog = false }) {
+                                Text(stringResource(R.string.btn_cancel))
+                            }
+                        }
+                    )
+                }
             }
         }
     }

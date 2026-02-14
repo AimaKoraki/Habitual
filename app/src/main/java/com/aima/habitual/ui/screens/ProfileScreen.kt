@@ -41,6 +41,10 @@ import com.aima.habitual.ui.screens.layout.ProfileLayout
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
+/**
+ * ProfileScreen: Manages user identity, theme preferences, and habit mastery progress.
+ * Optimized for clear visual hierarchy and intuitive interaction.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -50,24 +54,27 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onDeleteProfile: () -> Unit
 ) {
+    // 1. UI STATE: Manages visibility of overlays and temporary input data
     var showHabitsSheet by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // 2. PHOTO PICKER: Native Android contract for secure image selection
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { uri -> 
+        onResult = { uri ->
             if (uri != null) {
                 viewModel.updateProfileImage(uri)
             }
         }
     )
 
-    // Name Editing State
+    // Name Editing State Logic
     var isEditingName by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
+    // Mastery Data observed from the ViewModel
     val habits = viewModel.habits
     val level = viewModel.currentLevel
     val progress = viewModel.levelProgress
@@ -82,7 +89,7 @@ fun ProfileScreen(
     ) {
         Spacer(modifier = Modifier.height(HabitualTheme.components.iconXl))
 
-        // --- 1. AVATAR SECTION ---
+        // --- 3. AVATAR SECTION ---
         Box(
             contentAlignment = Alignment.BottomEnd,
             modifier = Modifier.clickable { photoPickerLauncher.launch("image/*") }
@@ -90,10 +97,10 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .size(HabitualTheme.components.profileImage)
-                    .shadow(4.dp, CircleShape) // Depth
+                    .shadow(4.dp, CircleShape) // Adds depth to the avatar
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
-                    // Premium: Subtle Avatar Ring
+                    // Premium Detail: A subtle ring around the profile image for separation
                     .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.outlineVariant, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -101,7 +108,7 @@ fun ProfileScreen(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(viewModel.profileImageUri)
-                            .crossfade(true)
+                            .crossfade(true) // Smooth transition after selection
                             .build(),
                         contentDescription = stringResource(R.string.desc_profile_picture),
                         contentScale = ContentScale.Crop,
@@ -116,7 +123,7 @@ fun ProfileScreen(
                     )
                 }
             }
-            // Edit Badge (Camera Icon)
+            // Edit Badge: Anchored to the bottom-right of the avatar using ProfileLayout tokens
             Box(
                 modifier = Modifier
                     .size(HabitualTheme.components.editBadgeSize)
@@ -137,7 +144,8 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
-        // --- 2. EDITABLE NAME SECTION ---
+        // --- 4. EDITABLE NAME SECTION ---
+        // Toggle between static Text and OutlinedTextField based on isEditingName state
         if (isEditingName) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -157,7 +165,7 @@ fun ProfileScreen(
                         singleLine = true,
                         isError = nameError,
                         modifier = Modifier.width(ProfileLayout.nameFieldWidth),
-                        shape = RoundedCornerShape(HabitualTheme.radius.xl), // Rounded
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
@@ -169,7 +177,6 @@ fun ProfileScreen(
                             } else {
                                 viewModel.updateUserName(tempName)
                                 isEditingName = false
-                                nameError = false
                                 focusManager.clearFocus()
                             }
                         })
@@ -180,15 +187,10 @@ fun ProfileScreen(
                         } else {
                             viewModel.updateUserName(tempName)
                             isEditingName = false
-                            nameError = false
                             focusManager.clearFocus()
                         }
                     }) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = stringResource(R.string.desc_save_name),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Icon(imageVector = Icons.Default.Check, tint = MaterialTheme.colorScheme.primary, contentDescription = null)
                     }
                 }
                 if (nameError) {
@@ -227,18 +229,17 @@ fun ProfileScreen(
             }
         }
 
-        // Space between Name and Mastery Level increased
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg)) 
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
+        // --- 5. GAMIFICATION: Mastery Level & Progress ---
         Text(
             text = stringResource(R.string.profile_mastery_level, level),
-            style = MaterialTheme.typography.titleLarge, // Bolder
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
-        // Level Progress Bar
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LinearProgressIndicator(
                 progress = { progress },
@@ -246,8 +247,8 @@ fun ProfileScreen(
                     .width(ProfileLayout.progressBarWidth)
                     .height(ProfileLayout.progressBarHeight)
                     .clip(RoundedCornerShape(HabitualTheme.radius.xs)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.primary, // Forest Green fill
+                trackColor = MaterialTheme.colorScheme.surfaceVariant, // Soft Sage track
             )
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
             Text(
@@ -259,18 +260,15 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-        // --- 3. SETTINGS CARD ---
+        // --- 6. SETTINGS CARD: Theme and Quick Actions ---
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = MaterialTheme.shapes.large,
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(HabitualTheme.spacing.lg)) {
-
-                // Theme Toggle
+                // Theme Toggle: Real-time Dark/Light mode switching
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -301,7 +299,7 @@ fun ProfileScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = HabitualTheme.spacing.lg), color = MaterialTheme.colorScheme.outlineVariant)
 
-                // Habits List Button
+                // Ritual Management: Triggers the ModalBottomSheet
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -323,23 +321,17 @@ fun ProfileScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-        // --- 4. LOG OUT BUTTON ---
+        // --- 7. DESTRUCTIVE ACTIONS: Logout and Account Deletion ---
         Button(
             onClick = onLogout,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(HabitualTheme.components.buttonHeight),
+            modifier = Modifier.fillMaxWidth().height(HabitualTheme.components.buttonHeight),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary
@@ -349,151 +341,74 @@ fun ProfileScreen(
         ) {
             Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
-            Text(
-                text = stringResource(R.string.profile_log_out),
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Text(text = stringResource(R.string.profile_log_out), style = MaterialTheme.typography.titleMedium)
         }
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
-        // --- 5. DELETE ACCOUNT BUTTON ---
         OutlinedButton(
             onClick = { showDeleteDialog = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(HabitualTheme.components.buttonHeight),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.error
-            ),
-            border = androidx.compose.foundation.BorderStroke(
-                HabitualTheme.components.borderThin,
-                MaterialTheme.colorScheme.error.copy(alpha = HabitualTheme.alpha.secondary)
-            ),
+            modifier = Modifier.fillMaxWidth().height(HabitualTheme.components.buttonHeight),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            border = androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(HabitualTheme.radius.md)
         ) {
             Icon(imageVector = Icons.Default.DeleteForever, contentDescription = null)
             Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
-            Text(
-                text = stringResource(R.string.profile_delete_account),
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Text(text = stringResource(R.string.profile_delete_account), style = MaterialTheme.typography.titleMedium)
         }
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
     }
 
-    // --- DELETE CONFIRMATION DIALOG ---
+    // --- DIALOGS & OVERLAYS ---
+
+    // Deletion Warning: Critical confirmation before permanent data loss
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            },
-            title = {
-                Text(
-                    text = stringResource(R.string.profile_delete_title),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            },
-            text = {
-                Text(
-                    text = stringResource(R.string.profile_delete_text),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(stringResource(R.string.profile_delete_title)) },
+            text = { Text(stringResource(R.string.profile_delete_text)) },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDeleteProfile()
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
+                TextButton(onClick = { onDeleteProfile() }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                     Text(stringResource(R.string.btn_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(R.string.btn_cancel))
-                }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
             }
         )
     }
 
-    // --- HABITS SHEET ---
+    // Habits Bottom Sheet: Provides a secondary view for managing the ritual library
     if (showHabitsSheet) {
         ModalBottomSheet(
             onDismissRequest = { showHabitsSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = HabitualTheme.spacing.lg)
-                    .padding(bottom = HabitualTheme.spacing.section)
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.profile_your_rituals),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = HabitualTheme.spacing.lg)
-                )
+            Column(modifier = Modifier.padding(HabitualTheme.spacing.lg).padding(bottom = HabitualTheme.spacing.section).fillMaxWidth()) {
+                Text(text = stringResource(R.string.profile_your_rituals), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = HabitualTheme.spacing.lg))
 
                 if (habits.isEmpty()) {
                     Text(stringResource(R.string.profile_no_rituals), style = MaterialTheme.typography.bodyLarge)
                 } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
-                        contentPadding = PaddingValues(bottom = HabitualTheme.spacing.lg)
-                    ) {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm), contentPadding = PaddingValues(bottom = HabitualTheme.spacing.lg)) {
                         items(habits) { habit ->
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                shape = MaterialTheme.shapes.medium,
                                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(HabitualTheme.spacing.md).fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
-                                        Column {
-                                            Text(
-                                                text = habit.title,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            Text(
-                                                text = habit.category,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
-                                            )
-                                        }
+                                Row(modifier = Modifier.padding(HabitualTheme.spacing.md).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(text = habit.title, style = MaterialTheme.typography.titleMedium)
+                                        Text(text = habit.category, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                                     }
                                     IconButton(onClick = { viewModel.deleteHabit(habit.id) }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = stringResource(R.string.desc_delete),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
+                                        Icon(Icons.Default.Delete, tint = MaterialTheme.colorScheme.error, contentDescription = null)
                                     }
                                 }
                             }

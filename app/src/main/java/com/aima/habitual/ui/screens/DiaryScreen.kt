@@ -26,9 +26,15 @@ import com.aima.habitual.ui.components.DiaryHeader
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
-/** Available sort modes for diary entries. */
+/** * SortMode: Defines the ordering logic for diary entries.
+ * Enums ensure type-safe sorting transitions.
+ */
 private enum class SortMode { NEWEST, OLDEST, ALPHABETICAL }
 
+/**
+ * DiaryScreen: A reflective space for users to view and organize their journal entries.
+ * Features a procedural background pattern and a dynamic sorting system.
+ */
 @Composable
 fun DiaryScreen(
     navController: NavHostController,
@@ -40,7 +46,8 @@ fun DiaryScreen(
     var sortMode by remember { mutableStateOf(SortMode.NEWEST) }
     var showSortMenu by remember { mutableStateOf(false) }
 
-    // Apply sort
+    // 1. DATA PROCESSING:
+    // Uses 'remember' to avoid re-sorting during every recomposition unless 'entries' or 'sortMode' change.
     val sortedEntries = remember(entries.toList(), sortMode) {
         when (sortMode) {
             SortMode.NEWEST -> entries.sortedByDescending { it.timestamp }
@@ -72,14 +79,15 @@ fun DiaryScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // --- DiaryHeader with Sort ---
+            // --- HEADER SECTION ---
             Box(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)) {
                 DiaryHeader(
                     title = stringResource(R.string.diary_header),
                     onSortClick = { showSortMenu = true }
                 )
 
-                // Sort Dropdown anchored to the header
+                // 2. SORT DROPDOWN:
+                // Anchored to the header, providing an intuitive UX for organizing thoughts.
                 DropdownMenu(
                     expanded = showSortMenu,
                     onDismissRequest = { showSortMenu = false },
@@ -120,6 +128,8 @@ fun DiaryScreen(
                 }
             }
 
+            // 3. CONTENT AREA:
+            // Applies the procedural 'wavePattern' to the background to create a calm atmosphere.
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -127,6 +137,7 @@ fun DiaryScreen(
                     .wavePattern(MaterialTheme.colorScheme.primary)
             ) {
                 if (entries.isEmpty()) {
+                    // EMPTY STATE: Provides visual guidance when no entries exist.
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -151,6 +162,7 @@ fun DiaryScreen(
                         }
                     }
                 } else {
+                    // LIST STATE: Displays scrollable entry cards.
                     LazyColumn(
                         contentPadding = PaddingValues(HabitualTheme.spacing.lg),
                         verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
@@ -169,19 +181,19 @@ fun DiaryScreen(
 }
 
 /**
- * Custom Modifier to draw subtle abstract wave lines in the background.
+ * wavePattern: A procedural drawing modifier for background aesthetics.
+ * Draws abstract, thin cubic Bézier curves at wide intervals to evoke
+ * a feeling of calm and reflection.
  */
-@Composable
 fun Modifier.wavePattern(
     baseColor: Color
 ): Modifier = this.drawBehind {
-    val waveColor = baseColor.copy(alpha = 0.05f) // Very low opacity (0.05)
-    val strokeWidth = 1.5.dp.toPx() // Very thin lines
-    val gap = 60.dp.toPx() // Wide spacing
+    val waveColor = baseColor.copy(alpha = 0.05f) // 0.05 low-opacity primary
+    val strokeWidth = 1.5.dp.toPx()               // Ultra-thin line weight
+    val gap = 60.dp.toPx()                        // Wide vertical spacing
 
     val width = size.width
     val height = size.height
-
     val rows = (height / gap).toInt() + 2
 
     for (i in 0..rows) {
@@ -189,9 +201,11 @@ fun Modifier.wavePattern(
         val path = Path()
         path.moveTo(0f, y)
 
-        // Randomized amplitude based on row index for abstract feel
+        // ABSTRACT GEOMETRY:
+        // Generates long, lazy curves using cubic Bézier paths.
+        // Alternating amplitude creates a natural, non-repeating flow.
         val amplitude = 25.dp.toPx() * (if (i % 2 == 0) 1 else -1)
-        
+
         path.cubicTo(
             width * 0.35f, y + amplitude,
             width * 0.65f, y - amplitude,
@@ -205,4 +219,3 @@ fun Modifier.wavePattern(
         )
     }
 }
-

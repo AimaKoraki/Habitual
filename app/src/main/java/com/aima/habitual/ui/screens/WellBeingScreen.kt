@@ -30,26 +30,31 @@ import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.time.LocalDate
 
+/**
+ * WellBeingScreen: A centralized dashboard for tracking health metrics.
+ * Integrates daily step counts, sleep duration, and hydration levels
+ * within the project's signature "Forest & Sage" aesthetic.
+ */
 @Composable
 fun WellBeingScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    // 1. STATE: Selected Date
+    // 1. STATE MANAGEMENT:
+    // Tracks the current date for data filtering and handles visibility for interactive logging dialogs.
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-
-    // 2. LOGIC: Fetch stats strictly for the selected date
     val stats = viewModel.getStatsForDate(selectedDate)
 
-    // Dialog States
     var showSleepDialog by remember { mutableStateOf(false) }
     var showWaterDialog by remember { mutableStateOf(false) }
 
-    // Water Logic constants
+    // Water Logic: Managed locally during the "Draft" phase of entry
     val unitOptions = listOf("ml", "Cups", "Oz")
     var waterAmountInput by remember { mutableStateOf("") }
     var selectedUnit by remember { mutableStateOf(unitOptions[0]) }
 
+    // 2. DATA VISUALIZATION LOGIC:
+    // Calculates step progress relative to a 10,000-step daily goal.
     val stepGoal = 10000
     val stepProgress = (stats.stepsCount.toFloat() / stepGoal).coerceIn(0f, 1f)
 
@@ -60,14 +65,14 @@ fun WellBeingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()) // Ensures accessibility on smaller screens
         ) {
             ScreenHeader(
                 title = stringResource(R.string.wellbeing_header),
                 modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)
             )
 
-            // Date Picker updates 'selectedDate'
+            // Dynamic date selection linked to the primary stats query
             DatePickerScroller(
                 selectedDate = selectedDate,
                 onDateSelected = { selectedDate = it }
@@ -75,28 +80,22 @@ fun WellBeingScreen(
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
-            // Steps Circle
-            // ─── Steps Section Card ───
-            // Steps Circle
-            // ─── Steps Section Card ───
+            // --- 3. STEPS PROGRESS CARD ---
+            // Visualizes step data using a custom-layered CircularProgressIndicator.
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = HabitualTheme.spacing.md),
                 shape = RoundedCornerShape(HabitualTheme.radius.lg),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = HabitualTheme.spacing.lg)
+                    modifier = Modifier.fillMaxWidth().padding(vertical = HabitualTheme.spacing.lg)
                 ) {
-                    // Background Progress Track
+                    // Background Progress Track (Muted)
                     CircularProgressIndicator(
                         progress = { 1f },
                         modifier = Modifier.size(HabitualTheme.components.progressRingSize),
@@ -104,21 +103,19 @@ fun WellBeingScreen(
                         strokeWidth = HabitualTheme.components.progressTrackThick,
                     )
 
-                    // Active Progress Arc
+                    // Active Progress Arc (Primary Forest Green)
                     CircularProgressIndicator(
                         progress = { stepProgress },
                         modifier = Modifier.size(HabitualTheme.components.progressRingSize),
                         color = MaterialTheme.colorScheme.primary,
                         strokeWidth = HabitualTheme.components.progressArcThick,
-                        strokeCap = StrokeCap.Round
+                        strokeCap = StrokeCap.Round // Modern rounded arc ends
                     )
 
-                    // Sync Button (Repositioned slightly for the new card layout)
+                    // Manual Sync Trigger
                     IconButton(
                         onClick = { viewModel.syncSteps() },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(end = HabitualTheme.spacing.sm)
+                        modifier = Modifier.align(Alignment.TopEnd).padding(end = HabitualTheme.spacing.sm)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Sync,
@@ -128,12 +125,11 @@ fun WellBeingScreen(
                         )
                     }
 
-                    // Center Text Labels
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = String.format("%,d", stats.stepsCount),
                             style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.primary // Pop of color
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = stringResource(R.string.wellbeing_steps),
@@ -143,13 +139,15 @@ fun WellBeingScreen(
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
-            // Stats Grid
+
+            // --- 4. DAILY SUMMARY GRID ---
             Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md)) {
                 Text(
                     text = stringResource(R.string.wellbeing_daily_summary),
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground // Fix text color
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
@@ -160,7 +158,7 @@ fun WellBeingScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         HealthStatCard(
                             label = stringResource(R.string.wellbeing_sleep),
-                            value = String.format("%.1fh", stats.sleepDurationHours), // Fix: Rounds to "4.0h"
+                            value = String.format("%.1fh", stats.sleepDurationHours),
                             icon = Icons.Default.NightsStay,
                             color = MaterialTheme.colorScheme.secondary,
                             onClick = { showSleepDialog = true }
@@ -180,12 +178,9 @@ fun WellBeingScreen(
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-            // Log Water Button
+            // --- 5. HYDRATION ACTION ---
             Button(
-                onClick = {
-                    waterAmountInput = ""
-                    showWaterDialog = true
-                },
+                onClick = { waterAmountInput = ""; showWaterDialog = true },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
                 shape = RoundedCornerShape(HabitualTheme.radius.md),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -198,191 +193,101 @@ fun WellBeingScreen(
         }
     }
 
-    // --- DIALOGS (Use Theme Colors) ---
+    // --- 6. INTERACTIVE DIALOGS ---
 
+    // SLEEP DIALOG: Uses a slider for precision duration entry
     if (showSleepDialog) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showSleepDialog = false }) {
             Surface(
-                shape = RoundedCornerShape(HabitualTheme.radius.xxl), // 24dp
-                color = MaterialTheme.colorScheme.surface, // Warm white
+                shape = RoundedCornerShape(HabitualTheme.radius.xxl),
+                color = MaterialTheme.colorScheme.surface,
                 tonalElevation = HabitualTheme.elevation.medium,
-                shadowElevation = HabitualTheme.elevation.high, // Diffused shadow
+                shadowElevation = HabitualTheme.elevation.high,
                 modifier = Modifier.padding(HabitualTheme.spacing.md)
             ) {
                 Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xl), // 24dp Internal Padding
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 1. Header
-                    Text(
-                        text = stringResource(R.string.dialog_update_sleep),
-                        style = MaterialTheme.typography.titleLarge, // 22sp
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.md)) // 12dp
-
-                    // 2. Subtitle (Muted)
-                    Text(
-                        text = stringResource(R.string.dialog_sleep_prompt),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
-
-                    // 3. Value Label (Strong Emphasis)
-                    Text(
-                        text = String.format("%.1f Hours", stats.sleepDurationHours),
-                        style = MaterialTheme.typography.headlineSmall, // Strong
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl)) // 20dp
-
-                    // 4. Slider (Visual Balance)
+                    Text(text = stringResource(R.string.dialog_update_sleep), style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+                    Text(text = stringResource(R.string.dialog_sleep_prompt), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+                    Text(text = String.format("%.1f Hours", stats.sleepDurationHours), style = MaterialTheme.typography.headlineSmall)
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
                     Slider(
                         value = stats.sleepDurationHours.toFloat(),
-                        onValueChange = {
-                            viewModel.updateSleep(selectedDate, it.toDouble())
-                        },
+                        onValueChange = { viewModel.updateSleep(selectedDate, it.toDouble()) },
                         valueRange = 0f..12f,
                         steps = 23,
-                        colors = SliderDefaults.colors(
-                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                            thumbColor = MaterialTheme.colorScheme.primary,
-                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=HabitualTheme.alpha.muted)
-                        )
+                        colors = SliderDefaults.colors(activeTrackColor = MaterialTheme.colorScheme.primary)
                     )
-
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // 32dp
-
-                    // 5. Action
-                    Button(
-                        onClick = { showSleepDialog = false },
-                        shape = RoundedCornerShape(HabitualTheme.radius.md),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.btn_done),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+                    Button(onClick = { showSleepDialog = false }, modifier = Modifier.fillMaxWidth()) {
+                        Text(text = stringResource(R.string.btn_done))
                     }
                 }
             }
         }
     }
 
+    // WATER DIALOG: Handles unit conversion and numerical entry
     if (showWaterDialog) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showWaterDialog = false }) {
             Surface(
                 shape = RoundedCornerShape(HabitualTheme.radius.lg),
-                // Premium: Softer surface tone & shadow
-                color = MaterialTheme.colorScheme.surface, // Use surface (warm) or surfaceContainerLow if available. 
-                // Using surface as base, but maybe add tonal elevation
-                tonalElevation = HabitualTheme.elevation.medium, 
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = HabitualTheme.elevation.medium,
                 shadowElevation = HabitualTheme.elevation.high,
                 modifier = Modifier.padding(HabitualTheme.spacing.md)
             ) {
                 Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xl), // Generous internal padding
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 1. Header
-                    Text(
-                        text = stringResource(R.string.dialog_log_water_title),
-                        style = MaterialTheme.typography.titleLarge, // Larger
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    
+                    Text(text = stringResource(R.string.dialog_log_water_title), style = MaterialTheme.typography.titleLarge)
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
-
-                    // 2. Input
                     OutlinedTextField(
                         value = waterAmountInput,
                         onValueChange = { if (it.all { char -> char.isDigit() }) waterAmountInput = it },
                         label = { Text(stringResource(R.string.wellbeing_amount_label, selectedUnit)) },
-                        placeholder = { Text("0") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(HabitualTheme.radius.xl), // 20dp
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle), // Softer border
-                        )
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
                     )
-
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
-
-                    // 3. Unit Chips (Borderless)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    // Unit selection Chips for internationalization support
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)) {
                         unitOptions.forEach { unit ->
                             val isSelected = selectedUnit == unit
                             Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(HabitualTheme.components.chipSize)
-                                    .clip(RoundedCornerShape(HabitualTheme.radius.sm))
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
-                                    )
+                                modifier = Modifier.weight(1f).height(HabitualTheme.components.chipSize).clip(RoundedCornerShape(HabitualTheme.radius.sm))
+                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted))
                                     .clickable { selectedUnit = unit },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = unit,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                )
+                                Text(text = unit, color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
-
-                    // 4. Actions (Clean Baseline)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = { showWaterDialog = false },
-                            shape = RoundedCornerShape(HabitualTheme.radius.md)
-                        ) {
-                            Text(stringResource(R.string.btn_cancel), style = MaterialTheme.typography.labelLarge)
-                        }
-                        
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { showWaterDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
                         Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
-                        
-                        Button(
-                            onClick = {
-                                val amount = waterAmountInput.toIntOrNull() ?: 0
-                                if (amount > 0) {
-                                    val amountInMl = when (selectedUnit) {
-                                        "ml" -> amount
-                                        "Cups" -> amount * 250
-                                        "Oz" -> amount * 30
-                                        else -> amount
-                                    }
-                                    viewModel.logWater(selectedDate, amountInMl)
-                                    showWaterDialog = false
+                        Button(onClick = {
+                            val amount = waterAmountInput.toIntOrNull() ?: 0
+                            if (amount > 0) {
+                                // Logic: Convert units to a standard mL format for database storage
+                                val amountInMl = when (selectedUnit) {
+                                    "ml" -> amount
+                                    "Cups" -> amount * 250
+                                    "Oz" -> amount * 30
+                                    else -> amount
                                 }
-                            },
-                            shape = RoundedCornerShape(HabitualTheme.radius.md),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Text(stringResource(R.string.btn_add), style = MaterialTheme.typography.labelLarge)
-                        }
+                                viewModel.logWater(selectedDate, amountInMl)
+                                showWaterDialog = false
+                            }
+                        }) { Text(stringResource(R.string.btn_add)) }
                     }
                 }
             }

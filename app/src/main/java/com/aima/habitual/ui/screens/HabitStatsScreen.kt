@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.navigation.Screen
@@ -66,7 +67,7 @@ fun HabitStatsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent, // Seamless
                     titleContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 actions = {
@@ -103,7 +104,8 @@ fun HabitStatsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(HabitualTheme.radius.xxl),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = HabitualTheme.elevation.low
+                tonalElevation = 0.dp, // Flat paper look
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(HabitualTheme.spacing.xl)
@@ -123,7 +125,8 @@ fun HabitStatsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(HabitualTheme.radius.xxl),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = HabitualTheme.elevation.low
+                tonalElevation = 0.dp, // Flat paper look
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(HabitualTheme.spacing.xl)
