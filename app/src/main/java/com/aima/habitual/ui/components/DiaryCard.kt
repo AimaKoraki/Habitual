@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.theme.HabitualTheme
 
@@ -40,14 +41,15 @@ fun DiaryCard(
             }
         }
 
-        // 2. Main Entry Card
+        // 2. Main Entry Card - Paper Style
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(HabitualTheme.radius.xxl),
+            shape = RoundedCornerShape(HabitualTheme.radius.xl), // Slightly less rounded for paper feel
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-
-            )
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(HabitualTheme.components.cardPadding)) {
                 Row(
@@ -62,8 +64,8 @@ fun DiaryCard(
                     }
                     Text(
                         text = displayDate,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelLarge
+                        color = MaterialTheme.colorScheme.primary, // Pop of color on date
+                        style = MaterialTheme.typography.titleMedium // More prominent
                     )
 
                     val icon = Icons.Default.Notes
@@ -71,16 +73,17 @@ fun DiaryCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
                 Text(
                     text = entry.title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmall, // Larger title
                 )
 
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
@@ -88,8 +91,8 @@ fun DiaryCard(
                 Text(
                     text = entry.content,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 3,
+                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp), // Increased readability
+                    maxLines = 4, // Show a bit more
                     overflow = TextOverflow.Ellipsis
                 )
             }

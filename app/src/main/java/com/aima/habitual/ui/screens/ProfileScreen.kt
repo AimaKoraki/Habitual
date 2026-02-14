@@ -225,8 +225,8 @@ fun ProfileScreen(
 
         Text(
             text = stringResource(R.string.profile_mastery_level, level),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.titleLarge, // Bolder
+            color = MaterialTheme.colorScheme.primary
         )
         
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
@@ -256,9 +256,10 @@ fun ProfileScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor = MaterialTheme.colorScheme.surface
             ),
-            shape = MaterialTheme.shapes.large
+            shape = MaterialTheme.shapes.large,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(HabitualTheme.spacing.lg)) {
 
@@ -447,8 +448,9 @@ fun ProfileScreen(
                     ) {
                         items(habits) { habit ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                                shape = MaterialTheme.shapes.medium
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = MaterialTheme.shapes.medium,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                             ) {
                                 Row(
                                     modifier = Modifier.padding(HabitualTheme.spacing.md).fillMaxWidth(),

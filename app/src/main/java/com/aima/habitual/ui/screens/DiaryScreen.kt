@@ -5,14 +5,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.ui.components.DiaryCard
@@ -114,30 +120,89 @@ fun DiaryScreen(
                 }
             }
 
-            if (entries.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.diary_empty_journal),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(HabitualTheme.spacing.lg),
-                    verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
-                ) {
-                    items(sortedEntries, key = { it.id }) { entry ->
-                        DiaryCard(
-                            entry = entry,
-                            onClick = { onEntryClick(entry.id) }
-                        )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .wavePattern(MaterialTheme.colorScheme.primary)
+            ) {
+                if (entries.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notes,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .padding(bottom = HabitualTheme.spacing.md)
+                            )
+                            Text(
+                                text = stringResource(R.string.diary_empty_journal),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(HabitualTheme.spacing.lg),
+                        verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
+                    ) {
+                        items(sortedEntries, key = { it.id }) { entry ->
+                            DiaryCard(
+                                entry = entry,
+                                onClick = { onEntryClick(entry.id) }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+
+/**
+ * Custom Modifier to draw subtle abstract wave lines in the background.
+ */
+@Composable
+fun Modifier.wavePattern(
+    baseColor: Color
+): Modifier = this.drawBehind {
+    val waveColor = baseColor.copy(alpha = 0.05f) // Very low opacity (0.05)
+    val strokeWidth = 1.5.dp.toPx() // Very thin lines
+    val gap = 60.dp.toPx() // Wide spacing
+
+    val width = size.width
+    val height = size.height
+
+    val rows = (height / gap).toInt() + 2
+
+    for (i in 0..rows) {
+        val y = i * gap
+        val path = Path()
+        path.moveTo(0f, y)
+
+        // Randomized amplitude based on row index for abstract feel
+        val amplitude = 25.dp.toPx() * (if (i % 2 == 0) 1 else -1)
+        
+        path.cubicTo(
+            width * 0.35f, y + amplitude,
+            width * 0.65f, y - amplitude,
+            width, y
+        )
+
+        drawPath(
+            path = path,
+            color = waveColor,
+            style = Stroke(width = strokeWidth)
+        )
+    }
+}
+
