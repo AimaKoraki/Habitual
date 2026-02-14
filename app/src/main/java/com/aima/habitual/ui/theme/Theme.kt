@@ -15,7 +15,7 @@ import androidx.core.view.WindowCompat
 // ─── LIGHT COLOR SCHEME ──────────────────────────────────────────────────────
 private val LightColorScheme = lightColorScheme(
     primary = LightAccentPrimary,
-    onPrimary = Color.White,                        // Explicit — decoupled from surface
+    onPrimary = Color.White,
     primaryContainer = LightAccentSoft,
     onPrimaryContainer = LightAccentPrimary,
 
@@ -37,7 +37,10 @@ private val LightColorScheme = lightColorScheme(
     outline = LightBorderStrong,
     outlineVariant = LightBorderSubtle,
 
-    error = DangerRed
+    error = DangerRed,
+    onError = Color.White,
+    errorContainer = LightErrorContainer,
+    onErrorContainer = LightOnErrorContainer
 )
 
 // ─── DARK COLOR SCHEME ───────────────────────────────────────────────────────
@@ -65,7 +68,10 @@ private val DarkColorScheme = darkColorScheme(
     outline = DarkBorderStrong,
     outlineVariant = DarkBorderSubtle,
 
-    error = DangerRed
+    error = DangerRed,
+    onError = Color.White,
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer
 )
 
 // ─── THEME COMPOSABLE ────────────────────────────────────────────────────────

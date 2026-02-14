@@ -46,9 +46,11 @@ fun ProfileScreen(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     viewModel: HabitViewModel,
-    onLogout: () -> Unit // <--- ADDED: Callback for logout logic
+    onLogout: () -> Unit,
+    onDeleteProfile: () -> Unit
 ) {
     var showHabitsSheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -62,6 +64,7 @@ fun ProfileScreen(
     // Name Editing State
     var isEditingName by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
+    var nameError by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
     val habits = viewModel.habits
@@ -134,32 +137,59 @@ fun ProfileScreen(
 
         // --- 2. EDITABLE NAME SECTION ---
         if (isEditingName) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    value = tempName,
-                    onValueChange = { tempName = it },
-                    singleLine = true,
-                    modifier = Modifier.width(ProfileLayout.nameFieldWidth),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        viewModel.updateUserName(tempName)
-                        isEditingName = false
-                        focusManager.clearFocus()
-                    })
-                )
-                IconButton(onClick = {
-                    viewModel.updateUserName(tempName)
-                    isEditingName = false
-                    focusManager.clearFocus()
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = stringResource(R.string.desc_save_name),
-                        tint = MaterialTheme.colorScheme.primary
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = tempName,
+                        onValueChange = {
+                            tempName = it
+                            nameError = false
+                        },
+                        singleLine = true,
+                        isError = nameError,
+                        modifier = Modifier.width(ProfileLayout.nameFieldWidth),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            if (tempName.trim().isBlank()) {
+                                nameError = true
+                            } else {
+                                viewModel.updateUserName(tempName)
+                                isEditingName = false
+                                nameError = false
+                                focusManager.clearFocus()
+                            }
+                        })
+                    )
+                    IconButton(onClick = {
+                        if (tempName.trim().isBlank()) {
+                            nameError = true
+                        } else {
+                            viewModel.updateUserName(tempName)
+                            isEditingName = false
+                            nameError = false
+                            focusManager.clearFocus()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = stringResource(R.string.desc_save_name),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                if (nameError) {
+                    Text(
+                        text = stringResource(R.string.profile_name_empty_error),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = HabitualTheme.spacing.xs)
                     )
                 }
             }
@@ -214,7 +244,7 @@ fun ProfileScreen(
             )
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
             Text(
-                text = "$toNextLevel habits to Level ${level + 1}",
+                text = stringResource(R.string.profile_level_progress, toNextLevel, level + 1),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
             )
@@ -297,7 +327,6 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
         // --- 4. LOG OUT BUTTON ---
-        // Satisfies the Logout requirement and fixes the missing parameter error
         Button(
             onClick = onLogout,
             modifier = Modifier
@@ -317,7 +346,76 @@ fun ProfileScreen(
             )
         }
 
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+        // --- 5. DELETE ACCOUNT BUTTON ---
+        OutlinedButton(
+            onClick = { showDeleteDialog = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(HabitualTheme.components.buttonHeight),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                HabitualTheme.components.borderThin,
+                MaterialTheme.colorScheme.error.copy(alpha = HabitualTheme.alpha.secondary)
+            ),
+            shape = RoundedCornerShape(HabitualTheme.radius.md)
+        ) {
+            Icon(imageVector = Icons.Default.DeleteForever, contentDescription = null)
+            Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+            Text(
+                text = stringResource(R.string.profile_delete_account),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+    }
+
+    // --- DELETE CONFIRMATION DIALOG ---
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.profile_delete_title),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.profile_delete_text),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDeleteProfile()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(stringResource(R.string.btn_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.btn_cancel))
+                }
+            }
+        )
     }
 
     // --- HABITS SHEET ---

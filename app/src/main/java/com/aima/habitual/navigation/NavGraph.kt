@@ -109,6 +109,12 @@ fun NavGraph(
                         // Clears all history so user is fully logged out
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onDeleteProfile = {
+                    viewModel.deleteProfile()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

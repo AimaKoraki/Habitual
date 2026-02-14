@@ -32,14 +32,18 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private val gson = Gson()
 
     // --- LEVELING SYSTEM ---
+    /** Count only unique (habitId, date) pairs so toggling can't inflate level. */
+    private val uniqueCompletions: Int
+        get() = records.map { it.habitId to it.timestamp }.distinct().size
+
     val currentLevel: Int
-        get() = records.size / 2
+        get() = uniqueCompletions / 2
 
     val habitsForNextLevel: Int
-        get() = 2 - (records.size % 2)
+        get() = 2 - (uniqueCompletions % 2)
 
     val levelProgress: Float
-        get() = (records.size % 2) / 2f
+        get() = (uniqueCompletions % 2) / 2f
 
     // --- 5. PERSISTENT SENSOR & STEP LOGIC ---
     // Keys for SharedPreferences
@@ -56,8 +60,11 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     fun updateUserName(newName: String) {
-        userName = newName
-        prefs.edit().putString("user_name", newName).apply()
+        val trimmed = newName.trim()
+        if (trimmed.isNotBlank()) {
+            userName = trimmed
+            prefs.edit().putString("user_name", trimmed).apply()
+        }
     }
 
     // --- 3.1 PROFILE PICTURE ---
@@ -402,6 +409,23 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         isLoggedIn = false
         prefs.edit().putBoolean("is_logged_in", false).apply()
+    }
+
+    /** Permanently delete the user's profile and all associated data. */
+    fun deleteProfile() {
+        prefs.edit().clear().apply()
+
+        habits.clear()
+        records.clear()
+        diaryEntries.clear()
+        _dailyStats.clear()
+
+        userName = "Ritual Specialist"
+        profileImageUri = null
+        isLoggedIn = false
+        loginError = null
+        currentSensorSteps = 0
+        rewardSteps = 0
     }
     /**
      * Checks if entered credentials match the locally saved ones.

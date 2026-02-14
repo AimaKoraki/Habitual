@@ -54,3 +54,9 @@ val DarkBorderStrong = Color.White.copy(alpha = 0.12f)
 val SuccessGreen = Color(0xFF3A8F6E)
 val WarningGold = Color(0xFFD4A84F)
 val DangerRed = Color(0xFF8A2D2D)
+
+// Error container colors — earthy rose instead of M3's default pink
+val LightErrorContainer   = Color(0xFFF5DDDA)   // Muted warm rose
+val LightOnErrorContainer = Color(0xFF5C1A1A)   // Dark rosewood text
+val DarkErrorContainer    = Color(0xFF3D2020)    // Deep rosewood surface
+val DarkOnErrorContainer  = Color(0xFFF5C6C0)   // Soft peach text

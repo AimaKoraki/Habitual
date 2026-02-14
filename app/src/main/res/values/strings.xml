@@ -132,6 +132,11 @@
     <string name="desc_profile_picture">Profile Picture</string>
     <string name="desc_save_name">Save Name</string>
     <string name="desc_edit_name">Edit Name</string>
+    <string name="profile_level_progress">%1$d habits to Level %2$d</string>
+    <string name="profile_delete_account">Delete Account</string>
+    <string name="profile_delete_title">Delete Account?</string>
+    <string name="profile_delete_text">This will permanently delete your profile, all rituals, diary entries, and wellbeing data. This action cannot be undone.</string>
+    <string name="profile_name_empty_error">Name cannot be empty</string>
 
     <string name="greeting_morning">Good Morning,</string>
     <string name="default_user_name">Ritualist</string>
