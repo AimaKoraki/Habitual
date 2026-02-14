@@ -116,22 +116,26 @@ fun DashboardScreen(
                     )
                 }
             } else {
+                // Filter habits to only those scheduled for the selected day
+                val dayOfWeek = selectedDate.dayOfWeek.value % 7  // Mon=1..Sun=7 → 0=Sun convention
+                val filteredHabits = habits.filter {
+                    it.repeatDays.isEmpty() || it.repeatDays.contains(dayOfWeek)
+                }
+
                 LazyColumn(
-                    // JSON: "spacing.lg": 16 (Space between cards)
                     verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
-                    // Adding bottom padding so the FAB doesn't cover the last item
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
-                    items(habits) { habit ->
-                        val isCompleted = viewModel.records.any { 
-                            it.habitId == habit.id && it.timestamp == LocalDate.now().toEpochDay() && it.isCompleted 
+                    items(filteredHabits) { habit ->
+                        val isCompleted = viewModel.records.any {
+                            it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
                         }
                         PremiumHabitCard(
                             habit = habit,
                             isDark = isDark,
                             isCompleted = isCompleted,
                             onClick = { navController.navigate(Screen.HabitStats.createRoute(habit.id)) },
-                            onToggle = { viewModel.toggleHabitCompletion(habit.id, LocalDate.now()) }
+                            onToggle = { viewModel.toggleHabitCompletion(habit.id, selectedDate) }
                         )
                     }
                 }
