@@ -43,10 +43,7 @@ class HabitualEndToEndTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
-    @get:Rule
-    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
-        android.Manifest.permission.ACTIVITY_RECOGNITION
-    )
+
 
     /**
      * Clear all persisted data AND force-restart the activity before each test.
@@ -299,7 +296,11 @@ class HabitualEndToEndTest {
         registerAndLandOnDashboard(name = "Alice")
 
         // Should be on Dashboard with the user's name
-        composeTestRule.onNodeWithText("Good Morning,").assertIsDisplayed()
+        // Check for ANY of the valid greetings
+        val greetingNode = composeTestRule.onNode(
+            hasText("Good Morning,") or hasText("Good Afternoon,") or hasText("Good Evening,")
+        )
+        greetingNode.assertIsDisplayed()
         composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
         composeTestRule.onNodeWithText("Today's Rituals").assertIsDisplayed()
     }
@@ -427,7 +428,10 @@ class HabitualEndToEndTest {
         loginWithCredentials()
 
         // Should be on Dashboard
-        composeTestRule.onNodeWithText("Good Morning,").assertIsDisplayed()
+        val greetingNode = composeTestRule.onNode(
+            hasText("Good Morning,") or hasText("Good Afternoon,") or hasText("Good Evening,")
+        )
+        greetingNode.assertIsDisplayed()
         composeTestRule.onNodeWithText("Today's Rituals").assertIsDisplayed()
     }
 
@@ -927,7 +931,7 @@ class HabitualEndToEndTest {
         registerAndLandOnDashboard()
         navigateToTab("Wellbeing")
 
-        composeTestRule.onNodeWithText("Log Water").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Log Water").performScrollTo().assertIsDisplayed()
     }
 
     /**
@@ -939,7 +943,7 @@ class HabitualEndToEndTest {
         registerAndLandOnDashboard()
         navigateToTab("Wellbeing")
 
-        composeTestRule.onNodeWithText("Log Water").performClick()
+        composeTestRule.onNodeWithText("Log Water").performScrollTo().performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("Log Water Intake").assertIsDisplayed()
@@ -948,6 +952,10 @@ class HabitualEndToEndTest {
         composeTestRule.onNodeWithText("Oz").assertIsDisplayed()
         composeTestRule.onNodeWithText("Add").assertIsDisplayed()
         composeTestRule.onNodeWithText("Cancel").assertIsDisplayed()
+
+        // Cleanup: Close the dialog so it doesn't interfere with the next test
+        composeTestRule.onNodeWithText("Cancel").performClick()
+        composeTestRule.waitForIdle()
     }
 
     /**
@@ -959,7 +967,7 @@ class HabitualEndToEndTest {
         registerAndLandOnDashboard()
         navigateToTab("Wellbeing")
 
-        composeTestRule.onNodeWithText("Log Water").performClick()
+        composeTestRule.onNodeWithText("Log Water").performScrollTo().performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("Cancel").performClick()
@@ -967,7 +975,7 @@ class HabitualEndToEndTest {
 
         // Dialog should be gone, still on Wellbeing
         composeTestRule.onNodeWithText("Log Water Intake").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Well-being").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Well-being").performScrollTo().assertIsDisplayed()
     }
 
     /**
@@ -1134,7 +1142,10 @@ class HabitualEndToEndTest {
     fun test_55_dashboardShowsUserName() {
         registerAndLandOnDashboard(name = "PersonalisedUser")
 
-        composeTestRule.onNodeWithText("Good Morning,").assertIsDisplayed()
+        val greetingNode = composeTestRule.onNode(
+            hasText("Good Morning,") or hasText("Good Afternoon,") or hasText("Good Evening,")
+        )
+        greetingNode.assertIsDisplayed()
         composeTestRule.onNodeWithText("PersonalisedUser").assertIsDisplayed()
     }
 
@@ -1227,15 +1238,16 @@ class HabitualEndToEndTest {
         composeTestRule.onNodeWithText("Alphabetical").assertIsDisplayed()
     }
     @Test
-    fun test_80_userSettingsPersistAfterRestart() {
+    fun test_61_userSettingsPersistAfterRestart() {
         // 1. Initial State
         registerAndLandOnDashboard()
         navigateToTab("Profile")
 
         // 2. Change Name
         composeTestRule.onNodeWithContentDescription("Edit Name").performClick()
-        composeTestRule.onNodeWithText("Ritual Specialist").performTextClearance()
-        composeTestRule.onNodeWithText("Ritual Specialist").performTextInput("Persist Test User")
+        // Use content description for the input field to be robust against text changes/clearance
+        composeTestRule.onNodeWithContentDescription("Name Input").performTextClearance()
+        composeTestRule.onNodeWithContentDescription("Name Input").performTextInput("Persist Test User")
         composeTestRule.onNodeWithContentDescription("Save Name").performClick()
 
         // 3. Change Theme

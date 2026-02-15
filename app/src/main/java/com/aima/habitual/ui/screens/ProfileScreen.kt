@@ -7,6 +7,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -147,6 +149,7 @@ fun ProfileScreen(
         // --- 4. EDITABLE NAME SECTION ---
         // Toggle between static Text and OutlinedTextField based on isEditingName state
         if (isEditingName) {
+            val nameInputDesc = stringResource(R.string.desc_name_input)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -164,7 +167,9 @@ fun ProfileScreen(
                         },
                         singleLine = true,
                         isError = nameError,
-                        modifier = Modifier.width(ProfileLayout.nameFieldWidth),
+                        modifier = Modifier
+                            .width(ProfileLayout.nameFieldWidth)
+                            .semantics { contentDescription = nameInputDesc },
                         shape = RoundedCornerShape(HabitualTheme.radius.xl),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -190,7 +195,7 @@ fun ProfileScreen(
                             focusManager.clearFocus()
                         }
                     }) {
-                        Icon(imageVector = Icons.Default.Check, tint = MaterialTheme.colorScheme.primary, contentDescription = null)
+                        Icon(imageVector = Icons.Default.Check, tint = MaterialTheme.colorScheme.primary, contentDescription = stringResource(R.string.desc_save_name))
                     }
                 }
                 if (nameError) {

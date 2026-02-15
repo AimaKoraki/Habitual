@@ -137,6 +137,7 @@
     <string name="profile_delete_title">Delete Account?</string>
     <string name="profile_delete_text">This will permanently delete your profile, all rituals, diary entries, and wellbeing data. This action cannot be undone.</string>
     <string name="profile_name_empty_error">Name cannot be empty</string>
+    <string name="desc_name_input">Name Input</string>
 
     <string name="greeting_morning">Good Morning,</string>
     <string name="greeting_afternoon">Good Afternoon,</string>
