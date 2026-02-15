@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -83,49 +84,61 @@ fun DiaryScreen(
             Box(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)) {
                 DiaryHeader(
                     title = stringResource(R.string.diary_header),
-                    onSortClick = { showSortMenu = true }
-                )
-
-                // 2. SORT DROPDOWN:
-                // Anchored to the header, providing an intuitive UX for organizing thoughts.
-                DropdownMenu(
-                    expanded = showSortMenu,
-                    onDismissRequest = { showSortMenu = false },
-                    modifier = Modifier.align(Alignment.TopEnd)
-                ) {
-                    SortMode.entries.forEach { mode ->
-                        val label = when (mode) {
-                            SortMode.NEWEST -> stringResource(R.string.sort_newest)
-                            SortMode.OLDEST -> stringResource(R.string.sort_oldest)
-                            SortMode.ALPHABETICAL -> stringResource(R.string.sort_alphabetical)
-                        }
-                        DropdownMenuItem(
-                            text = {
+                    action = {
+                        Box {
+                            TextButton(onClick = { showSortMenu = true }) {
                                 Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (sortMode == mode)
-                                        MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurface
+                                    text = stringResource(R.string.sort_by),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                            },
-                            onClick = {
-                                sortMode = mode
-                                showSortMenu = false
-                            },
-                            leadingIcon = {
-                                if (sortMode == mode) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(HabitualTheme.components.iconSm)
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = stringResource(R.string.desc_sort_options),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                SortMode.entries.forEach { mode ->
+                                    val label = when (mode) {
+                                        SortMode.NEWEST -> stringResource(R.string.sort_newest)
+                                        SortMode.OLDEST -> stringResource(R.string.sort_oldest)
+                                        SortMode.ALPHABETICAL -> stringResource(R.string.sort_alphabetical)
+                                    }
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = label,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = if (sortMode == mode)
+                                                    MaterialTheme.colorScheme.primary
+                                                else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        },
+                                        onClick = {
+                                            sortMode = mode
+                                            showSortMenu = false
+                                        },
+                                        leadingIcon = {
+                                            if (sortMode == mode) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(HabitualTheme.components.iconSm)
+                                                )
+                                            }
+                                        }
                                     )
                                 }
                             }
-                        )
+                        }
                     }
-                }
+                )
             }
 
             // 3. CONTENT AREA:

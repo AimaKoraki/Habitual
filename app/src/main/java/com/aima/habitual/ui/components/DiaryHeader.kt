@@ -20,42 +20,25 @@ import com.aima.habitual.ui.theme.HabitualTheme
 @Composable
 fun DiaryHeader(
     title: String,
-    onSortClick: () -> Unit,
-    // Flexible modifier allows the parent (DiaryScreen) to control external padding
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    action: @Composable () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            // Consistent vertical spacing aligned with the app's typography scale
             .padding(vertical = HabitualTheme.spacing.lg),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 1. SCREEN TITLE:
-        // Uses 'headlineSmall' for prominent branding that remains readable on Pixel 7 displays.
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground // Adapts to Forest Green (Light) or Cream (Dark)
+            color = MaterialTheme.colorScheme.onBackground
         )
 
-        // 2. SORT ACTION:
-        // A TextButton provides a larger, accessible touch target for opening the SortMenu.
-        TextButton(onClick = onSortClick) {
-            Text(
-                text = stringResource(R.string.sort_by),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant // Sage Green accent
-            )
-
-            // 3. VISUAL CUE:
-            // The downward arrow indicates that clicking will reveal a dropdown menu.
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(R.string.desc_sort_options), // Accessibility description for Screen Readers
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        // 2. ACTION SLOT:
+        // Allows the parent screen to inject context-specific actions (e.g., Sort Menu).
+        action()
     }
 }
