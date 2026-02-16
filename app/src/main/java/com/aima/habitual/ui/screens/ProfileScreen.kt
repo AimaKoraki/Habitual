@@ -106,24 +106,17 @@ fun ProfileScreen(
                     .border(HabitualTheme.components.borderMedium, MaterialTheme.colorScheme.outlineVariant, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                if (viewModel.profileImageUri != null) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(viewModel.profileImageUri)
-                            .crossfade(true) // Smooth transition after selection
-                            .build(),
-                        contentDescription = stringResource(R.string.desc_profile_picture),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(ProfileLayout.profileImageSmall),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(viewModel.profileImageUri ?: R.drawable.profile_placeholder)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = stringResource(R.string.desc_profile_picture),
+                    placeholder = androidx.compose.ui.res.painterResource(R.drawable.profile_placeholder),
+                    error = androidx.compose.ui.res.painterResource(R.drawable.profile_placeholder),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
             // Edit Badge: Anchored to the bottom-right of the avatar using ProfileLayout tokens
             Box(

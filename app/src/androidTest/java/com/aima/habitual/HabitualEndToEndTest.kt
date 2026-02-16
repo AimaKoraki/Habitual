@@ -715,6 +715,7 @@ class HabitualEndToEndTest {
         navigateToTab("Profile")
 
         composeTestRule.onNodeWithText("NavTestUser").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
         composeTestRule.onNodeWithText("Log Out").assertIsDisplayed()
     }
 
