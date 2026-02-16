@@ -87,6 +87,7 @@ fun DiaryDetailScreen(
 
                             navController.popBackStack()
                         },
+                        // Enable only if both fields are filled
                         enabled = title.isNotBlank() && content.isNotBlank()
                     ) {
                         Icon(
@@ -115,7 +116,7 @@ fun DiaryDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = HabitualTheme.spacing.xl)
-                    .verticalScroll(rememberScrollState()) // Make scrollable
+                    .verticalScroll(rememberScrollState()) //  scrollable
             ) {
 
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra breathing room below header
@@ -159,6 +160,7 @@ fun DiaryDetailScreen(
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = HabitualTheme.alpha.subtle),
                                 shape = RoundedCornerShape(HabitualTheme.radius.xl)
                             ),
+                        // Soft Surface
                         singleLine = true,
                         shape = RoundedCornerShape(HabitualTheme.radius.xl),
                         colors = TextFieldDefaults.colors(
