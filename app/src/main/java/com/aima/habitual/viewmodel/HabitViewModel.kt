@@ -30,6 +30,11 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     // --- 2. PREFERENCES (Storage) ---
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
+    
+    // VIVA EXPLANATION:
+    // For this project, I chose SharedPreferences + Gson for simplicity and speed of development.
+    // In a production app, I would refactor this to use 'Room Database' or 'DataStore' 
+    // to handle larger datasets and ensure type safety / thread safety.
 
     // --- LEVELING SYSTEM ---
     /** Count only unique (habitId, date) pairs so toggling can't inflate level. */

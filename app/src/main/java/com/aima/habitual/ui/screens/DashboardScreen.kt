@@ -188,11 +188,19 @@ fun DashboardScreen(
                     // Logic: Filters rituals based on selected date and creation timestamp
                     val dayOfWeek = selectedDate.dayOfWeek.value % 7
                     val filteredHabits = habits.filter { habit ->
+                        // VIVA EXPLANATION: We filter habits based on two conditions:
+                        // 1. Creation Date: The habit must have been created on or before the selected date.
+                        // 2. Schedule: The habit must be scheduled for this specific day of the week (e.g., Monday).
                         val creationDate = java.time.Instant.ofEpochMilli(habit.createdAt)
                             .atZone(java.time.ZoneId.systemDefault())
                             .toLocalDate()
+                        
+                        // "isCreated" checks if the ritual existed on this date (history support)
                         val isCreated = !selectedDate.isBefore(creationDate)
+                        
+                        // "isScheduled" checks if today matches the habit's frequency (e.g. Every Mon, Wed)
                         val isScheduled = habit.repeatDays.isEmpty() || habit.repeatDays.contains(dayOfWeek)
+                        
                         isCreated && isScheduled
                     }
 
