@@ -18,20 +18,28 @@ import com.aima.habitual.ui.theme.HabitualTheme
 class MainActivity : ComponentActivity() {
 
     // 1. Permission Launcher: Required for Step Counter on Android 10+ (API 29+)
+    // Also used for Notifications on Android 13+ (API 33+)
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // Permission handled. If granted, StepSensorManager in ViewModel starts receiving data.
-        // If denied, the app continues running without step updates.
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        // Handle gracefully: if they deny, steps/reminders just don't work
     }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 2. Request Permission: Ask user immediately on app launch
+        // 2. Request Permissions: Ask user immediately on app launch
+        val permissionsToRequest = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        
+        if (permissionsToRequest.isNotEmpty()) {
+            requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
 
         // 3. Edge-to-Edge: Configured for your "Pure White" theme

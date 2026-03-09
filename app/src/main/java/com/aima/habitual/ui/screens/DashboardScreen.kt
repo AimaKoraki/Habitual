@@ -3,7 +3,6 @@ package com.aima.habitual.ui.screens
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
@@ -37,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.model.Habit
@@ -237,6 +236,7 @@ fun DashboardScreen(
 /**
  * PremiumHabitCard: Individual ritual item with micro-interactions.
  * Utilizes updateTransition for high-performance animation during state toggles.
+ * Strictly stateless — receives only the completion flag and toggle callback.
  */
 @Composable
 fun PremiumHabitCard(
@@ -250,58 +250,89 @@ fun PremiumHabitCard(
     val transition = updateTransition(targetState = isCompleted, label = "CheckmarkTransition")
 
     val tint by transition.animateColor(label = "Tint") { completed ->
-        if (completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        if (completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     }
 
     val scale by transition.animateFloat(
         label = "Scale",
         transitionSpec = {
             if (targetState) {
+                // Bouncy spring "pop" effect when completing
                 spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
             } else {
                 tween(durationMillis = 200)
             }
         }
     ) { completed ->
-        if (completed) 1.2f else 1.0f
+        // No extra zoom for the custom image (1.0f). Makes uncompleted circle normally sized (0.7f ~ 45dp) to trigger the bounce.
+        if (completed) 1.0f else 0.7f
     }
 
     val containerColor = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
     val textAlpha = if (isCompleted) HabitualTheme.alpha.muted else 1f
 
-    Card(
-        shape = RoundedCornerShape(HabitualTheme.radius.lg),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(HabitualTheme.components.cardPadding).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+    // Outer Box — lets the icon overflow the Card's clip boundary
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            shape = RoundedCornerShape(HabitualTheme.radius.lg),
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+            onClick = onClick,
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            border = BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = habit.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha)
-                )
-                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
-                Text(
-                    text = habit.category,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = textAlpha)
-                )
+            Row(
+                modifier = Modifier.padding(HabitualTheme.components.cardPadding).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = habit.title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha)
+                    )
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
+                    Text(
+                        text = habit.category,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = textAlpha)
+                    )
+                }
+                // Reserve space for the icon — actual icon is rendered as an overlay
+                Spacer(modifier = Modifier.size(64.dp))
             }
+        }
 
-            IconButton(onClick = onToggle) {
+        // Icon overlay — positioned OUTSIDE the Card so the Card's rounded-shape
+        // clipping cannot cut off the knife breakout.  The 64 dp Icon inside the
+        // 44 dp touch-target overflows naturally; the parent Box does not clip.
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp)
+                .zIndex(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(
+                onClick = onToggle,
+                modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
+            ) {
                 Icon(
-                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                    painter = if (isCompleted) {
+                        // Custom tick vector — face clipped inside a circle,
+                        // knife & hand paths drawn outside for the breakout effect
+                        androidx.compose.ui.res.painterResource(id = R.drawable.ic_custom_tick)
+                    } else {
+                        androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Outlined.Circle)
+                    },
                     contentDescription = stringResource(R.string.desc_complete),
-                    tint = tint,
-                    modifier = Modifier.size(HabitualTheme.components.minTouchTarget).scale(scale)
+                    // Unspecified preserves original yellow/silver SVG colours;
+                    // outlineVariant tints the uncompleted circle
+                    tint = if (isCompleted) Color.Unspecified else tint,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .scale(scale)
                 )
             }
         }

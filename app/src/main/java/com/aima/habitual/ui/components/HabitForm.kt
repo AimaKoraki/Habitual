@@ -56,6 +56,18 @@ fun HabitForm(
 
     val isEveryDaySelected = selectedDays.size == 7
 
+    var isReminderEnabled by remember { mutableStateOf(initialHabit?.isReminderEnabled ?: false) }
+    var reminderTime by remember { mutableStateOf(initialHabit?.reminderTime ?: "09:00") }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    val initialHour = reminderTime.substringBefore(":").toIntOrNull() ?: 9
+    val initialMinute = reminderTime.substringAfter(":").toIntOrNull() ?: 0
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = false
+    )
+
     /** Helper: SectionLabel creates consistent, accessible subtitles for form sections. */
     @Composable
     fun SectionLabel(text: String) {
@@ -254,6 +266,67 @@ fun HabitForm(
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
+        // --- FIELD 5: REMINDER ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SectionLabel(stringResource(R.string.enable_reminder_label))
+            Switch(
+                checked = isReminderEnabled,
+                onCheckedChange = { isReminderEnabled = it },
+                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary)
+            )
+        }
+
+        if (isReminderEnabled) {
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showTimePicker = true }
+                    .padding(vertical = HabitualTheme.spacing.sm),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.reminder_time_label),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = reminderTime,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        if (showTimePicker) {
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        reminderTime = "${timePickerState.hour.toString().padStart(2, '0')}:${timePickerState.minute.toString().padStart(2, '0')}"
+                        showTimePicker = false
+                    }) {
+                        Text(stringResource(R.string.btn_done))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTimePicker = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                },
+                text = {
+                    TimePicker(state = timePickerState)
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
         // --- SUBMIT ACTION ---
         Button(
             onClick = {
@@ -265,7 +338,9 @@ fun HabitForm(
                         title = habitName,
                         category = selectedCategory,
                         repeatDays = daysToSave,
-                        targetMonths = targetMonths.toInt()
+                        targetMonths = targetMonths.toInt(),
+                        reminderTime = if (isReminderEnabled) reminderTime else null,
+                        isReminderEnabled = isReminderEnabled
                     )
                     viewModel.addHabit(newHabit)
                 } else {
@@ -274,7 +349,9 @@ fun HabitForm(
                             title = habitName,
                             category = selectedCategory,
                             repeatDays = daysToSave,
-                            targetMonths = targetMonths.toInt()
+                            targetMonths = targetMonths.toInt(),
+                            reminderTime = if (isReminderEnabled) reminderTime else null,
+                            isReminderEnabled = isReminderEnabled
                         )
                     )
                 }

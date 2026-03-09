@@ -1,13 +1,19 @@
 package com.aima.habitual.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
  * Snapshot of daily health metrics for tracking and visualization.
+ * Stored as a Room Entity keyed by epoch day.
  */
+@Entity(tableName = "wellbeing_stats")
 data class WellbeingStats(
+    @PrimaryKey
+    val epochDay: Long = 0L,
     val stepsCount: Int = 0,
     val sleepDurationHours: Double = 0.0,
     val waterIntakeMl: Int = 0,

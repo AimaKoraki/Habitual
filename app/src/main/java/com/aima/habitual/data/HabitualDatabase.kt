@@ -1,0 +1,57 @@
+package com.aima.habitual.data
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.aima.habitual.model.DiaryEntry
+import com.aima.habitual.model.Habit
+import com.aima.habitual.model.HabitRecord
+import com.aima.habitual.model.WellbeingStats
+
+/**
+ * The Room Database for the Habitual app.
+ * Manages all four entities and provides a singleton instance.
+ */
+@Database(
+    entities = [Habit::class, HabitRecord::class, DiaryEntry::class, WellbeingStats::class],
+    version = 2,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
+abstract class HabitualDatabase : RoomDatabase() {
+
+    abstract fun habitDao(): HabitDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE diary_entries ADD COLUMN isLocked INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        @Volatile
+        private var INSTANCE: HabitualDatabase? = null
+
+        /**
+         * Thread-safe singleton accessor.
+         * Uses double-checked locking to avoid multiple database instances.
+         */
+        fun getInstance(context: Context): HabitualDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    HabitualDatabase::class.java,
+                    "habitual_database"
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}

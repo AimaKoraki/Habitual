@@ -97,26 +97,29 @@ fun HabitCard(
                     .size(HabitualTheme.components.chipSize)
                     .clip(CircleShape)
                     .background(
-                        if (isCompleted) forestGreen
+                        if (isCompleted) Color.Transparent
                         else Color.Transparent
                     )
                     // Border provides a visible target even when the habit is not yet checked
                     .border(
                         width = HabitualTheme.components.borderMedium,
-                        color = forestGreen.copy(alpha = if (isCompleted) 1f else HabitualTheme.alpha.secondary),
+                        color = if (isCompleted) Color.Transparent else forestGreen.copy(alpha = HabitualTheme.alpha.secondary),
                         shape = CircleShape
                     )
                     // 5. ACCESSIBILITY (A11Y):
                     // Essential for screen readers and your automated test suite to identify the check action.
                     .semantics { contentDescription = completeDesc }
             ) {
-                if (isCompleted) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = stringResource(R.string.desc_completed_ritual),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                Icon(
+                    painter = if (isCompleted) {
+                        androidx.compose.ui.res.painterResource(id = R.drawable.ic_custom_tick)
+                    } else {
+                        androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.Check)
+                    },
+                    contentDescription = stringResource(R.string.desc_completed_ritual),
+                    tint = if (isCompleted) Color.Unspecified else Color.Transparent,
+                    modifier = Modifier.size(HabitualTheme.components.chipSize)
+                )
             }
         }
     }

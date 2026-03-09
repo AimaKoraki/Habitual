@@ -429,6 +429,21 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Verifies the user's password without logging them in.
+     * Useful for unlocking locked entries.
+     */
+    fun verifyUserPassword(pass: String): Boolean {
+        val savedHash = prefs.getString("user_password_hash", null)
+        val savedSalt = prefs.getString("user_password_salt", null)
+
+        return if (savedHash != null && savedSalt != null) {
+            PasswordUtils.verifyPassword(pass, savedSalt, savedHash)
+        } else {
+            false
+        }
+    }
+
     fun clearLoginError() {
         loginError = null
     }
