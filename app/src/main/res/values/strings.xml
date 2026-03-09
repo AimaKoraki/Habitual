@@ -31,6 +31,9 @@
     <string name="repeat_on_label">Repeat on</string>
     <string name="target_duration_label">Target Duration: %d Months</string>
     <string name="target_duration_label_only">Target Duration</string>
+    <string name="reminder_time_label">Reminder Time</string>
+    <string name="enable_reminder_label">Reminder</string>
+    <string name="select_time">Select Time</string>
     <string name="add_habit_header">Add New Ritual</string>
     <string name="edit_habit_header">Edit Ritual</string>
     <string name="save_ritual">Save Ritual</string>
