@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -75,12 +76,12 @@ fun DiaryCard(
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    val icon = Icons.Default.Notes
+                    val icon = if (entry.isLocked) Icons.Default.Lock else Icons.Default.Notes
 
                     Icon(
                         imageVector = icon,
                         contentDescription = null, // Decorative icon
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        tint = if (entry.isLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -97,12 +98,12 @@ fun DiaryCard(
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
                 Text(
-                    text = entry.content,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    // Line height increased to 24sp to enhance reading comfort during reflection
-                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
-                    maxLines = 4, // Truncates longer entries to keep the list scannable
-                    overflow = TextOverflow.Ellipsis
+                        text = if (entry.isLocked) "This entry is secured with a lock." else entry.content,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        // Line height increased to 24sp to enhance reading comfort during reflection
+                        style = if (entry.isLocked) MaterialTheme.typography.bodyLarge.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic) else MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+                        maxLines = 4, // Truncates longer entries to keep the list scannable
+                        overflow = TextOverflow.Ellipsis
                 )
             }
         }

@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,8 +22,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
+import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.components.DiaryCard
 import com.aima.habitual.ui.components.DiaryHeader
 import com.aima.habitual.ui.theme.HabitualTheme
@@ -46,6 +51,12 @@ fun DiaryScreen(
     val entries = viewModel.diaryEntries
     var sortMode by remember { mutableStateOf(SortMode.NEWEST) }
     var showSortMenu by remember { mutableStateOf(false) }
+
+    // Authentication State
+    var entryToUnlock by remember { mutableStateOf<DiaryEntry?>(null) }
+    var passwordInput by remember { mutableStateOf("") }
+    var showPasswordError by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     // 1. DATA PROCESSING:
     // Uses 'remember' to avoid re-sorting during every recomposition unless 'entries' or 'sortMode' change.
@@ -183,12 +194,84 @@ fun DiaryScreen(
                         items(sortedEntries, key = { it.id }) { entry ->
                             DiaryCard(
                                 entry = entry,
-                                onClick = { onEntryClick(entry.id) }
+                                onClick = {
+                                    if (entry.isLocked) {
+                                        entryToUnlock = entry
+                                        passwordInput = ""
+                                        showPasswordError = false
+                                        passwordVisible = false
+                                    } else {
+                                        onEntryClick(entry.id)
+                                    }
+                                }
                             )
                         }
                     }
                 }
             }
+        }
+
+        // --- PASSWORD DIALOG ---
+        if (entryToUnlock != null) {
+            AlertDialog(
+                onDismissRequest = { entryToUnlock = null },
+                title = { Text(text = "Unlock Entry") },
+                text = {
+                    Column {
+                        Text(text = "Please enter your password to view this entry.", style = MaterialTheme.typography.bodyMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = passwordInput,
+                            onValueChange = {
+                                passwordInput = it
+                                showPasswordError = false
+                            },
+                            label = { Text("Password") },
+                            isError = showPasswordError,
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                val description = if (passwordVisible) "Hide password" else "Show password"
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(imageVector = image, contentDescription = description)
+                                }
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (showPasswordError) {
+                            Text(
+                                text = "Incorrect password.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (viewModel.verifyUserPassword(passwordInput)) {
+                                val idToOpen = entryToUnlock?.id
+                                entryToUnlock = null
+                                if (idToOpen != null) {
+                                    onEntryClick(idToOpen)
+                                }
+                            } else {
+                                showPasswordError = true
+                            }
+                        }
+                    ) {
+                        Text("Unlock")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { entryToUnlock = null }) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
+                }
+            )
         }
     }
 }

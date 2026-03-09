@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,6 +46,7 @@ fun DiaryDetailScreen(
 
     var title by remember { mutableStateOf(existingEntry?.title ?: "") }
     var content by remember { mutableStateOf(existingEntry?.content ?: "") }
+    var isLocked by remember { mutableStateOf(existingEntry?.isLocked ?: false) }
 
     var currentTagInput by remember { mutableStateOf("") }
     val tags = remember {
@@ -69,6 +72,18 @@ fun DiaryDetailScreen(
                     }
                 },
                 actions = {
+                    // Lock Toggle Button
+                    IconButton(
+                        onClick = { isLocked = !isLocked }
+                    ) {
+                        Icon(
+                            imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                            contentDescription = if (isLocked) "Unlock Entry" else "Lock Entry",
+                            tint = if (isLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Save Button
                     IconButton(
                         onClick = {
                             val entry = DiaryEntry(
@@ -76,7 +91,8 @@ fun DiaryDetailScreen(
                                 title = title,
                                 content = content,
                                 tags = tags.toList(),
-                                timestamp = existingEntry?.timestamp ?: System.currentTimeMillis()
+                                timestamp = existingEntry?.timestamp ?: System.currentTimeMillis(),
+                                isLocked = isLocked
                             )
 
                             if (existingEntry == null) {
