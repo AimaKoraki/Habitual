@@ -10,31 +10,36 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.aima.habitual.data.HabitualDatabase
 import com.aima.habitual.model.*
 import com.aima.habitual.model.StepSensorManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.aima.habitual.utils.ReminderManager
+import com.aima.habitual.utils.PasswordUtils
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
  * HabitViewModel: The central brain of the app.
  * Manages Habits, Diary, Wellbeing Stats (Date-Specific), Sensors, and User Profile.
+ *
+ * Data persistence strategy:
+ * - Room Database: Habits, HabitRecords, DiaryEntries, WellbeingStats
+ * - SharedPreferences: User preferences (theme, auth, sensor state, profile image)
  */
 class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
-    // --- 1. CORE DATA LISTS ---
+    // --- 1. CORE DATA LISTS (UI state backed by Room) ---
     val habits = mutableStateListOf<Habit>()
     val records = mutableStateListOf<HabitRecord>()
     val diaryEntries = mutableStateListOf<DiaryEntry>()
 
-    // --- 2. PREFERENCES (Storage) ---
+    // --- 2. ROOM DATABASE ---
+    private val db = HabitualDatabase.getInstance(application)
+    private val dao = db.habitDao()
+
+    // --- 3. PREFERENCES (for simple key-value config only) ---
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
-    private val gson = Gson()
-    
-    // VIVA EXPLANATION:
-    // For this project, I chose SharedPreferences + Gson for simplicity and speed of development.
-    // In a production app, I would refactor this to use 'Room Database' or 'DataStore' 
-    // to handle larger datasets and ensure type safety / thread safety.
 
     // --- LEVELING SYSTEM ---
     /** Count only unique (habitId, date) pairs so toggling can't inflate level. */
@@ -50,15 +55,14 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     val levelProgress: Float
         get() = (uniqueCompletions % 2) / 2f
 
-    // --- 5. PERSISTENT SENSOR & STEP LOGIC ---
-    // Keys for SharedPreferences
+    // --- PERSISTENT SENSOR & STEP LOGIC ---
+    // Keys for SharedPreferences (sensor state is transient, not suited for Room)
     private val KEY_STEPS_TODAY = "saved_steps_today"
     private val KEY_LAST_SENSOR = "last_sensor_value"
     private val KEY_LAST_DATE = "last_step_date"
     private val KEY_REWARDS = "saved_rewards_today"
 
-    // --- 3. USER PROFILE LOGIC ---
-    // Loads saved name or defaults to "Ritual Specialist"
+    // --- USER PROFILE LOGIC ---
     var userName by mutableStateOf(
         prefs.getString("user_name", "Ritual Specialist") ?: "Ritual Specialist"
     )
@@ -81,54 +85,41 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // --- 3.1 PROFILE PICTURE ---
+    // --- PROFILE PICTURE ---
     var profileImageUri by mutableStateOf<Uri?>(null)
         private set
 
     fun updateProfileImage(uri: Uri) {
-        // 1. Take persistable permission so we can read this later
         try {
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
             getApplication<Application>().contentResolver.takePersistableUriPermission(uri, takeFlags)
         } catch (e: Exception) {
-            e.printStackTrace() // Handle potential failure (e.g. if URI is not from document provider)
+            e.printStackTrace()
         }
-
-        // 2. Save
         profileImageUri = uri
         prefs.edit().putString("user_image", uri.toString()).apply()
     }
 
-    // --- 4. WELLBEING STATS (Date-Aware) ---
-    // Stores stats for each specific day (Key = EpochDay)
+    // --- WELLBEING STATS (Date-Aware, backed by Room) ---
     private val _dailyStats = mutableStateMapOf<Long, WellbeingStats>()
 
-    /**
-     * Helper to get stats for "Today" (Backward compatibility)
-     */
     val wellbeingStats: WellbeingStats
         get() = getStatsForDate(LocalDate.now())
 
-    /**
-     * Retrieves stats for any specific date. Returns empty stats if none exist.
-     */
     fun getStatsForDate(date: LocalDate): WellbeingStats {
-        return _dailyStats[date.toEpochDay()] ?: WellbeingStats()
+        return _dailyStats[date.toEpochDay()] ?: WellbeingStats(epochDay = date.toEpochDay())
     }
 
-    // --- 5. PERSISTENT SENSOR & STEP LOGIC ---
-    
+    // --- PERSISTENT SENSOR & STEP LOGIC ---
     private val stepSensor = StepSensorManager(application)
-    
-    // In-memory definition, but backed by Prefs
-    private var currentSensorSteps = 0 
+    private var currentSensorSteps = 0
     private var rewardSteps = 0
 
     init {
-        // 1. Initialize State from Storage
-        loadData()
-        
-        // Load Profile Image
+        // 1. Load all data from Room into reactive state lists
+        loadDataFromRoom()
+
+        // Load Profile Image from SharedPreferences
         val savedImage = prefs.getString("user_image", null)
         if (savedImage != null) {
             try {
@@ -138,158 +129,177 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
+        // Step sensor state (transient, stays in SharedPreferences)
         val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
         val todayEpoch = LocalDate.now().toEpochDay()
 
         if (storedDate != todayEpoch) {
-            // New Day: Reset counters
             currentSensorSteps = 0
             rewardSteps = 0
-            saveStepState(0, 0, todayEpoch) 
-            // Note: We don't reset last_sensor_value yet, we wait for the first reading
+            saveStepState(0, 0, todayEpoch)
         } else {
-            // Same Day: Load counters
             currentSensorSteps = prefs.getInt(KEY_STEPS_TODAY, 0)
             rewardSteps = prefs.getInt(KEY_REWARDS, 0)
         }
 
-        // 2. Start Listening
+        // 2. Start Listening for step sensor updates
         stepSensor.startListening { totalDeviceSteps ->
             handleSensorUpdate(totalDeviceSteps)
+        }
+    }
+
+    /**
+     * Loads all persisted data from Room into the in-memory state lists.
+     * Called once during ViewModel initialization.
+     */
+    private fun loadDataFromRoom() {
+        viewModelScope.launch {
+            // Load Habits
+            val loadedHabits = dao.getAllHabits()
+            habits.clear()
+            habits.addAll(loadedHabits)
+
+            // Load Records
+            val loadedRecords = dao.getAllRecords()
+            records.clear()
+            records.addAll(loadedRecords)
+
+            // Load Diary Entries
+            val loadedDiary = dao.getAllDiaryEntries()
+            diaryEntries.clear()
+            diaryEntries.addAll(loadedDiary)
+
+            // Load Wellbeing Stats
+            val loadedStats = dao.getAllWellbeingStats()
+            _dailyStats.clear()
+            for (stat in loadedStats) {
+                _dailyStats[stat.epochDay] = stat
+            }
         }
     }
 
     private fun handleSensorUpdate(totalDeviceSteps: Int) {
         val todayEpoch = LocalDate.now().toEpochDay()
         val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
-        
-        // Use -2 as "uninitialized" marker for last sensor value
         val lastSensorValue = prefs.getInt(KEY_LAST_SENSOR, -2)
 
-        // Day Change Check (in case app was open overnight)
         if (storedDate != todayEpoch) {
             currentSensorSteps = 0
-            rewardSteps = 0 // Optional: Reset rewards too? Yes, usually daily.
-            // valid lastSensorValue is still relevant for delta calculation if no reboot occurred
+            rewardSteps = 0
         }
 
         var delta = 0
         if (lastSensorValue != -2) {
-            if (totalDeviceSteps >= lastSensorValue) {
-                // Normal case: user walked
-                delta = totalDeviceSteps - lastSensorValue
+            delta = if (totalDeviceSteps >= lastSensorValue) {
+                totalDeviceSteps - lastSensorValue
             } else {
-                // Reboot case: sensor reset to 0
-                // We assume all steps since boot (totalDeviceSteps) are new
-                delta = totalDeviceSteps
+                totalDeviceSteps
             }
-        } 
-        // If lastSensorValue IS -2 (First run), we assume delta = 0 to establish baseline
-        // Alternatively, if we want to count steps walked BEFORE app install as 0, this is correct.
+        }
 
         if (delta > 0) {
             currentSensorSteps += delta
-            
-            // Commit to Storage
             prefs.edit().apply {
                 putInt(KEY_STEPS_TODAY, currentSensorSteps)
                 putInt(KEY_LAST_SENSOR, totalDeviceSteps)
                 putLong(KEY_LAST_DATE, todayEpoch)
                 apply()
             }
-            
-            // Update UI
             updateStepsForDate(LocalDate.now())
         } else {
-            // Even if no delta (standing still), we update the baseline
             if (lastSensorValue != totalDeviceSteps) {
-                 prefs.edit().putInt(KEY_LAST_SENSOR, totalDeviceSteps).apply()
+                prefs.edit().putInt(KEY_LAST_SENSOR, totalDeviceSteps).apply()
             }
         }
     }
 
     fun syncSteps() {
-        // Now just a visual force-refresh, as persistence is automatic
         updateStepsForDate(LocalDate.now())
     }
 
     private fun updateStepsForDate(date: LocalDate) {
         val epoch = date.toEpochDay()
-        val currentStats = _dailyStats[epoch] ?: WellbeingStats()
+        val currentStats = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
 
-        _dailyStats[epoch] = currentStats.copy(
+        val updatedStats = currentStats.copy(
             stepsCount = currentSensorSteps + rewardSteps,
             lastSyncTimestamp = System.currentTimeMillis()
         )
-        saveDailyStats()
+        _dailyStats[epoch] = updatedStats
+        viewModelScope.launch { dao.insertOrUpdateStats(updatedStats) }
     }
 
     private fun saveStepState(steps: Int, sensorVal: Int, date: Long) {
-         prefs.edit().apply {
+        prefs.edit().apply {
             putInt(KEY_STEPS_TODAY, steps)
-            if (sensorVal != 0) putInt(KEY_LAST_SENSOR, sensorVal) // specific case logic
+            if (sensorVal != 0) putInt(KEY_LAST_SENSOR, sensorVal)
             putLong(KEY_LAST_DATE, date)
             apply()
         }
     }
-
 
     override fun onCleared() {
         super.onCleared()
         stepSensor.stopListening()
     }
 
-    // --- 6. WELLBEING ACTIONS ---
+    // --- WELLBEING ACTIONS ---
 
     fun logWater(date: LocalDate, amountMl: Int) {
         val epoch = date.toEpochDay()
-        val currentStats = _dailyStats[epoch] ?: WellbeingStats()
+        val currentStats = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
 
-        _dailyStats[epoch] = currentStats.copy(
+        val updatedStats = currentStats.copy(
             waterIntakeMl = currentStats.waterIntakeMl + amountMl,
             lastSyncTimestamp = System.currentTimeMillis()
         )
-        saveDailyStats()
+        _dailyStats[epoch] = updatedStats
+        viewModelScope.launch { dao.insertOrUpdateStats(updatedStats) }
     }
 
     fun updateSleep(date: LocalDate, hours: Double) {
         val epoch = date.toEpochDay()
-        val currentStats = _dailyStats[epoch] ?: WellbeingStats()
+        val currentStats = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
 
-        _dailyStats[epoch] = currentStats.copy(
+        val updatedStats = currentStats.copy(
             sleepDurationHours = hours,
             lastSyncTimestamp = System.currentTimeMillis()
         )
-        saveDailyStats()
+        _dailyStats[epoch] = updatedStats
+        viewModelScope.launch { dao.insertOrUpdateStats(updatedStats) }
     }
 
     fun addSteps(steps: Int) {
         rewardSteps += steps
-        // Persist rewards immediately
         prefs.edit().putInt(KEY_REWARDS, rewardSteps).apply()
         updateStepsForDate(LocalDate.now())
     }
 
-    // --- 7. HABIT CRUD LOGIC ---
+    // --- HABIT CRUD LOGIC (Room-backed) ---
 
     fun addHabit(habit: Habit) {
         habits.add(habit)
-        saveHabits()
+        viewModelScope.launch { dao.insertHabit(habit) }
+        ReminderManager.scheduleReminder(getApplication(), habit)
     }
 
     fun updateHabit(updatedHabit: Habit) {
         val index = habits.indexOfFirst { it.id == updatedHabit.id }
         if (index != -1) {
             habits[index] = updatedHabit
-            saveHabits()
+            viewModelScope.launch { dao.updateHabit(updatedHabit) }
+            ReminderManager.scheduleReminder(getApplication(), updatedHabit)
         }
     }
 
     fun deleteHabit(habitId: String) {
         habits.removeAll { it.id == habitId }
         records.removeAll { it.habitId == habitId }
-        saveHabits()
-        saveRecords()
+        viewModelScope.launch {
+            dao.deleteHabit(habitId)
+            dao.deleteRecordsByHabitId(habitId)
+        }
+        ReminderManager.cancelReminder(getApplication(), habitId)
     }
 
     fun toggleHabitCompletion(habitId: String, date: LocalDate) {
@@ -297,122 +307,62 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         val existingRecord = records.find { it.habitId == habitId && it.timestamp == epochDay }
 
         if (existingRecord != null) {
-            // Toggle OFF
             records.remove(existingRecord)
+            viewModelScope.launch { dao.deleteRecord(existingRecord.id) }
         } else {
-            // Toggle ON
-            records.add(
-                HabitRecord(
-                    habitId = habitId,
-                    timestamp = epochDay,
-                    isCompleted = true
-                )
+            val newRecord = HabitRecord(
+                habitId = habitId,
+                timestamp = epochDay,
+                isCompleted = true
             )
-            // Reward: Add 300 steps
+            records.add(newRecord)
+            viewModelScope.launch { dao.insertRecord(newRecord) }
             addSteps(300)
         }
-        saveRecords()
     }
 
-    // --- 8. DIARY CRUD LOGIC ---
+    // --- DIARY CRUD LOGIC (Room-backed) ---
 
     fun addDiaryEntry(entry: DiaryEntry) {
         diaryEntries.add(0, entry)
-        saveDiary()
+        viewModelScope.launch { dao.insertDiaryEntry(entry) }
     }
 
     fun updateDiaryEntry(updatedEntry: DiaryEntry) {
         val index = diaryEntries.indexOfFirst { it.id == updatedEntry.id }
         if (index != -1) {
             diaryEntries[index] = updatedEntry
-            saveDiary()
+            viewModelScope.launch { dao.updateDiaryEntry(updatedEntry) }
         }
     }
 
     fun deleteDiaryEntry(entryId: String) {
         diaryEntries.removeAll { it.id == entryId }
-        saveDiary()
+        viewModelScope.launch { dao.deleteDiaryEntry(entryId) }
     }
 
-    // --- PERSISTENCE HELPER METHODS ---
-
-    private fun saveHabits() {
-        val json = gson.toJson(habits)
-        prefs.edit().putString("habits_data", json).apply()
-    }
-
-    private fun saveRecords() {
-        val json = gson.toJson(records)
-        prefs.edit().putString("records_data", json).apply()
-    }
-
-    private fun saveDiary() {
-        val json = gson.toJson(diaryEntries)
-        prefs.edit().putString("diary_data", json).apply()
-    }
-
-    private fun saveDailyStats() {
-        // Convert mutableStateMap to a plain Map<Long, WellbeingStats> for Gson
-        val statsMap: Map<Long, WellbeingStats> = _dailyStats.toMap()
-        val json = gson.toJson(statsMap)
-        prefs.edit().putString("daily_stats_data", json).apply()
-    }
-
-    private fun loadData() {
-        // Load Habits
-        val habitsJson = prefs.getString("habits_data", null)
-        if (habitsJson != null) {
-            val type = object : TypeToken<List<Habit>>() {}.type
-            val loadedHabits: List<Habit> = gson.fromJson(habitsJson, type)
-            habits.clear()
-            habits.addAll(loadedHabits)
-        }
-
-        // Load Records
-        val recordsJson = prefs.getString("records_data", null)
-        if (recordsJson != null) {
-            val type = object : TypeToken<List<HabitRecord>>() {}.type
-            val loadedRecords: List<HabitRecord> = gson.fromJson(recordsJson, type)
-            records.clear()
-            records.addAll(loadedRecords)
-        }
-
-        // Load Diary
-        val diaryJson = prefs.getString("diary_data", null)
-        if (diaryJson != null) {
-            val type = object : TypeToken<List<DiaryEntry>>() {}.type
-            val loadedDiary: List<DiaryEntry> = gson.fromJson(diaryJson, type)
-            diaryEntries.clear()
-            diaryEntries.addAll(loadedDiary)
-        }
-
-        // Load Daily Wellbeing Stats
-        val statsJson = prefs.getString("daily_stats_data", null)
-        if (statsJson != null) {
-            val type = object : TypeToken<Map<Long, WellbeingStats>>() {}.type
-            val loadedStats: Map<Long, WellbeingStats> = gson.fromJson(statsJson, type)
-            _dailyStats.clear()
-            _dailyStats.putAll(loadedStats)
-        }
-    }
-    // --- AUTH LOGIC ---
-// --- AUTHENTICATION LOGIC ---
+    // --- AUTH LOGIC (Password hashed with SHA-256 + Salt) ---
 
     var isLoggedIn by mutableStateOf(prefs.getBoolean("is_logged_in", false))
         private set
 
-    // State to hold error messages for the Login Screen
     var loginError by mutableStateOf<String?>(null)
         private set
 
     /**
-     * Saves user credentials locally during Registration.
+     * Registers a new user. The password is hashed with a unique salt
+     * before being saved to SharedPreferences. The plain-text password
+     * is never stored.
      */
     fun registerUser(name: String, email: String, pass: String) {
+        val salt = PasswordUtils.generateSalt()
+        val hashedPassword = PasswordUtils.hashPassword(pass, salt)
+
         prefs.edit().apply {
             putString("user_name", name)
             putString("user_email", email)
-            putString("user_password", pass) // Note: Real apps encrypt this!
+            putString("user_password_hash", hashedPassword)
+            putString("user_password_salt", salt)
             putBoolean("is_logged_in", true)
         }.apply()
 
@@ -420,6 +370,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         isLoggedIn = true
         loginError = null
     }
+
     fun logout() {
         isLoggedIn = false
         prefs.edit().putBoolean("is_logged_in", false).apply()
@@ -434,6 +385,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         diaryEntries.clear()
         _dailyStats.clear()
 
+        viewModelScope.launch {
+            dao.deleteAllHabits()
+            dao.deleteAllRecords()
+            dao.deleteAllDiaryEntries()
+            dao.deleteAllStats()
+        }
+
         userName = "Ritual Specialist"
         profileImageUri = null
         isLoggedIn = false
@@ -441,19 +399,24 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         currentSensorSteps = 0
         rewardSteps = 0
     }
+
     /**
-     * Checks if entered credentials match the locally saved ones.
+     * Validates login by hashing the entered password with the stored salt
+     * and comparing the result against the stored hash. The plain-text
+     * password is never persisted or compared directly.
      */
     fun validateLogin(email: String, pass: String): Boolean {
         val savedEmail = prefs.getString("user_email", null)
-        val savedPass = prefs.getString("user_password", null)
+        val savedHash = prefs.getString("user_password_hash", null)
+        val savedSalt = prefs.getString("user_password_salt", null)
 
         return when {
             savedEmail == null -> {
                 loginError = "No account found. Please register."
                 false
             }
-            savedEmail == email && savedPass == pass -> {
+            savedEmail == email && savedHash != null && savedSalt != null
+                    && PasswordUtils.verifyPassword(pass, savedSalt, savedHash) -> {
                 loginError = null
                 isLoggedIn = true
                 prefs.edit().putBoolean("is_logged_in", true).apply()
@@ -464,7 +427,6 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 false
             }
         }
-
     }
 
     fun clearLoginError() {
