@@ -37,6 +37,7 @@ class StepSensorManager(context: Context) : SensorEventListener {
      */
     fun stopListening() {
         sensorManager.unregisterListener(this)
+        onStepUpdate = null
     }
 
     /**

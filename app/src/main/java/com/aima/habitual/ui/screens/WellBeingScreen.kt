@@ -1,5 +1,9 @@
 package com.aima.habitual.ui.screens
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -52,6 +56,19 @@ fun WellBeingScreen(
     val unitOptions = listOf("ml", "Cups", "Oz")
     var waterAmountInput by remember { mutableStateOf("") }
     var selectedUnit by remember { mutableStateOf(unitOptions[0]) }
+
+    // PERMISSION HANDLING: Required for Step Counter on Android 10+ (API 29+)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        // We log or handle denial natively by falling back to 0 steps
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+    }
 
     // 2. DATA VISUALIZATION LOGIC:
     // Calculates step progress relative to a 10,000-step daily goal.
@@ -112,17 +129,19 @@ fun WellBeingScreen(
                         strokeCap = StrokeCap.Round // Modern rounded arc ends
                     )
 
-                    // Manual Sync Trigger
-                    IconButton(
-                        onClick = { viewModel.syncSteps() },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(end = HabitualTheme.spacing.sm)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Sync,
-                            contentDescription = stringResource(R.string.desc_sync_steps),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(HabitualTheme.components.iconLg)
-                        )
+                    // Manual Sync Trigger (Only visible if viewing today's stats)
+                    if (selectedDate == LocalDate.now()) {
+                        IconButton(
+                            onClick = { viewModel.syncSteps() },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(end = HabitualTheme.spacing.sm)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = stringResource(R.string.desc_sync_steps),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(HabitualTheme.components.iconLg)
+                            )
+                        }
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
