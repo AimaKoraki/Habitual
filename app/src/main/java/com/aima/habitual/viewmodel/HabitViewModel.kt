@@ -308,38 +308,41 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addSteps(steps: Int) {
         rewardSteps += steps
+        if (rewardSteps < 0) rewardSteps = 0
         prefs.edit().putInt(KEY_REWARDS, rewardSteps).apply()
         updateStepsForDate(LocalDate.now())
     }
 
     // --- HABIT CRUD LOGIC (Room-backed) ---
 
-    fun addHabit(habit: Habit) {
+    suspend fun addHabit(habit: Habit): Boolean {
         habits.add(habit)
-        viewModelScope.launch { 
-            try {
-                dao.insertHabit(habit) 
-                ReminderManager.scheduleReminder(getApplication(), habit)
-            } catch (e: Exception) {
-                Log.e("HabitViewModel", "Failed to add habit", e)
-                databaseError = "Failed to create new habit."
-            }
+        return try {
+            dao.insertHabit(habit)
+            ReminderManager.scheduleReminder(getApplication(), habit)
+            true
+        } catch (e: Exception) {
+            Log.e("HabitViewModel", "Failed to add habit", e)
+            habits.remove(habit)
+            databaseError = "Failed to create new habit."
+            false
         }
     }
 
-    fun updateHabit(updatedHabit: Habit) {
+    suspend fun updateHabit(updatedHabit: Habit): Boolean {
         val index = habits.indexOfFirst { it.id == updatedHabit.id }
-        if (index != -1) {
-            habits[index] = updatedHabit
-            viewModelScope.launch { 
-                try {
-                    dao.updateHabit(updatedHabit) 
-                    ReminderManager.scheduleReminder(getApplication(), updatedHabit)
-                } catch (e: Exception) {
-                    Log.e("HabitViewModel", "Failed to update habit", e)
-                    databaseError = "Failed to update habit."
-                }
-            }
+        if (index == -1) return false
+        val previous = habits[index]
+        habits[index] = updatedHabit
+        return try {
+            dao.updateHabit(updatedHabit)
+            ReminderManager.scheduleReminder(getApplication(), updatedHabit)
+            true
+        } catch (e: Exception) {
+            Log.e("HabitViewModel", "Failed to update habit", e)
+            habits[index] = previous
+            databaseError = "Failed to update habit."
+            false
         }
     }
 
@@ -367,6 +370,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch { 
                 try {
                     dao.deleteRecord(existingRecord.id) 
+                    // Subtract steps when un-completing a habit
+                    addSteps(-300)
                 } catch (e: Exception) {
                     Log.e("HabitViewModel", "Failed to delete habit record", e)
                     databaseError = "Failed to update habit progress."
