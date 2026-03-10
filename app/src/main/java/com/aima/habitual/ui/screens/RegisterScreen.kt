@@ -7,12 +7,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
 import com.aima.habitual.ui.theme.HabitualTheme
@@ -30,6 +36,7 @@ fun RegisterScreen(
     var userName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
 
     // VALIDATION LOGIC: Ensures mandatory fields are populated and criteria met
@@ -128,7 +135,14 @@ fun RegisterScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
                     )
                 },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = description)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
