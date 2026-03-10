@@ -32,7 +32,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -43,7 +46,9 @@ import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.DatePickerScroller
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
+import kotlinx.coroutines.delay
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * DashboardScreen: The main landing page displaying daily rituals,
@@ -60,7 +65,27 @@ fun DashboardScreen(
     // 1. CHRONOLOGICAL STATE: Tracks the currently viewed day
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
+    // Clock ticker: updates every minute so greeting/time stay fresh
+    var now by remember { mutableStateOf(LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L)
+            now = LocalDateTime.now()
+        }
+    }
+
+    // Snackbar host for surfacing database errors
+    val snackbarHostState = remember { SnackbarHostState() }
+    val dbError = viewModel.databaseError
+    LaunchedEffect(dbError) {
+        if (dbError != null) {
+            snackbarHostState.showSnackbar(dbError)
+            viewModel.clearDatabaseError()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
@@ -98,7 +123,7 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    val currentHour = java.time.LocalTime.now().hour
+                    val currentHour = now.hour
                     val greetingRes = when (currentHour) {
                         in 5..11 -> R.string.greeting_morning
                         in 12..16 -> R.string.greeting_afternoon
@@ -117,7 +142,6 @@ fun DashboardScreen(
                     )
                 }
 
-                val now = java.time.LocalDateTime.now()
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = now.format(java.time.format.DateTimeFormatter.ofPattern("d MMM")),
@@ -223,7 +247,8 @@ fun DashboardScreen(
                                 isDark = isDark,
                                 isCompleted = isCompleted,
                                 onClick = { navController.navigate(Screen.HabitStats.createRoute(habit.id)) },
-                                onToggle = { viewModel.toggleHabitCompletion(habit.id, selectedDate) }
+                                onToggle = { viewModel.toggleHabitCompletion(habit.id, selectedDate) },
+                                toggleTestTag = "toggle_${habit.id}"
                             )
                         }
                     }
@@ -244,7 +269,8 @@ fun PremiumHabitCard(
     isDark: Boolean,
     isCompleted: Boolean = false,
     onClick: () -> Unit,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    toggleTestTag: String = "toggle_habit"
 ) {
     // 3. ANIMATION: Smoothly transitions color and scale during completion
     val transition = updateTransition(targetState = isCompleted, label = "CheckmarkTransition")
@@ -316,7 +342,12 @@ fun PremiumHabitCard(
         ) {
             IconButton(
                 onClick = onToggle,
-                modifier = Modifier.size(HabitualTheme.components.minTouchTarget)
+                modifier = Modifier
+                    .size(HabitualTheme.components.minTouchTarget)
+                    .testTag(toggleTestTag)
+                    .semantics {
+                        contentDescription = if (isCompleted) "Completed: ${habit.title}" else "Complete: ${habit.title}"
+                    }
             ) {
                 Icon(
                     painter = if (isCompleted) {
@@ -326,7 +357,7 @@ fun PremiumHabitCard(
                     } else {
                         androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Outlined.Circle)
                     },
-                    contentDescription = stringResource(R.string.desc_complete),
+                    contentDescription = null,
                     // Unspecified preserves original yellow/silver SVG colours;
                     // outlineVariant tints the uncompleted circle
                     tint = if (isCompleted) Color.Unspecified else tint,

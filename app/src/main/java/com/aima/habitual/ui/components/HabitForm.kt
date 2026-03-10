@@ -23,6 +23,7 @@ import com.aima.habitual.R
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.model.Habit
 import com.aima.habitual.viewmodel.HabitViewModel
+import kotlinx.coroutines.launch
 
 /**
  * HabitForm: A comprehensive input form for creating or editing rituals.
@@ -37,6 +38,8 @@ fun HabitForm(
 ) {
     // 1. FORM STATE MANAGEMENT:
     // Tracks user input before it is committed to the database.
+    val scope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
     var habitName by remember { mutableStateOf(initialHabit?.title ?: "") }
     var expanded by remember { mutableStateOf(false) } // State for Category Dropdown
 
@@ -330,22 +333,14 @@ fun HabitForm(
         // --- SUBMIT ACTION ---
         Button(
             onClick = {
+                if (isSaving) return@Button
+                isSaving = true
                 // Default to "Every Day" if no specific days are selected
                 val daysToSave = if (selectedDays.isEmpty()) (0..6).toList() else selectedDays.toList()
 
-                if (initialHabit == null) {
-                    val newHabit = Habit(
-                        title = habitName,
-                        category = selectedCategory,
-                        repeatDays = daysToSave,
-                        targetMonths = targetMonths.toInt(),
-                        reminderTime = if (isReminderEnabled) reminderTime else null,
-                        isReminderEnabled = isReminderEnabled
-                    )
-                    viewModel.addHabit(newHabit)
-                } else {
-                    viewModel.updateHabit(
-                        initialHabit.copy(
+                scope.launch {
+                    val success = if (initialHabit == null) {
+                        val newHabit = Habit(
                             title = habitName,
                             category = selectedCategory,
                             repeatDays = daysToSave,
@@ -353,9 +348,24 @@ fun HabitForm(
                             reminderTime = if (isReminderEnabled) reminderTime else null,
                             isReminderEnabled = isReminderEnabled
                         )
-                    )
+                        viewModel.addHabit(newHabit)
+                    } else {
+                        viewModel.updateHabit(
+                            initialHabit.copy(
+                                title = habitName,
+                                category = selectedCategory,
+                                repeatDays = daysToSave,
+                                targetMonths = targetMonths.toInt(),
+                                reminderTime = if (isReminderEnabled) reminderTime else null,
+                                isReminderEnabled = isReminderEnabled
+                            )
+                        )
+                    }
+                    if (success) {
+                        onSave()
+                    }
+                    isSaving = false
                 }
-                onSave()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -363,7 +373,7 @@ fun HabitForm(
             shape = RoundedCornerShape(HabitualTheme.radius.md),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             // Input Validation: Ensures a habit cannot be saved without a name
-            enabled = habitName.isNotBlank()
+            enabled = habitName.isNotBlank() && !isSaving
         ) {
             Text(
                 text = if (initialHabit == null) stringResource(R.string.save_ritual) else stringResource(R.string.update_ritual),
