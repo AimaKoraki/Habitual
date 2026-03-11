@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.aima.habitual.ui.screens.*
+import com.aima.habitual.ui.theme.AppTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
 /**
@@ -22,7 +23,9 @@ fun NavGraph(
     navController: NavHostController,
     viewModel: HabitViewModel,
     isDarkTheme: Boolean,
+    appTheme: AppTheme,
     onThemeChange: (Boolean) -> Unit,
+    onThemeColorChange: (AppTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -101,7 +104,9 @@ fun NavGraph(
         composable(Screen.Profile.route) {
             ProfileScreen(
                 isDarkTheme = isDarkTheme,
+                appTheme = appTheme,
                 onThemeChange = onThemeChange,
+                onThemeColorChange = onThemeColorChange,
                 viewModel = viewModel,
                 onLogout = {
                     viewModel.logout()

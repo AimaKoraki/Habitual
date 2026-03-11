@@ -61,3 +61,51 @@ val LightErrorContainer   = Color(0xFFF5DDDA)   // Muted warm rose
 val LightOnErrorContainer = Color(0xFF5C1A1A)   // Dark rosewood text
 val DarkErrorContainer    = Color(0xFF3D2020)    // Deep rosewood surface
 val DarkOnErrorContainer  = Color(0xFFF5C6C0)   // Soft peach text
+
+// --- RED THEME (LIGHT MODE) ---
+val RedLightBg = Color(0xFFFCF8F8)             // Warm reddish white
+val RedLightSurface = Color(0xFFFFFFFF)
+val RedLightSurfaceSubtle = Color(0xFFF7F2F2)
+
+val RedLightSurfaceTint = Color(0xFFD32F2F)
+val RedLightSurfaceContainer = Color(0xFFF5EDED)
+val RedLightSurfaceContainerLow = Color(0xFFFAF4F4)
+val RedLightSurfaceContainerHigh = Color(0xFFEBE0E0)
+
+val RedLightTextPrimary = Color(0xFF1F0F0F)
+val RedLightTextSecondary = Color(0xFF1F0F0F).copy(alpha = 0.65f)
+
+val RedLightAccentPrimary = Color(0xFFD32F2F)   // Brighter Crimson
+val RedLightAccentSoft = Color(0xFFFFCDD2)      // Soft pink/red tint
+
+val RedLightSecondaryContainer = Color(0xFFFFEBEE)   // Warm blush container
+val RedLightOnSecondaryContainer = Color(0xFFB71C1C) // Deep red text
+
+val RedLightBorderSubtle = Color.Black.copy(alpha = 0.06f)
+val RedLightBorderStrong = Color.Black.copy(alpha = 0.12f)
+
+// --- RED THEME (DARK MODE) ---
+val RedDarkBg = Color(0xFF140C0C)              // Deep warm black
+val RedDarkSurface = Color(0xFF1C1111)
+val RedDarkSurfaceSubtle = Color(0xFF261717)
+
+val RedDarkSurfaceTint = Color(0xFFEF5350)
+val RedDarkSurfaceContainer = Color(0xFF241515)
+val RedDarkSurfaceContainerLow = Color(0xFF1A0F0F)
+val RedDarkSurfaceContainerHigh = Color(0xFF2E1B1B)
+
+val RedDarkTextPrimary = Color(0xFFFFFFFF)
+val RedDarkTextSecondary = Color.White.copy(alpha = 0.75f)
+
+val RedDarkAccentPrimary = Color(0xFFEF5350)   // Brighter Coral/Red
+val RedDarkAccentSoft = Color(0xFFEF5350).copy(alpha = 0.15f)
+
+val RedDarkSecondaryContainer = Color(0xFF3B1B1B)     // Deep wine container
+val RedDarkOnSecondaryContainer = Color(0xFFFFCDD2)   // Soft peach/pink text
+
+val RedDarkBorderSubtle = Color.White.copy(alpha = 0.06f)
+val RedDarkBorderStrong = Color.White.copy(alpha = 0.12f)
+
+enum class AppTheme {
+    GREEN, RED
+}

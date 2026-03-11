@@ -75,13 +75,79 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = DarkOnErrorContainer
 )
 
+// ─── RED LIGHT COLOR SCHEME ──────────────────────────────────────────────────
+private val RedLightColorScheme = lightColorScheme(
+    primary = RedLightAccentPrimary,
+    onPrimary = Color.White,
+    primaryContainer = RedLightAccentSoft,
+    onPrimaryContainer = RedLightAccentPrimary,
+
+    secondaryContainer = RedLightSecondaryContainer,
+    onSecondaryContainer = RedLightOnSecondaryContainer,
+
+    background = RedLightBg,
+    onBackground = RedLightTextPrimary,
+
+    surface = RedLightSurface,
+    onSurface = RedLightTextPrimary,
+    surfaceVariant = RedLightSurfaceSubtle,
+    onSurfaceVariant = RedLightTextSecondary,
+    surfaceTint = RedLightSurfaceTint,
+    surfaceContainer = RedLightSurfaceContainer,
+    surfaceContainerLow = RedLightSurfaceContainerLow,
+    surfaceContainerHigh = RedLightSurfaceContainerHigh,
+
+    outline = RedLightBorderStrong,
+    outlineVariant = RedLightBorderSubtle,
+
+    error = DangerRed,
+    onError = Color.White,
+    errorContainer = LightErrorContainer,
+    onErrorContainer = LightOnErrorContainer
+)
+
+// ─── RED DARK COLOR SCHEME ───────────────────────────────────────────────────
+private val RedDarkColorScheme = darkColorScheme(
+    primary = RedDarkAccentPrimary,
+    onPrimary = Color(0xFF140C0C),
+    primaryContainer = RedDarkAccentSoft,
+    onPrimaryContainer = RedDarkTextPrimary,
+
+    secondaryContainer = RedDarkSecondaryContainer,
+    onSecondaryContainer = RedDarkOnSecondaryContainer,
+
+    background = RedDarkBg,
+    onBackground = RedDarkTextPrimary,
+
+    surface = RedDarkSurface,
+    onSurface = RedDarkTextPrimary,
+    surfaceVariant = RedDarkSurfaceSubtle,
+    onSurfaceVariant = RedDarkTextSecondary,
+    surfaceTint = RedDarkSurfaceTint,
+    surfaceContainer = RedDarkSurfaceContainer,
+    surfaceContainerLow = RedDarkSurfaceContainerLow,
+    surfaceContainerHigh = RedDarkSurfaceContainerHigh,
+
+    outline = RedDarkBorderStrong,
+    outlineVariant = RedDarkBorderSubtle,
+
+    error = DangerRed,
+    onError = Color.White,
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer
+)
+
 // ─── THEME COMPOSABLE ────────────────────────────────────────────────────────
 @Composable
 fun HabitualTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    appTheme: AppTheme = AppTheme.GREEN,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = when (appTheme) {
+        AppTheme.RED -> if (darkTheme) RedDarkColorScheme else RedLightColorScheme
+        AppTheme.GREEN -> if (darkTheme) DarkColorScheme else LightColorScheme
+    }
     val view = LocalView.current
 
     if (!view.isInEditMode) {

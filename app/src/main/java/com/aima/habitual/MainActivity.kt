@@ -63,14 +63,17 @@ class MainActivity : ComponentActivity() {
             // This ensures the Theme is saved even if the app is killed.
             val viewModel: com.aima.habitual.viewmodel.HabitViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             val isDarkTheme = viewModel.isDarkTheme
+            val appTheme = viewModel.appTheme
 
             val windowSizeClass = calculateWindowSizeClass(this)
 
-            HabitualTheme(darkTheme = isDarkTheme) {
+            HabitualTheme(darkTheme = isDarkTheme, appTheme = appTheme) {
                 MainScreen(
                     windowSizeClass = windowSizeClass.widthSizeClass,
                     isDarkTheme = isDarkTheme,
+                    appTheme = appTheme,
                     onThemeChange = { viewModel.toggleTheme(it) },
+                    onThemeColorChange = { viewModel.changeAppTheme(it) },
                     viewModel = viewModel
                 )
             }

@@ -40,6 +40,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aima.habitual.R
 import com.aima.habitual.ui.screens.layout.ProfileLayout
+import com.aima.habitual.ui.theme.AppTheme
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
@@ -51,7 +52,9 @@ import com.aima.habitual.viewmodel.HabitViewModel
 @Composable
 fun ProfileScreen(
     isDarkTheme: Boolean,
+    appTheme: AppTheme,
     onThemeChange: (Boolean) -> Unit,
+    onThemeColorChange: (AppTheme) -> Unit,
     viewModel: HabitViewModel,
     onLogout: () -> Unit,
     onDeleteProfile: () -> Unit
@@ -293,6 +296,70 @@ fun ProfileScreen(
                             checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
                         )
                     )
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = HabitualTheme.spacing.lg), color = MaterialTheme.colorScheme.outlineVariant)
+
+                // Theme Color Toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Palette,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
+                        Text(
+                            text = "Theme Color",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)) {
+                        val greenColor = Color(0xFF18463A)
+                        val redColor = Color(0xFFD32F2F)
+
+                        // Green Scheme Chip
+                        val isGreen = appTheme == AppTheme.GREEN
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(if (isGreen) greenColor.copy(alpha = 0.2f) else Color.Transparent)
+                                .border(
+                                    width = if (isGreen) 0.dp else HabitualTheme.components.borderThin,
+                                    color = if (isGreen) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = CircleShape
+                                )
+                                .clickable { onThemeColorChange(AppTheme.GREEN) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(greenColor))
+                        }
+
+                        // Red Scheme Chip
+                        val isRed = appTheme == AppTheme.RED
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(if (isRed) redColor.copy(alpha = 0.2f) else Color.Transparent)
+                                .border(
+                                    width = if (isRed) 0.dp else HabitualTheme.components.borderThin,
+                                    color = if (isRed) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = CircleShape
+                                )
+                                .clickable { onThemeColorChange(AppTheme.RED) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(redColor))
+                        }
+                    }
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = HabitualTheme.spacing.lg), color = MaterialTheme.colorScheme.outlineVariant)

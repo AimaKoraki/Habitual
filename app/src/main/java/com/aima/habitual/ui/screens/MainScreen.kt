@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.aima.habitual.navigation.NavGraph
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.BottomNavigationBar
+import com.aima.habitual.ui.theme.AppTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
 /**
@@ -28,7 +29,9 @@ import com.aima.habitual.viewmodel.HabitViewModel
 fun MainScreen(
     windowSizeClass: WindowWidthSizeClass,
     isDarkTheme: Boolean,
+    appTheme: AppTheme,
     onThemeChange: (Boolean) -> Unit,
+    onThemeColorChange: (AppTheme) -> Unit,
     viewModel: HabitViewModel
 ) {
     // 1. Core State
@@ -87,7 +90,9 @@ fun MainScreen(
                 navController = navController,
                 viewModel = viewModel,
                 isDarkTheme = isDarkTheme,
+                appTheme = appTheme,
                 onThemeChange = onThemeChange,
+                onThemeColorChange = onThemeColorChange,
                 modifier = Modifier.weight(1f)
             )
         }
