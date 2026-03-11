@@ -233,6 +233,7 @@ fun WellBeingScreen(
                 com.aima.habitual.ui.components.SleepLogForm(
                     initialDurationMinutes = initialDurationOpt,
                     initialQuality = initialQualityOpt,
+                    currentLux = viewModel.currentLuxLevel,
                     onSave = { duration, quality ->
                         viewModel.saveSleepLog(selectedDate, duration, quality)
                         showSleepDialog = false

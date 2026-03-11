@@ -15,12 +15,14 @@ import android.util.Log
 import com.aima.habitual.data.HabitualDatabase
 import com.aima.habitual.model.*
 import com.aima.habitual.model.StepSensorManager
+import com.aima.habitual.model.LightSensorManager
 import com.aima.habitual.utils.ReminderManager
 import com.aima.habitual.utils.PasswordUtils
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.aima.habitual.ui.theme.AppTheme
 
 /**
  * HabitViewModel: The central brain of the app.
@@ -83,9 +85,19 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     var isDarkTheme by mutableStateOf(prefs.getBoolean("is_dark_theme", false))
         private set
 
+    var appTheme by mutableStateOf(
+        AppTheme.valueOf(prefs.getString("app_theme", AppTheme.GREEN.name) ?: AppTheme.GREEN.name)
+    )
+        private set
+
     fun toggleTheme(isDark: Boolean) {
         isDarkTheme = isDark
         prefs.edit().putBoolean("is_dark_theme", isDark).apply()
+    }
+
+    fun changeAppTheme(theme: AppTheme) {
+        appTheme = theme
+        prefs.edit().putString("app_theme", theme.name).apply()
     }
 
     fun updateUserName(newName: String) {
@@ -126,6 +138,12 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private var currentSensorSteps = 0
     private var rewardSteps = 0
 
+    // --- AMBIENT LIGHT SENSOR (Sleep Hygiene Assistant) ---
+    // Measures room brightness in lux; exposed as Compose state for the sleep dialog.
+    private val lightSensor = LightSensorManager(application)
+    var currentLuxLevel by mutableStateOf(0f)
+        private set
+
     init {
         // 1. Load all data from Room into reactive state lists
         loadDataFromRoom()
@@ -155,9 +173,14 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             rewardSteps = prefs.getInt(KEY_REWARDS, 0)
         }
 
-        // 2. Start Listening for step sensor updates
+        // 2. Start listening for step sensor updates
         stepSensor.startListening { totalDeviceSteps ->
             handleSensorUpdate(totalDeviceSteps)
+        }
+
+        // 3. Start listening for ambient light updates (Sleep Hygiene Assistant)
+        lightSensor.startListening { lux ->
+            currentLuxLevel = lux
         }
     }
 
@@ -268,6 +291,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         stepSensor.stopListening()
+        lightSensor.stopListening()
     }
 
     // --- WELLBEING ACTIONS ---
