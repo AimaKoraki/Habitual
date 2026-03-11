@@ -19,6 +19,8 @@ import com.aima.habitual.utils.ReminderManager
 import com.aima.habitual.utils.PasswordUtils
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * HabitViewModel: The central brain of the app.
@@ -137,6 +139,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 e.printStackTrace()
             }
         }
+        
+        loadSleepLogs()
 
         // Step sensor state (transient, stays in SharedPreferences)
         val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
@@ -302,6 +306,45 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update sleep stats", e)
                 databaseError = "Failed to save sleep data."
+            }
+        }
+    }
+
+    // --- MANUAL SLEEP LOGGING ---
+    private val KEY_SLEEP_LOGS = "saved_sleep_logs_json"
+    private val gson = Gson()
+    private val _sleepLogs = mutableStateMapOf<Long, SleepLogEntry>()
+
+    fun getSleepLog(date: LocalDate): SleepLogEntry? {
+        return _sleepLogs[date.toEpochDay()]
+    }
+
+    fun saveSleepLog(date: LocalDate, durationMinutes: Int, quality: String) {
+        val epoch = date.toEpochDay()
+        val entry = SleepLogEntry(epoch, durationMinutes, quality)
+        _sleepLogs[epoch] = entry
+
+        try {
+            val json = gson.toJson(_sleepLogs.toMap())
+            prefs.edit().putString(KEY_SLEEP_LOGS, json).apply()
+        } catch (e: Exception) {
+            Log.e("HabitViewModel", "Failed to serialize sleep logs", e)
+        }
+
+        // Also update standard sleep stats for DB legacy/general tracking
+        updateSleep(date, durationMinutes / 60.0)
+    }
+
+    private fun loadSleepLogs() {
+        val json = prefs.getString(KEY_SLEEP_LOGS, null)
+        if (json != null) {
+            try {
+                val type = object : TypeToken<Map<Long, SleepLogEntry>>() {}.type
+                val logs: Map<Long, SleepLogEntry> = gson.fromJson(json, type)
+                _sleepLogs.clear()
+                _sleepLogs.putAll(logs)
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Failed to parse sleep logs", e)
             }
         }
     }

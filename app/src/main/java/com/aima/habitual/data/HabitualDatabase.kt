@@ -18,7 +18,7 @@ import com.aima.habitual.model.WellbeingStats
  */
 @Database(
     entities = [Habit::class, HabitRecord::class, DiaryEntry::class, WellbeingStats::class],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -30,6 +30,20 @@ abstract class HabitualDatabase : RoomDatabase() {
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE diary_entries ADD COLUMN isLocked INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE diary_entries ADD COLUMN mood TEXT")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE diary_entries ADD COLUMN photoUri TEXT")
+                database.execSQL("ALTER TABLE diary_entries ADD COLUMN audioFilePath TEXT")
+                database.execSQL("ALTER TABLE diary_entries ADD COLUMN locationText TEXT")
             }
         }
 
@@ -47,7 +61,7 @@ abstract class HabitualDatabase : RoomDatabase() {
                     HabitualDatabase::class.java,
                     "habitual_database"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance

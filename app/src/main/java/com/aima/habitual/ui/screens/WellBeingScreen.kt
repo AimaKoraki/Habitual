@@ -175,11 +175,13 @@ fun WellBeingScreen(
                     horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
+                        val sleepProgress = (stats.sleepDurationHours.toFloat() / 8f).coerceIn(0f, 1f)
                         HealthStatCard(
                             label = stringResource(R.string.wellbeing_sleep),
                             value = String.format("%.1fh", stats.sleepDurationHours),
                             icon = Icons.Default.NightsStay,
                             color = MaterialTheme.colorScheme.secondary,
+                            progress = if (stats.sleepDurationHours > 0) sleepProgress else null,
                             onClick = { showSleepDialog = true }
                         )
                     }
@@ -214,8 +216,12 @@ fun WellBeingScreen(
 
     // --- 6. INTERACTIVE DIALOGS ---
 
-    // SLEEP DIALOG: Uses a slider for precision duration entry
+    // SLEEP DIALOG: Uses the new stateless SleepLogForm component
     if (showSleepDialog) {
+        val currentSleepLog = viewModel.getSleepLog(selectedDate)
+        val initialDurationOpt = currentSleepLog?.durationMinutes ?: (stats.sleepDurationHours * 60).toInt()
+        val initialQualityOpt = currentSleepLog?.quality ?: ""
+
         androidx.compose.ui.window.Dialog(onDismissRequest = { showSleepDialog = false }) {
             Surface(
                 shape = RoundedCornerShape(HabitualTheme.radius.xxl),
@@ -224,28 +230,15 @@ fun WellBeingScreen(
                 shadowElevation = HabitualTheme.elevation.high,
                 modifier = Modifier.padding(HabitualTheme.spacing.md)
             ) {
-                Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = stringResource(R.string.dialog_update_sleep), style = MaterialTheme.typography.titleLarge)
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
-                    Text(text = stringResource(R.string.dialog_sleep_prompt), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
-                    Text(text = String.format("%.1f Hours", stats.sleepDurationHours), style = MaterialTheme.typography.headlineSmall)
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
-                    Slider(
-                        value = stats.sleepDurationHours.toFloat(),
-                        onValueChange = { viewModel.updateSleep(selectedDate, it.toDouble()) },
-                        valueRange = 0f..12f,
-                        steps = 23,
-                        colors = SliderDefaults.colors(activeTrackColor = MaterialTheme.colorScheme.primary)
-                    )
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
-                    Button(onClick = { showSleepDialog = false }, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = stringResource(R.string.btn_done))
-                    }
-                }
+                com.aima.habitual.ui.components.SleepLogForm(
+                    initialDurationMinutes = initialDurationOpt,
+                    initialQuality = initialQualityOpt,
+                    onSave = { duration, quality ->
+                        viewModel.saveSleepLog(selectedDate, duration, quality)
+                        showSleepDialog = false
+                    },
+                    onCancel = { showSleepDialog = false }
+                )
             }
         }
     }
