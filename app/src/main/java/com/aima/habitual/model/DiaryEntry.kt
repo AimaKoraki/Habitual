@@ -26,5 +26,6 @@ data class DiaryEntry(
     val mood: String? = null,
     val photoUri: String? = null,
     val audioFilePath: String? = null,
-    val locationText: String? = null
+    val locationText: String? = null,
+    val isJournal: Boolean = false
 )

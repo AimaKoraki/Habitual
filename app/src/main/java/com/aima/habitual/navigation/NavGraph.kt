@@ -94,8 +94,8 @@ fun NavGraph(
                 onEntryClick = { entryId ->
                     navController.navigate(Screen.DiaryView.createRoute(entryId))
                 },
-                onAddClick = {
-                    navController.navigate(Screen.DiaryDetail.createRoute("new"))
+                onAddClick = { isJournal ->
+                    navController.navigate(Screen.DiaryDetail.createRoute("new", isJournal))
                 }
             )
         }
@@ -128,11 +128,19 @@ fun NavGraph(
 
         composable(
             route = Screen.DiaryDetail.route,
-            arguments = listOf(navArgument("entryId") { defaultValue = "new" })
+            arguments = listOf(
+                navArgument("entryId") { defaultValue = "new" },
+                navArgument("isJournal") { 
+                    type = NavType.BoolType
+                    defaultValue = false 
+                }
+            )
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getString("entryId") ?: "new"
+            val isJournal = backStackEntry.arguments?.getBoolean("isJournal") ?: false
             DiaryDetailScreen(
                 entryId = if (entryId == "new") null else entryId,
+                isJournal = isJournal,
                 navController = navController,
                 viewModel = viewModel
             )

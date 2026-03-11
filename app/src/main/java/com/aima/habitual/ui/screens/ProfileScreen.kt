@@ -88,11 +88,16 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(HabitualTheme.spacing.lg)
+            .padding(
+                start = HabitualTheme.spacing.lg,
+                end = HabitualTheme.spacing.lg,
+                top = 10.dp,
+                bottom = HabitualTheme.spacing.lg
+            )
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(HabitualTheme.components.iconXl))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
         // --- 3. AVATAR SECTION ---
         Box(

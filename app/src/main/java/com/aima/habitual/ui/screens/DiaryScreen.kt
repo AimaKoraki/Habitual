@@ -3,6 +3,7 @@ package com.aima.habitual.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
@@ -12,6 +13,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +29,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
+import java.util.Calendar
+import java.util.Locale
 import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.components.DiaryCard
 import com.aima.habitual.ui.components.DiaryHeader
@@ -41,12 +46,13 @@ private enum class SortMode { NEWEST, OLDEST, ALPHABETICAL }
  * DiaryScreen: A reflective space for users to view and organize their journal entries.
  * Features a procedural background pattern and a dynamic sorting system.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryScreen(
     navController: NavHostController,
     viewModel: HabitViewModel,
     onEntryClick: (String) -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: (Boolean) -> Unit
 ) {
     val entries = viewModel.diaryEntries
     var sortMode by remember { mutableStateOf(SortMode.NEWEST) }
@@ -58,20 +64,33 @@ fun DiaryScreen(
     var showPasswordError by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    // Time Picker State
+    var showTimePicker by remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState(
+        initialHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+        initialMinute = Calendar.getInstance().get(Calendar.MINUTE),
+        is24Hour = true
+    )
+
+    // Filter
+    val currentViewEntries = remember(entries.toList(), viewModel.isJournalTabSelected) {
+        entries.filter { it.isJournal == viewModel.isJournalTabSelected }
+    }
+
     // 1. DATA PROCESSING:
     // Uses 'remember' to avoid re-sorting during every recomposition unless 'entries' or 'sortMode' change.
-    val sortedEntries = remember(entries.toList(), sortMode) {
+    val sortedEntries = remember(currentViewEntries, sortMode) {
         when (sortMode) {
-            SortMode.NEWEST -> entries.sortedByDescending { it.timestamp }
-            SortMode.OLDEST -> entries.sortedBy { it.timestamp }
-            SortMode.ALPHABETICAL -> entries.sortedBy { it.title.lowercase() }
+            SortMode.NEWEST -> currentViewEntries.sortedByDescending { it.timestamp }
+            SortMode.OLDEST -> currentViewEntries.sortedBy { it.timestamp }
+            SortMode.ALPHABETICAL -> currentViewEntries.sortedBy { it.title.lowercase() }
         }
     }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddClick,
+                onClick = { onAddClick(viewModel.isJournalTabSelected) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = androidx.compose.foundation.shape.CircleShape,
@@ -152,6 +171,26 @@ fun DiaryScreen(
                 )
             }
 
+            // --- TABS SECTION ---
+            TabRow(
+                selectedTabIndex = if (viewModel.isJournalTabSelected) 1 else 0,
+                containerColor = Color.Transparent,
+                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md)
+            ) {
+                Tab(
+                    selected = !viewModel.isJournalTabSelected,
+                    onClick = { viewModel.isJournalTabSelected = false },
+                    text = { Text("Notes", style = MaterialTheme.typography.titleMedium) }
+                )
+                Tab(
+                    selected = viewModel.isJournalTabSelected,
+                    onClick = { viewModel.isJournalTabSelected = true },
+                    text = { Text("Journal", style = MaterialTheme.typography.titleMedium) }
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
+
             // 3. CONTENT AREA:
             // Applies the procedural 'wavePattern' to the background to create a calm atmosphere.
             Box(
@@ -160,7 +199,7 @@ fun DiaryScreen(
                     .fillMaxWidth()
                     .wavePattern(MaterialTheme.colorScheme.primary)
             ) {
-                if (entries.isEmpty()) {
+                if (sortedEntries.isEmpty() && !viewModel.isJournalTabSelected) {
                     // EMPTY STATE: Provides visual guidance when no entries exist.
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -179,7 +218,7 @@ fun DiaryScreen(
                                     .padding(bottom = HabitualTheme.spacing.md)
                             )
                             Text(
-                                text = stringResource(R.string.diary_empty_journal),
+                                text = "Your notes are empty.",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -191,6 +230,52 @@ fun DiaryScreen(
                         contentPadding = PaddingValues(HabitualTheme.spacing.lg),
                         verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
                     ) {
+                        // Journal Setup Header
+                        if (viewModel.isJournalTabSelected) {
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().clickable { showTimePicker = true },
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                                    shape = RoundedCornerShape(HabitualTheme.radius.md)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(HabitualTheme.spacing.md),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(Icons.Default.Book, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                        Spacer(Modifier.width(HabitualTheme.spacing.md))
+                                        Column {
+                                            Text(
+                                                "Daily Journaling", 
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                            val timeText = viewModel.journalHabitTime?.let { "Daily at $it" } ?: "Tap to set a daily reminder to journal."
+                                            Text(
+                                                timeText, 
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                            )
+                                        }
+                                        Spacer(Modifier.weight(1f))
+                                        if (viewModel.journalHabitTime != null) {
+                                           IconButton(onClick = { viewModel.disableDailyJournalHabit() }) {
+                                               Icon(Icons.Default.Close, contentDescription = "Disable", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                           }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (sortedEntries.isEmpty() && viewModel.isJournalTabSelected) {
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                                    Text("Your journal is empty.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+
                         items(sortedEntries, key = { it.id }) { entry ->
                             DiaryCard(
                                 entry = entry,
@@ -269,6 +354,36 @@ fun DiaryScreen(
                 dismissButton = {
                     TextButton(onClick = { entryToUnlock = null }) {
                         Text(stringResource(R.string.btn_cancel))
+                    }
+                }
+            )
+        }
+        
+        // --- TIME PICKER DIALOG ---
+        if (showTimePicker) {
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                title = { Text("Set Journaling Time") },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        TimePicker(state = timePickerState)
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val formattedTime = String.format(Locale.getDefault(), "%02d:%02d", timePickerState.hour, timePickerState.minute)
+                        viewModel.enableDailyJournalHabit(formattedTime)
+                        showTimePicker = false
+                    }) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTimePicker = false }) {
+                        Text("Cancel")
                     }
                 }
             )

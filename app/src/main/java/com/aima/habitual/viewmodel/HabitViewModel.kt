@@ -39,6 +39,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     val records = mutableStateListOf<HabitRecord>()
     val diaryEntries = mutableStateListOf<DiaryEntry>()
 
+    // --- DIARY UI STATE ---
+    var isJournalTabSelected by mutableStateOf(false)
+
     // --- ERROR STATE ---
     var databaseError by mutableStateOf<String?>(null)
         private set
@@ -105,6 +108,58 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         if (trimmed.isNotBlank()) {
             userName = trimmed
             prefs.edit().putString("user_name", trimmed).apply()
+        }
+    }
+
+    // --- DAILY JOURNALING HABIT SETTINGS ---
+    var journalHabitId by mutableStateOf<String?>(prefs.getString("journal_habit_id", null))
+        private set
+
+    var journalHabitTime by mutableStateOf<String?>(prefs.getString("journal_habit_time", null))
+        private set
+
+    fun enableDailyJournalHabit(time: String) {
+        viewModelScope.launch {
+            val habit = Habit(
+                title = "Daily Journaling",
+                description = "Reflect on your day and clear your mind.",
+                category = "Mindfulness",
+                priority = Priority.HIGH,
+                repeatDays = listOf(0, 1, 2, 3, 4, 5, 6),
+                reminderTime = time,
+                isReminderEnabled = true
+            )
+            // Note: addHabit takes care of inserting into the DB and scheduling the reminder.
+            val success = try {
+                dao.insertHabit(habit)
+                habits.add(habit) // Add to UI state directly since addHabit inside the same class requires suspend call handling logic duplication or we just do it here inline
+                ReminderManager.scheduleReminder(getApplication(), habit)
+                true
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Failed to add journal habit", e)
+                false
+            }
+
+            if (success) {
+                journalHabitId = habit.id
+                journalHabitTime = time
+                prefs.edit().apply {
+                    putString("journal_habit_id", habit.id)
+                    putString("journal_habit_time", time)
+                    apply()
+                }
+            }
+        }
+    }
+
+    fun disableDailyJournalHabit() {
+        journalHabitId?.let { deleteHabit(it) }
+        journalHabitId = null
+        journalHabitTime = null
+        prefs.edit().apply {
+            remove("journal_habit_id")
+            remove("journal_habit_time")
+            apply()
         }
     }
 
@@ -471,6 +526,21 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { 
             try {
                 dao.insertDiaryEntry(entry) 
+                
+                // Automatic Journal Habit Completion
+                if (entry.isJournal) {
+                    journalHabitId?.let { hId ->
+                        val today = LocalDate.now()
+                        val epochDay = today.toEpochDay()
+                        val isDone = records.any { it.habitId == hId && it.timestamp == epochDay }
+                        if (!isDone) {
+                            val newRecord = HabitRecord(habitId = hId, timestamp = epochDay, isCompleted = true)
+                            records.add(newRecord)
+                            dao.insertRecord(newRecord)
+                            addSteps(300)
+                        }
+                    }
+                }
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to add diary entry", e)
                 databaseError = "Failed to save journal entry. It may not persist across restarts."

@@ -18,7 +18,7 @@ import com.aima.habitual.model.WellbeingStats
  */
 @Database(
     entities = [Habit::class, HabitRecord::class, DiaryEntry::class, WellbeingStats::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -47,6 +47,12 @@ abstract class HabitualDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE diary_entries ADD COLUMN isJournal INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var INSTANCE: HabitualDatabase? = null
 
@@ -61,7 +67,7 @@ abstract class HabitualDatabase : RoomDatabase() {
                     HabitualDatabase::class.java,
                     "habitual_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance

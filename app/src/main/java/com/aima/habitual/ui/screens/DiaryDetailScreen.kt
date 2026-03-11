@@ -58,6 +58,7 @@ import java.io.File
 @Composable
 fun DiaryDetailScreen(
     entryId: String?, // Nullable: If null -> New Entry, If ID exists -> Edit Mode
+    isJournal: Boolean,
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
@@ -191,7 +192,8 @@ fun DiaryDetailScreen(
             mood = selectedMood.takeIf { it.isNotBlank() },
             photoUri = photoUri,
             audioFilePath = audioFilePath,
-            locationText = locationText
+            locationText = locationText,
+            isJournal = isJournal
         )
 
         if (existingEntry == null) {
@@ -209,8 +211,13 @@ fun DiaryDetailScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = if (existingEntry == null) stringResource(R.string.diary_new_entry)
-                        else stringResource(R.string.diary_edit_entry),
+                        text = if (existingEntry != null) {
+                            stringResource(R.string.diary_edit_entry)
+                        } else if (isJournal) {
+                            "New Journal Entry"
+                        } else {
+                            "New Note"
+                        },
                         style = MaterialTheme.typography.titleLarge
                     )
                 },

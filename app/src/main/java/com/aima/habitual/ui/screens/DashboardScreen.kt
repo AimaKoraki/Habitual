@@ -112,7 +112,7 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
             // --- HEADER SECTION: Greeting and Dynamic Time ---
             Row(

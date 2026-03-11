@@ -26,7 +26,7 @@ fun DiaryHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = HabitualTheme.spacing.lg),
+            .padding(top = 10.dp, bottom = HabitualTheme.spacing.lg),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

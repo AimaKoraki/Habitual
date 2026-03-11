@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
@@ -17,6 +18,6 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier) {
         text = title,
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onBackground,
-        modifier = modifier.padding(vertical = HabitualTheme.spacing.lg)
+        modifier = modifier.padding(top = 10.dp, bottom = HabitualTheme.spacing.lg)
     )
 }

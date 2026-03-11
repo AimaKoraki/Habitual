@@ -38,8 +38,8 @@ sealed class Screen(
     }
 
     // --- Journaling Module ---
-    object DiaryDetail : Screen("diary_detail/{entryId}", R.string.new_diary_entry) {
-        fun createRoute(entryId: String) = "diary_detail/$entryId"
+    object DiaryDetail : Screen("diary_detail/{entryId}?isJournal={isJournal}", R.string.new_diary_entry) {
+        fun createRoute(entryId: String, isJournal: Boolean = false) = "diary_detail/$entryId?isJournal=$isJournal"
     }
 
     object DiaryView : Screen("diary_view/{entryId}", R.string.diary_header) {
