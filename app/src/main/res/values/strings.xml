@@ -8,6 +8,7 @@
     <string name="btn_add">Add</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_go_back">Go Back</string>
+    <string name="btn_save">Save</string>
 
     <string name="nav_dashboard">Rituals</string>
     <string name="nav_wellbeing">Wellbeing</string>

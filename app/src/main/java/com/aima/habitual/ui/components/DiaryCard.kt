@@ -88,12 +88,24 @@ fun DiaryCard(
 
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
-                // CONTENT: Title and Body
-                Text(
-                    text = entry.title,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.headlineSmall, // Prominent title for quick scanning
-                )
+                // CONTENT: Mood + Title and Body
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = entry.title,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineSmall, // Prominent title for quick scanning
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (entry.mood != null) {
+                        Text(
+                            text = entry.mood,
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 

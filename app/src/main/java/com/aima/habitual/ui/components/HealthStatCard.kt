@@ -24,6 +24,7 @@ fun HealthStatCard(
     value: String,
     icon: ImageVector,
     color: Color,
+    progress: Float? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {} // Added: Enables interactive stat editing (e.g., logging water/sleep)
 ) {
@@ -50,13 +51,30 @@ fun HealthStatCard(
             verticalArrangement = Arrangement.Center
         ) {
             // 2. ICONOGRAPHY:
-            // The tint color is passed from the parent screen to distinguish metrics at a glance.
-            Icon(
-                imageVector = icon,
-                contentDescription = null, // Set to null as the 'label' text provides the context
-                tint = color,
-                modifier = Modifier.size(HabitualTheme.components.iconLg)
-            )
+            // Wrap icon in Box to conditionally display progress ring
+            Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                if (progress != null) {
+                    CircularProgressIndicator(
+                        progress = { 1f },
+                        modifier = Modifier.size(HabitualTheme.components.iconLg + 16.dp),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        strokeWidth = 3.dp
+                    )
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.size(HabitualTheme.components.iconLg + 16.dp),
+                        color = color,
+                        strokeWidth = 3.dp,
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                    )
+                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null, // Set to null as the 'label' text provides the context
+                    tint = color,
+                    modifier = Modifier.size(HabitualTheme.components.iconLg)
+                )
+            }
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 

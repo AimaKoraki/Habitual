@@ -22,5 +22,9 @@ data class DiaryEntry(
     val content: String,
     val tags: List<String> = emptyList(),
     val timestamp: Long = System.currentTimeMillis(),
-    val isLocked: Boolean = false
+    val isLocked: Boolean = false,
+    val mood: String? = null,
+    val photoUri: String? = null,
+    val audioFilePath: String? = null,
+    val locationText: String? = null
 )

@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -30,6 +31,24 @@ import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Stop
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.media.MediaRecorder
+import android.os.Build
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import java.io.File
 
 /**
  * DiaryDetailScreen provides the interface to create or edit journal entries.
@@ -43,6 +62,7 @@ fun DiaryDetailScreen(
     viewModel: HabitViewModel
 ) {
     val existingEntry = viewModel.diaryEntries.find { it.id == entryId }
+    val context = LocalContext.current
 
     var title by remember { mutableStateOf(existingEntry?.title ?: "") }
     var content by remember { mutableStateOf(existingEntry?.content ?: "") }
@@ -53,6 +73,134 @@ fun DiaryDetailScreen(
         mutableStateListOf<String>().apply {
             addAll(existingEntry?.tags ?: emptyList())
         }
+    }
+    
+    var selectedMood by remember { mutableStateOf(existingEntry?.mood ?: "") }
+    val moods = listOf("😞", "😐", "🙂", "😄")
+    
+    // Formatting the current date/time
+    val dateFormatter = remember { SimpleDateFormat("EEEE, d MMMM yyyy • HH:mm", Locale.getDefault()) }
+    val formattedDate = remember(existingEntry?.timestamp) {
+        dateFormatter.format(Date(existingEntry?.timestamp ?: System.currentTimeMillis()))
+    }
+
+    // --- ATTACHMENT STATE ---
+    var photoUri by remember { mutableStateOf(existingEntry?.photoUri) }
+    var audioFilePath by remember { mutableStateOf(existingEntry?.audioFilePath) }
+    var locationText by remember { mutableStateOf(existingEntry?.locationText) }
+    var isRecording by remember { mutableStateOf(false) }
+    var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+
+    // --- PHOTO PICKER ---
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            // Take persistable permission so the URI survives app restarts
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: Exception) { /* Some providers don't support persistable grants */ }
+            photoUri = uri.toString()
+        }
+    }
+
+    // --- AUDIO RECORDING PERMISSION ---
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            // Start recording after permission is granted
+            val file = File(context.filesDir, "diary_audio_${System.currentTimeMillis()}.m4a")
+            val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaRecorder()
+            }
+            recorder.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(file.absolutePath)
+                prepare()
+                start()
+            }
+            mediaRecorder = recorder
+            audioFilePath = file.absolutePath
+            isRecording = true
+        } else {
+            Toast.makeText(context, "Microphone permission is required to record audio", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // --- LOCATION PERMISSION ---
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val locationManager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
+            try {
+                val loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                if (loc != null) {
+                    locationText = String.format(Locale.US, "%.4f°N, %.4f°E", loc.latitude, loc.longitude)
+                } else {
+                    Toast.makeText(context, "Could not fetch location. Try again later.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: SecurityException) {
+                Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "Location permission is required", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Cleanup recorder on dispose
+    DisposableEffect(Unit) {
+        onDispose {
+            if (isRecording) {
+                try {
+                    mediaRecorder?.stop()
+                    mediaRecorder?.release()
+                } catch (_: Exception) { }
+            }
+        }
+    }
+    
+    val canSave = title.isNotBlank() && content.isNotBlank()
+    val saveAction: () -> Unit = {
+        // Stop recording before save if still active
+        if (isRecording) {
+            try {
+                mediaRecorder?.stop()
+                mediaRecorder?.release()
+            } catch (_: Exception) { }
+            mediaRecorder = null
+            isRecording = false
+        }
+
+        val entry = DiaryEntry(
+            id = existingEntry?.id ?: UUID.randomUUID().toString(),
+            title = title,
+            content = content,
+            tags = tags.toList(),
+            timestamp = existingEntry?.timestamp ?: System.currentTimeMillis(),
+            isLocked = isLocked,
+            mood = selectedMood.takeIf { it.isNotBlank() },
+            photoUri = photoUri,
+            audioFilePath = audioFilePath,
+            locationText = locationText
+        )
+
+        if (existingEntry == null) {
+            viewModel.addDiaryEntry(entry)
+        } else {
+            viewModel.updateDiaryEntry(entry)
+        }
+
+        navController.popBackStack()
     }
 
     Scaffold(
@@ -83,42 +231,28 @@ fun DiaryDetailScreen(
                         )
                     }
 
-                    // Save Button
-                    IconButton(
-                        onClick = {
-                            val entry = DiaryEntry(
-                                id = existingEntry?.id ?: UUID.randomUUID().toString(),
-                                title = title,
-                                content = content,
-                                tags = tags.toList(),
-                                timestamp = existingEntry?.timestamp ?: System.currentTimeMillis(),
-                                isLocked = isLocked
-                            )
-
-                            if (existingEntry == null) {
-                                viewModel.addDiaryEntry(entry)
-                            } else {
-                                viewModel.updateDiaryEntry(entry)
-                            }
-
-                            navController.popBackStack()
-                        },
-                        // Enable only if both fields are filled
-                        enabled = title.isNotBlank() && content.isNotBlank()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Save,
-                            contentDescription = stringResource(R.string.desc_save),
-                            tint = if (title.isNotBlank() && content.isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
-                        )
-                    }
+                    // Save action moved to FAB, but keeping an optional icon for familiarity if desired, or remove to enforce FAB.
+                    // We remove the save action here to emphasize the FAB.
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent // Transparent to show pattern
                 )
             )
+        },
+        floatingActionButton = {
+            if (canSave) {
+                FloatingActionButton(
+                    onClick = saveAction,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = HabitualTheme.elevation.high,
+                        pressedElevation = HabitualTheme.elevation.low
+                    )
+                ) {
+                    Icon(Icons.Default.Save, contentDescription = stringResource(R.string.desc_save))
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.background // Base background for pattern
     ) { padding ->
@@ -135,13 +269,46 @@ fun DiaryDetailScreen(
                     .verticalScroll(rememberScrollState()) //  scrollable
             ) {
 
-                Spacer(modifier = Modifier.height(HabitualTheme.spacing.section)) // Extra breathing room below header
+                // Date & Time Indicator
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
 
-                // A. Title Field (Soft Surface Style)
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg)) 
+
+                // Mood Selector
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    moods.forEach { moodEmoji ->
+                        val isSelected = selectedMood == moodEmoji
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .border(
+                                    width = if (isSelected) 2.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .clickable { selectedMood = moodEmoji },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = moodEmoji, style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+
+                // A. Title Field (Reflective surface)
                 TextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text(stringResource(R.string.diary_label_title)) },
+                    label = { Text("Give this day a title...") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .border(
@@ -254,10 +421,9 @@ fun DiaryDetailScreen(
                 TextField(
                     value = content,
                     onValueChange = { content = it },
-                    label = { Text(stringResource(R.string.diary_label_content)) },
                     placeholder = {
                         Text(
-                            "Write your thoughts...", // Hardcoded for now to avoid resource error if missing
+                            "What moment stayed with you today?", 
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted) // Muted
                         )
                     },
@@ -278,8 +444,161 @@ fun DiaryDetailScreen(
                     )
                 )
 
-                // Bottom breathing room
-                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+
+                // Quick-Add Attachments Row (FUNCTIONAL)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // --- PHOTO BUTTON ---
+                    IconButton(onClick = { photoPickerLauncher.launch("image/*") }) {
+                        Icon(
+                            Icons.Default.PhotoCamera, 
+                            contentDescription = "Add Photo", 
+                            tint = if (photoUri != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    // --- AUDIO RECORD BUTTON ---
+                    IconButton(onClick = {
+                        if (isRecording) {
+                            // Stop recording
+                            try {
+                                mediaRecorder?.stop()
+                                mediaRecorder?.release()
+                            } catch (_: Exception) { }
+                            mediaRecorder = null
+                            isRecording = false
+                        } else {
+                            // Check permission then start recording
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                val file = File(context.filesDir, "diary_audio_${System.currentTimeMillis()}.m4a")
+                                val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    MediaRecorder(context)
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    MediaRecorder()
+                                }
+                                recorder.apply {
+                                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                                    setOutputFile(file.absolutePath)
+                                    prepare()
+                                    start()
+                                }
+                                mediaRecorder = recorder
+                                audioFilePath = file.absolutePath
+                                isRecording = true
+                            } else {
+                                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic, 
+                            contentDescription = if (isRecording) "Stop Recording" else "Record Voice Note", 
+                            tint = if (isRecording) MaterialTheme.colorScheme.error 
+                                   else if (audioFilePath != null) MaterialTheme.colorScheme.primary 
+                                   else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    // --- LOCATION BUTTON ---
+                    IconButton(onClick = {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            val locationManager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
+                            try {
+                                val loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                                    ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                                if (loc != null) {
+                                    locationText = String.format(Locale.US, "%.4f°N, %.4f°E", loc.latitude, loc.longitude)
+                                } else {
+                                    Toast.makeText(context, "Could not fetch location", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: SecurityException) {
+                                Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    }) {
+                        Icon(
+                            Icons.Default.LocationOn, 
+                            contentDescription = "Add Location", 
+                            tint = if (locationText != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // --- ATTACHMENT PREVIEWS ---
+                if (photoUri != null || audioFilePath != null || locationText != null) {
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+                    Column(verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)) {
+                        photoUri?.let {
+                            Surface(
+                                shape = RoundedCornerShape(HabitualTheme.radius.md),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Spacer(Modifier.width(HabitualTheme.spacing.sm))
+                                    Text("Photo attached", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Spacer(Modifier.weight(1f))
+                                    IconButton(onClick = { photoUri = null }, modifier = Modifier.size(20.dp)) {
+                                        Icon(Icons.Default.Close, contentDescription = "Remove photo", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                            }
+                        }
+                        audioFilePath?.let {
+                            Surface(
+                                shape = RoundedCornerShape(HabitualTheme.radius.md),
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Spacer(Modifier.width(HabitualTheme.spacing.sm))
+                                    Text(if (isRecording) "Recording..." else "Voice note attached", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Spacer(Modifier.weight(1f))
+                                    if (!isRecording) {
+                                        IconButton(onClick = { audioFilePath = null }, modifier = Modifier.size(20.dp)) {
+                                            Icon(Icons.Default.Close, contentDescription = "Remove audio", tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(14.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        locationText?.let { loc ->
+                            Surface(
+                                shape = RoundedCornerShape(HabitualTheme.radius.md),
+                                color = MaterialTheme.colorScheme.tertiaryContainer
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    Spacer(Modifier.width(HabitualTheme.spacing.sm))
+                                    Text(loc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    Spacer(Modifier.weight(1f))
+                                    IconButton(onClick = { locationText = null }, modifier = Modifier.size(20.dp)) {
+                                        Icon(Icons.Default.Close, contentDescription = "Remove location", tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Bottom breathing room (make space for FAB)
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
