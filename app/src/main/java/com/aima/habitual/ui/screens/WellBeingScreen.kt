@@ -4,6 +4,11 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,15 +17,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,33 +45,36 @@ import java.time.LocalDate
 
 /**
  * WellBeingScreen: A centralized dashboard for tracking health metrics.
- * Integrates daily step counts, sleep duration, and hydration levels
- * within the project's signature "Forest & Sage" aesthetic.
+ *
+ * Organized into two clearly defined visual sections:
+ * - **Active Vitality**: Steps counter (dual-layer CircularProgressIndicator) + Water intake
+ * - **Sleep Sanctum**: Sleep logging (interactive slider) + Ambient light nudge
  */
 @Composable
 fun WellBeingScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    // 1. STATE MANAGEMENT:
-    // Tracks the current date for data filtering and handles visibility for interactive logging dialogs.
+    // 1. STATE MANAGEMENT
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val stats = viewModel.getStatsForDate(selectedDate)
 
     var showSleepDialog by remember { mutableStateOf(false) }
     var showWaterDialog by remember { mutableStateOf(false) }
 
-    // Water Logic: Managed locally during the "Draft" phase of entry
+    // Water input state
     val unitOptions = listOf("ml", "Cups", "Oz")
     var waterAmountInput by remember { mutableStateOf("") }
     var selectedUnit by remember { mutableStateOf(unitOptions[0]) }
 
-    // PERMISSION HANDLING: Required for Step Counter on Android 10+ (API 29+)
+    // Ambient light state
+    val currentLux = viewModel.currentLuxLevel
+    val isRoomTooBright = currentLux > 5f
+
+    // PERMISSION HANDLING
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // We log or handle denial natively by falling back to 0 steps
-    }
+    ) { _ -> }
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -70,10 +82,12 @@ fun WellBeingScreen(
         }
     }
 
-    // 2. DATA VISUALIZATION LOGIC:
-    // Calculates step progress relative to a 10,000-step daily goal.
+    // Step progress calculation
     val stepGoal = 10000
     val stepProgress = (stats.stepsCount.toFloat() / stepGoal).coerceIn(0f, 1f)
+
+    // Sleep progress calculation
+    val sleepProgress = (stats.sleepDurationHours.toFloat() / 8f).coerceIn(0f, 1f)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -82,14 +96,14 @@ fun WellBeingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState()) // Ensures accessibility on smaller screens
+                .verticalScroll(rememberScrollState())
         ) {
             ScreenHeader(
                 title = stringResource(R.string.wellbeing_header),
                 modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg)
             )
 
-            // Dynamic date selection linked to the primary stats query
+            // Dynamic date selection
             DatePickerScroller(
                 selectedDate = selectedDate,
                 onDateSelected = { selectedDate = it }
@@ -97,8 +111,18 @@ fun WellBeingScreen(
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
-            // --- 3. STEPS PROGRESS CARD ---
-            // Visualizes step data using a custom-layered CircularProgressIndicator.
+            // ═══════════════════════════════════════════════════════
+            // SECTION 1: ACTIVE VITALITY (Steps + Water)
+            // ═══════════════════════════════════════════════════════
+            SectionHeader(
+                title = stringResource(R.string.wellbeing_section_active_vitality),
+                icon = Icons.Default.DirectionsWalk,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+            // --- Steps Progress Card ---
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,7 +136,7 @@ fun WellBeingScreen(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxWidth().padding(vertical = HabitualTheme.spacing.lg)
                 ) {
-                    // Background Progress Track (Muted)
+                    // Background Progress Track
                     CircularProgressIndicator(
                         progress = { 1f },
                         modifier = Modifier.size(HabitualTheme.components.progressRingSize),
@@ -120,16 +144,16 @@ fun WellBeingScreen(
                         strokeWidth = HabitualTheme.components.progressTrackThick,
                     )
 
-                    // Active Progress Arc (Primary Forest Green)
+                    // Active Progress Arc
                     CircularProgressIndicator(
                         progress = { stepProgress },
                         modifier = Modifier.size(HabitualTheme.components.progressRingSize),
                         color = MaterialTheme.colorScheme.primary,
                         strokeWidth = HabitualTheme.components.progressArcThick,
-                        strokeCap = StrokeCap.Round // Modern rounded arc ends
+                        strokeCap = StrokeCap.Round
                     )
 
-                    // Manual Sync Trigger (Only visible if viewing today's stats)
+                    // Sync button (only for today)
                     if (selectedDate == LocalDate.now()) {
                         IconButton(
                             onClick = { viewModel.syncSteps() },
@@ -159,47 +183,24 @@ fun WellBeingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
-            // --- 4. DAILY SUMMARY GRID ---
+            // --- Water Intake Card ---
             Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md)) {
-                Text(
-                    text = stringResource(R.string.wellbeing_daily_summary),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        val sleepProgress = (stats.sleepDurationHours.toFloat() / 8f).coerceIn(0f, 1f)
-                        HealthStatCard(
-                            label = stringResource(R.string.wellbeing_sleep),
-                            value = String.format("%.1fh", stats.sleepDurationHours),
-                            icon = Icons.Default.NightsStay,
-                            color = MaterialTheme.colorScheme.secondary,
-                            progress = if (stats.sleepDurationHours > 0) sleepProgress else null,
-                            onClick = { showSleepDialog = true }
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        HealthStatCard(
-                            label = stringResource(R.string.wellbeing_water),
-                            value = "${stats.waterIntakeMl}ml",
-                            icon = Icons.Default.LocalDrink,
-                            color = MaterialTheme.colorScheme.primary,
-                            onClick = { showWaterDialog = true }
-                        )
-                    }
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    HealthStatCard(
+                        label = stringResource(R.string.wellbeing_water),
+                        value = "${stats.waterIntakeMl}ml",
+                        icon = Icons.Default.LocalDrink,
+                        color = MaterialTheme.colorScheme.primary,
+                        onClick = { showWaterDialog = true }
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
-            // --- 5. HYDRATION ACTION ---
+            // Log Water Button
             Button(
                 onClick = { waterAmountInput = ""; showWaterDialog = true },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
@@ -210,13 +211,154 @@ fun WellBeingScreen(
                 Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
                 Text(stringResource(R.string.wellbeing_log_water))
             }
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
+            // Section Divider
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
+            // ═══════════════════════════════════════════════════════
+            // SECTION 2: SLEEP SANCTUM (Sleep + Environment)
+            // ═══════════════════════════════════════════════════════
+            SectionHeader(
+                title = stringResource(R.string.wellbeing_section_sleep_sanctum),
+                icon = Icons.Default.NightsStay,
+                color = MaterialTheme.colorScheme.secondary
+            )
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+            // --- Sleep Duration Card ---
+            Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md)) {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    HealthStatCard(
+                        label = stringResource(R.string.wellbeing_sleep),
+                        value = String.format("%.1fh", stats.sleepDurationHours),
+                        icon = Icons.Default.NightsStay,
+                        color = MaterialTheme.colorScheme.secondary,
+                        progress = if (stats.sleepDurationHours > 0) sleepProgress else null,
+                        onClick = { showSleepDialog = true }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+            // --- Dynamic Sleep Nudge ---
+            // Only appears when isRoomTooBright is true (lux > 5)
+            // Uses the same darkness score indicator as SleepLogForm
+            val darknessScore = ((1f - (currentLux / 50f).coerceIn(0f, 1f)) * 100).toInt()
+            val scoreColor by animateColorAsState(
+                targetValue = when {
+                    darknessScore >= 80 -> Color(0xFF4CAF50)
+                    darknessScore >= 40 -> Color(0xFFFFA726)
+                    else                -> Color(0xFFEF5350)
+                },
+                animationSpec = androidx.compose.animation.core.tween(600),
+                label = "scoreColor"
+            )
+            val animatedProgress by animateFloatAsState(
+                targetValue = darknessScore / 100f,
+                animationSpec = androidx.compose.animation.core.tween(900),
+                label = "darknessProgress"
+            )
+
+            AnimatedVisibility(
+                visible = isRoomTooBright,
+                enter = fadeIn() + slideInVertically { it / 2 }
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = HabitualTheme.spacing.md),
+                    shape = RoundedCornerShape(HabitualTheme.radius.lg),
+                    color = Color(0xFFFFF8E1),
+                    tonalElevation = HabitualTheme.elevation.none
+                ) {
+                    Row(
+                        modifier = Modifier.padding(
+                            horizontal = HabitualTheme.spacing.lg,
+                            vertical = HabitualTheme.spacing.md
+                        ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)
+                    ) {
+                        // Circular darkness score indicator
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
+                            CircularProgressIndicator(
+                                progress = { 1f },
+                                modifier = Modifier.size(56.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                strokeWidth = 5.dp
+                            )
+                            CircularProgressIndicator(
+                                progress = { animatedProgress },
+                                modifier = Modifier.size(56.dp),
+                                color = scoreColor,
+                                strokeWidth = 5.dp,
+                                strokeCap = StrokeCap.Round
+                            )
+                            Text(
+                                text = "$darknessScore",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = scoreColor
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Your room is a bit bright for deep sleep.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF4E2600)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Want to dim the lights?",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF795548)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = String.format("%.1f lux", currentLux),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF8D6E63)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+            // Log Sleep Button
+            Button(
+                onClick = { showSleepDialog = true },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
+                shape = RoundedCornerShape(HabitualTheme.radius.md),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Icon(Icons.Default.NightsStay, contentDescription = null)
+                Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
+                Text("Log Sleep")
+            }
+
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
         }
     }
 
-    // --- 6. INTERACTIVE DIALOGS ---
+    // ═══════════════════════════════════════════════════════
+    // INTERACTIVE DIALOGS
+    // ═══════════════════════════════════════════════════════
 
-    // SLEEP DIALOG: Uses the new stateless SleepLogForm component
+    // SLEEP DIALOG
     if (showSleepDialog) {
         val currentSleepLog = viewModel.getSleepLog(selectedDate)
         val initialDurationOpt = currentSleepLog?.durationMinutes ?: (stats.sleepDurationHours * 60).toInt()
@@ -244,7 +386,7 @@ fun WellBeingScreen(
         }
     }
 
-    // WATER DIALOG: Handles unit conversion and numerical entry
+    // WATER DIALOG
     if (showWaterDialog) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showWaterDialog = false }) {
             Surface(
@@ -269,7 +411,7 @@ fun WellBeingScreen(
                         shape = RoundedCornerShape(HabitualTheme.radius.xl)
                     )
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
-                    // Unit selection Chips for internationalization support
+                    // Unit selection Chips
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)) {
                         unitOptions.forEach { unit ->
                             val isSelected = selectedUnit == unit
@@ -290,7 +432,6 @@ fun WellBeingScreen(
                         Button(onClick = {
                             val amount = waterAmountInput.toIntOrNull() ?: 0
                             if (amount > 0) {
-                                // Logic: Convert units to a standard mL format for database storage
                                 val amountInMl = when (selectedUnit) {
                                     "ml" -> amount
                                     "Cups" -> amount * 250
@@ -305,5 +446,49 @@ fun WellBeingScreen(
                 }
             }
         }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// SECTION HEADER COMPONENT
+// ═══════════════════════════════════════════════════════
+
+/**
+ * Branded section header with an icon and a styled accent bar.
+ * Used to visually separate the two primary wellbeing sections.
+ */
+@Composable
+private fun SectionHeader(
+    title: String,
+    icon: ImageVector,
+    color: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = HabitualTheme.spacing.lg),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+    ) {
+        // Accent bar
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(28.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color)
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(22.dp)
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
     }
 }

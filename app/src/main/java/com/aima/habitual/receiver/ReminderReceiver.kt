@@ -17,7 +17,6 @@ class ReminderReceiver : BroadcastReceiver() {
         const val EXTRA_HABIT_ID = "extra_habit_id"
         const val EXTRA_HABIT_TITLE = "extra_habit_title"
         private const val CHANNEL_ID = "habitual_reminders"
-        private const val NOTIFICATION_ID_OFFSET = 1000
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -60,8 +59,8 @@ class ReminderReceiver : BroadcastReceiver() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Use a somewhat unique ID for each habit
-        val notificationId = habitId.hashCode() % NOTIFICATION_ID_OFFSET
+        // Use a unique positive ID for each habit (bitmask ensures non-negative)
+        val notificationId = habitId.hashCode().and(0x7FFFFFFF)
         notificationManager.notify(notificationId, builder.build())
     }
 }

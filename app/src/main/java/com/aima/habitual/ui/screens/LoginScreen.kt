@@ -4,11 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
@@ -16,16 +19,20 @@ import com.aima.habitual.ui.theme.HabitualTheme
 
 /**
  * LoginScreen: The primary authentication portal for returning users.
- * Designed with a focus on simplicity, security, and visual continuity
- * with the rest of the app's reflective aesthetic.
+ * Supports email/password, Google Sign-In, and biometric Quick Login.
+ *
+ * Stateless: Only triggers authentication and observes isLoggedIn from ViewModel.
  */
 @Composable
 fun LoginScreen(
     onLoginAttempt: (String, String) -> Unit,
     errorMessage: String?,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onGoogleSignIn: () -> Unit,
+    onBiometricLogin: () -> Unit,
+    isBiometricAvailable: Boolean
 ) {
-    // 1. AUTHENTICATION STATE: Tracks user input locally before verification
+    // Authentication state: Tracks user input locally before verification
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -36,7 +43,6 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            // Applies the signature calm wave texture to the entry screen
             .wavePattern(MaterialTheme.colorScheme.primary)
     ) {
         Column(
@@ -94,7 +100,7 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
                     )
                 },
-                visualTransformation = PasswordVisualTransformation(), // Secure text entry
+                visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
@@ -113,7 +119,6 @@ fun LoginScreen(
             )
 
             // ── ERROR HANDLING ──
-            // Provides dynamic feedback if authentication fails (e.g., "Invalid Credentials")
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
                 Text(
@@ -125,7 +130,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
-            // ── PRIMARY ACTION (CTA) ──
+            // ── PRIMARY ACTION (Email/Password Login) ──
             Button(
                 onClick = { onLoginAttempt(email, password) },
                 enabled = isFormValid,
@@ -140,7 +145,6 @@ fun LoginScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
-                    // Subtle alpha adjustments for disabled states ensure consistency
                     disabledContainerColor = MaterialTheme.colorScheme.primary.copy(
                         alpha = HabitualTheme.alpha.disabled
                     )
@@ -150,6 +154,91 @@ fun LoginScreen(
                     stringResource(R.string.login_btn_text),
                     style = MaterialTheme.typography.titleMedium
                 )
+            }
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+
+            // ── "OR" DIVIDER ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
+                Text(
+                    text = stringResource(R.string.login_or_divider),
+                    modifier = Modifier.padding(horizontal = HabitualTheme.spacing.lg),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
+
+            // ── GOOGLE SIGN-IN BUTTON ──
+            ElevatedButton(
+                onClick = onGoogleSignIn,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(HabitualTheme.components.buttonHeight),
+                shape = RoundedCornerShape(HabitualTheme.radius.xl),
+                elevation = ButtonDefaults.elevatedButtonElevation(
+                    defaultElevation = HabitualTheme.elevation.low
+                ),
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
+                Text(
+                    text = "G",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+                Text(
+                    stringResource(R.string.login_google_btn),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            // ── BIOMETRIC QUICK LOGIN (Conditional) ──
+            if (isBiometricAvailable) {
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+                ElevatedButton(
+                    onClick = onBiometricLogin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(HabitualTheme.components.buttonHeight),
+                    shape = RoundedCornerShape(HabitualTheme.radius.xl),
+                    elevation = ButtonDefaults.elevatedButtonElevation(
+                        defaultElevation = HabitualTheme.elevation.low
+                    ),
+                    colors = ButtonDefaults.elevatedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Fingerprint,
+                        contentDescription = stringResource(R.string.login_biometric_desc),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+                    Text(
+                        stringResource(R.string.login_biometric_btn),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))

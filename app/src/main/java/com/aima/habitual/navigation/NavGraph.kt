@@ -4,7 +4,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -28,6 +31,9 @@ fun NavGraph(
     onThemeColorChange: (AppTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // TODO: Replace with your actual Web Client ID from Google Cloud / Firebase Console
+    val googleWebClientId = "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
+
     NavHost(
         navController = navController,
         // Start at Login if not authenticated, otherwise Dashboard
@@ -42,21 +48,47 @@ fun NavGraph(
         // --- 1. AUTH FLOW ---
 
         composable(Screen.Login.route) {
-            LoginScreen(
-                errorMessage = viewModel.loginError, // Pass the error state
-                onLoginAttempt = { email, password ->
-                    // Validate using ViewModel
-                    val isSuccess = viewModel.validateLogin(email, password)
-                    if (isSuccess) {
-                        navController.navigate(Screen.Dashboard.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
+            val context = LocalContext.current
+            val activity = context as? FragmentActivity
+
+            // Reactive navigation: when async Google sign-in sets isLoggedIn = true,
+            // this effect triggers navigation to Dashboard.
+            LaunchedEffect(viewModel.isLoggedIn) {
+                if (viewModel.isLoggedIn) {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
+                }
+            }
+
+            LoginScreen(
+                errorMessage = viewModel.loginError,
+                onLoginAttempt = { email, password ->
+                    viewModel.validateLogin(email, password)
+                    // Navigation handled by LaunchedEffect above
                 },
                 onNavigateToRegister = {
-                    viewModel.clearLoginError() // Clear errors when switching screens
+                    viewModel.clearLoginError()
                     navController.navigate(Screen.Register.route)
-                }
+                },
+                onGoogleSignIn = {
+                    viewModel.signInWithGoogle(context, googleWebClientId)
+                    // Navigation handled by LaunchedEffect above
+                },
+                onBiometricLogin = {
+                    activity?.let { act ->
+                        viewModel.showBiometricPrompt(
+                            activity = act,
+                            onSuccess = {
+                                // Navigation handled by LaunchedEffect above
+                            },
+                            onFailure = { errorMsg ->
+                                // loginError is set by the callback if needed
+                            }
+                        )
+                    }
+                },
+                isBiometricAvailable = viewModel.isBiometricAvailable
             )
         }
 

@@ -4,11 +4,18 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
@@ -20,10 +27,10 @@ import com.aima.habitual.model.StepSensorManager
 import com.aima.habitual.model.LightSensorManager
 import com.aima.habitual.utils.ReminderManager
 import com.aima.habitual.utils.PasswordUtils
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.aima.habitual.ui.theme.AppTheme
 
 /**
@@ -143,18 +150,12 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 reminderTime = time,
                 isReminderEnabled = true
             )
-            // Note: addHabit takes care of inserting into the DB and scheduling the reminder.
-            val success = try {
+            try {
                 dao.insertHabit(habit)
-                habits.add(habit) // Add to UI state directly since addHabit inside the same class requires suspend call handling logic duplication or we just do it here inline
+                // Only add to UI after successful DB insert
+                habits.add(habit)
                 ReminderManager.scheduleReminder(getApplication(), habit)
-                true
-            } catch (e: Exception) {
-                Log.e("HabitViewModel", "Failed to add journal habit", e)
-                false
-            }
 
-            if (success) {
                 journalHabitId = habit.id
                 journalHabitTime = time
                 prefs.edit().apply {
@@ -162,6 +163,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                     putString("journal_habit_time", time)
                     apply()
                 }
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Failed to add journal habit", e)
+                databaseError = "Failed to create daily journaling habit."
             }
         }
     }
@@ -367,7 +371,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logWater(date: LocalDate, amountMl: Int) {
         val epoch = date.toEpochDay()
-        val currentStats = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
+        val previousStats = _dailyStats[epoch]
+        val currentStats = previousStats ?: WellbeingStats(epochDay = epoch)
 
         val updatedStats = currentStats.copy(
             waterIntakeMl = currentStats.waterIntakeMl + amountMl,
@@ -379,6 +384,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 dao.insertOrUpdateStats(updatedStats) 
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update water stats", e)
+                if (previousStats != null) _dailyStats[epoch] = previousStats else _dailyStats.remove(epoch)
                 databaseError = "Failed to save water intake."
             }
         }
@@ -386,7 +392,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSleep(date: LocalDate, hours: Double) {
         val epoch = date.toEpochDay()
-        val currentStats = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
+        val previousStats = _dailyStats[epoch]
+        val currentStats = previousStats ?: WellbeingStats(epochDay = epoch)
 
         val updatedStats = currentStats.copy(
             sleepDurationHours = hours,
@@ -398,14 +405,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 dao.insertOrUpdateStats(updatedStats) 
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update sleep stats", e)
+                if (previousStats != null) _dailyStats[epoch] = previousStats else _dailyStats.remove(epoch)
                 databaseError = "Failed to save sleep data."
             }
         }
     }
 
     // --- MANUAL SLEEP LOGGING ---
-    private val KEY_SLEEP_LOGS = "saved_sleep_logs_json"
-    private val gson = Gson()
     private val _sleepLogs = mutableStateMapOf<Long, SleepLogEntry>()
 
     fun getSleepLog(date: LocalDate): SleepLogEntry? {
@@ -417,27 +423,29 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         val entry = SleepLogEntry(epoch, durationMinutes, quality)
         _sleepLogs[epoch] = entry
 
-        try {
-            val json = gson.toJson(_sleepLogs.toMap())
-            prefs.edit().putString(KEY_SLEEP_LOGS, json).apply()
-        } catch (e: Exception) {
-            Log.e("HabitViewModel", "Failed to serialize sleep logs", e)
+        viewModelScope.launch {
+            try {
+                dao.insertOrUpdateSleepLog(entry)
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Failed to save sleep log", e)
+                databaseError = "Failed to save sleep log."
+            }
         }
 
-        // Also update standard sleep stats for DB legacy/general tracking
+        // Also update standard sleep stats for general tracking
         updateSleep(date, durationMinutes / 60.0)
     }
 
     private fun loadSleepLogs() {
-        val json = prefs.getString(KEY_SLEEP_LOGS, null)
-        if (json != null) {
+        viewModelScope.launch {
             try {
-                val type = object : TypeToken<Map<Long, SleepLogEntry>>() {}.type
-                val logs: Map<Long, SleepLogEntry> = gson.fromJson(json, type)
+                val logs = dao.getAllSleepLogs()
                 _sleepLogs.clear()
-                _sleepLogs.putAll(logs)
+                for (log in logs) {
+                    _sleepLogs[log.dateEpoch] = log
+                }
             } catch (e: Exception) {
-                Log.e("HabitViewModel", "Failed to parse sleep logs", e)
+                Log.e("HabitViewModel", "Failed to load sleep logs", e)
             }
         }
     }
@@ -604,6 +612,36 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     var isLoggedIn by mutableStateOf(prefs.getBoolean("is_logged_in", false))
         private set
 
+    /** User preference: whether biometric quick login is enabled. */
+    var isBiometricEnabled by mutableStateOf(prefs.getBoolean("biometric_login_enabled", false))
+        private set
+
+    /** Toggle the biometric login preference on/off. */
+    fun toggleBiometricLogin(enabled: Boolean) {
+        isBiometricEnabled = enabled
+        prefs.edit().putBoolean("biometric_login_enabled", enabled).apply()
+    }
+
+    /**
+     * True if ALL of these are met:
+     * 1. User has explicitly enabled biometric login in settings
+     * 2. User has logged in at least once before
+     * 3. Device has biometric hardware enrolled
+     */
+    val isBiometricAvailable: Boolean
+        get() {
+            if (!isBiometricEnabled) return false
+            val hasLoggedInBefore = prefs.getBoolean("has_authenticated_before", false)
+            if (!hasLoggedInBefore) return false
+            val biometricManager = BiometricManager.from(getApplication())
+            return biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+        }
+
+    /** Mark that the user has successfully authenticated at least once (enables biometric on next visit). */
+    private fun markAuthenticated() {
+        prefs.edit().putBoolean("has_authenticated_before", true).apply()
+    }
+
     var loginError by mutableStateOf<String?>(null)
         private set
 
@@ -632,6 +670,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         userName = name
         isLoggedIn = true
         loginError = null
+        markAuthenticated()
     }
 
     fun logout() {
@@ -649,6 +688,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         records.clear()
         diaryEntries.clear()
         _dailyStats.clear()
+        _sleepLogs.clear()
 
         viewModelScope.launch {
             try {
@@ -687,6 +727,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 loginError = null
                 isLoggedIn = true
                 prefs.edit().putBoolean("is_logged_in", true).apply()
+                markAuthenticated()
                 true
             }
             else -> {
@@ -713,5 +754,110 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearLoginError() {
         loginError = null
+    }
+
+    // --- GOOGLE SIGN-IN (Credential Manager API) ---
+
+    /**
+     * Initiates the Google Sign-In flow using the modern Credential Manager API.
+     * On success, saves the user's name and email, and sets isLoggedIn = true.
+     * @param webClientId The OAuth 2.0 Web Client ID from your Google Cloud / Firebase console.
+     */
+    fun signInWithGoogle(context: Context, webClientId: String) {
+        viewModelScope.launch {
+            try {
+                val credentialManager = CredentialManager.create(context)
+
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(webClientId)
+                    .setAutoSelectEnabled(true)
+                    .build()
+
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(context, request)
+                val credential = result.credential
+
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                val name = googleIdTokenCredential.displayName ?: "User"
+                val email = googleIdTokenCredential.id  // email address
+
+                // Save user info
+                prefs.edit().apply {
+                    putString("user_name", name)
+                    putBoolean("is_logged_in", true)
+                }.apply()
+
+                securePrefs.edit().apply {
+                    putString("user_email", email)
+                }.apply()
+
+                userName = name
+                isLoggedIn = true
+                loginError = null
+                markAuthenticated()
+
+                Log.d("HabitViewModel", "Google Sign-In successful: $email")
+            } catch (e: GetCredentialCancellationException) {
+                Log.d("HabitViewModel", "Google Sign-In cancelled by user")
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Google Sign-In failed", e)
+                loginError = "Google Sign-In failed. Please try another method."
+            }
+        }
+    }
+
+    // --- BIOMETRIC AUTHENTICATION ---
+
+    /**
+     * Shows the system biometric prompt (fingerprint/face).
+     * Only works if the user has previously authenticated (has_authenticated_before = true).
+     * @param activity  The FragmentActivity needed by BiometricPrompt.
+     * @param onSuccess Called when biometric auth succeeds.
+     * @param onFailure Called when biometric auth fails or is cancelled.
+     */
+    fun showBiometricPrompt(
+        activity: FragmentActivity,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val executor = ContextCompat.getMainExecutor(activity)
+
+        val callback = object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                isLoggedIn = true
+                prefs.edit().putBoolean("is_logged_in", true).apply()
+                loginError = null
+                onSuccess()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                    errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                    onFailure(errString.toString())
+                }
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                // Individual attempt failed, prompt stays open for retry
+            }
+        }
+
+        val biometricPrompt = BiometricPrompt(activity, executor, callback)
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_title))
+            .setSubtitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle))
+            .setNegativeButtonText(activity.getString(com.aima.habitual.R.string.biometric_prompt_cancel))
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
     }
 }

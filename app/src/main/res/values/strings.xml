@@ -57,6 +57,8 @@
     <string name="wellbeing_log_water">Log Water</string>
     <string name="log_water">Log Water</string> <string name="wellbeing_daily_summary">Daily Summary</string>
     <string name="desc_sync_steps">Sync Steps</string>
+    <string name="wellbeing_section_active_vitality">Active Vitality</string>
+    <string name="wellbeing_section_sleep_sanctum">Sleep Sanctum</string>
 
     <string name="every_day">Every Day</string>
     <string name="day_initial_su">S</string>
@@ -126,6 +128,15 @@
     <string name="register_terms">I agree to the Terms of Service</string>
     <string name="register_btn_text">Sign Up</string>
     <string name="register_login_prompt">Already have an account? Log In</string>
+
+    <string name="login_or_divider">or</string>
+    <string name="login_google_btn">Sign in with Google</string>
+    <string name="login_biometric_btn">Quick Login</string>
+    <string name="login_biometric_desc">Use fingerprint to log in</string>
+    <string name="biometric_prompt_title">Authenticate</string>
+    <string name="biometric_prompt_subtitle">Use your fingerprint to log in</string>
+    <string name="biometric_prompt_cancel">Cancel</string>
+    <string name="profile_biometric_login">Fingerprint Login</string>
 
     <string name="profile_mastery_level">Mastery Level: %1$d</string>
     <string name="profile_dark_mode">Dark Mode</string>

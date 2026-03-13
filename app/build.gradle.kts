@@ -65,6 +65,7 @@ dependencies {
     // 5. Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.googleid)
     ksp(libs.androidx.room.compiler)
 
 
@@ -79,6 +80,14 @@ dependencies {
 
     // 7. Security (Encrypted SharedPreferences for auth credentials)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // 8. Google Credential Manager (modern Sign-In replacement)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // 9. Biometric Authentication
+    implementation("androidx.biometric:biometric:1.1.0")
 
     // ─── TESTING DEPENDENCIES  ───
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
