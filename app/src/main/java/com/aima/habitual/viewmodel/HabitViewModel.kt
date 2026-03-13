@@ -12,6 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.aima.habitual.data.HabitualDatabase
 import com.aima.habitual.model.*
 import com.aima.habitual.model.StepSensorManager
@@ -56,6 +58,18 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- 3. PREFERENCES (for simple key-value config only) ---
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
+
+    // --- 3b. ENCRYPTED PREFERENCES (for auth credentials) ---
+    private val masterKey = MasterKey.Builder(application)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+    private val securePrefs = EncryptedSharedPreferences.create(
+        application,
+        "habitual_secure_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     // --- LEVELING SYSTEM ---
     /** Count only unique (habitId, date) pairs so toggling can't inflate level. */
@@ -469,15 +483,18 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteHabit(habitId: String) {
+        val removedHabits = habits.filter { it.id == habitId }
+        val removedRecords = records.filter { it.habitId == habitId }
         habits.removeAll { it.id == habitId }
         records.removeAll { it.habitId == habitId }
         viewModelScope.launch {
             try {
-                dao.deleteHabit(habitId)
-                dao.deleteRecordsByHabitId(habitId)
+                dao.deleteHabitWithRecords(habitId)
                 ReminderManager.cancelReminder(getApplication(), habitId)
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to delete habit", e)
+                habits.addAll(removedHabits)
+                records.addAll(removedRecords)
                 databaseError = "Failed to permanently delete habit."
             }
         }
@@ -496,6 +513,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                     addSteps(-300)
                 } catch (e: Exception) {
                     Log.e("HabitViewModel", "Failed to delete habit record", e)
+                    records.add(existingRecord)
                     databaseError = "Failed to update habit progress."
                 }
             }
@@ -513,6 +531,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                     addSteps(300)
                 } catch (e: Exception) {
                     Log.e("HabitViewModel", "Failed to create habit record", e)
+                    records.remove(newRecord)
                     databaseError = "Failed to register activity."
                 }
             }
@@ -543,6 +562,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to add diary entry", e)
+                diaryEntries.remove(entry)
                 databaseError = "Failed to save journal entry. It may not persist across restarts."
             }
         }
@@ -551,12 +571,14 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     fun updateDiaryEntry(updatedEntry: DiaryEntry) {
         val index = diaryEntries.indexOfFirst { it.id == updatedEntry.id }
         if (index != -1) {
+            val previous = diaryEntries[index]
             diaryEntries[index] = updatedEntry
             viewModelScope.launch { 
                 try {
                     dao.updateDiaryEntry(updatedEntry) 
                 } catch (e: Exception) {
                     Log.e("HabitViewModel", "Failed to update diary entry", e)
+                    diaryEntries[index] = previous
                     databaseError = "Failed to save journal modifications."
                 }
             }
@@ -564,12 +586,14 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteDiaryEntry(entryId: String) {
+        val removedEntries = diaryEntries.filter { it.id == entryId }
         diaryEntries.removeAll { it.id == entryId }
         viewModelScope.launch { 
             try {
                 dao.deleteDiaryEntry(entryId) 
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to delete diary entry", e)
+                diaryEntries.addAll(removedEntries)
                 databaseError = "Failed to permanently delete entry."
             }
         }
@@ -592,11 +616,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         val salt = PasswordUtils.generateSalt()
         val hashedPassword = PasswordUtils.hashPassword(pass, salt)
 
-        prefs.edit().apply {
-            putString("user_name", name)
+        // Store auth credentials in encrypted preferences
+        securePrefs.edit().apply {
             putString("user_email", email)
             putString("user_password_hash", hashedPassword)
             putString("user_password_salt", salt)
+        }.apply()
+
+        // Store non-sensitive user data in regular preferences
+        prefs.edit().apply {
+            putString("user_name", name)
             putBoolean("is_logged_in", true)
         }.apply()
 
@@ -612,7 +641,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Permanently delete the user's profile and all associated data. */
     fun deleteProfile() {
+        // Clear both regular and encrypted preferences
         prefs.edit().clear().apply()
+        securePrefs.edit().clear().apply()
 
         habits.clear()
         records.clear()
@@ -621,10 +652,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                dao.deleteAllHabits()
-                dao.deleteAllRecords()
-                dao.deleteAllDiaryEntries()
-                dao.deleteAllStats()
+                dao.deleteAllUserData()
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to clear profile databases", e)
                 databaseError = "Profile deletion incomplete. Some database records may still exist locally."
@@ -645,9 +673,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
      * password is never persisted or compared directly.
      */
     fun validateLogin(email: String, pass: String): Boolean {
-        val savedEmail = prefs.getString("user_email", null)
-        val savedHash = prefs.getString("user_password_hash", null)
-        val savedSalt = prefs.getString("user_password_salt", null)
+        val savedEmail = securePrefs.getString("user_email", null)
+        val savedHash = securePrefs.getString("user_password_hash", null)
+        val savedSalt = securePrefs.getString("user_password_salt", null)
 
         return when {
             savedEmail == null -> {
@@ -673,8 +701,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
      * Useful for unlocking locked entries.
      */
     fun verifyUserPassword(pass: String): Boolean {
-        val savedHash = prefs.getString("user_password_hash", null)
-        val savedSalt = prefs.getString("user_password_salt", null)
+        val savedHash = securePrefs.getString("user_password_hash", null)
+        val savedSalt = securePrefs.getString("user_password_salt", null)
 
         return if (savedHash != null && savedSalt != null) {
             PasswordUtils.verifyPassword(pass, savedSalt, savedHash)

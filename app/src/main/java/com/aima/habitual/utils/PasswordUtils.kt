@@ -53,6 +53,9 @@ object PasswordUtils {
      */
     fun verifyPassword(inputPassword: String, storedSalt: String, storedHash: String): Boolean {
         val inputHash = hashPassword(inputPassword, storedSalt)
-        return inputHash == storedHash
+        return MessageDigest.isEqual(
+            inputHash.toByteArray(Charsets.UTF_8),
+            storedHash.toByteArray(Charsets.UTF_8)
+        )
     }
 }

@@ -77,6 +77,9 @@ dependencies {
     // 6. Data Persistence
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // 7. Security (Encrypted SharedPreferences for auth credentials)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // ─── TESTING DEPENDENCIES  ───
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

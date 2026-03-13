@@ -4,6 +4,7 @@ import androidx.room.*
 import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.model.Habit
 import com.aima.habitual.model.HabitRecord
+import com.aima.habitual.model.SleepLogEntry
 import com.aima.habitual.model.WellbeingStats
 
 /**
@@ -18,7 +19,7 @@ interface HabitDao {
     @Query("SELECT * FROM habits ORDER BY createdAt DESC")
     suspend fun getAllHabits(): List<Habit>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertHabit(habit: Habit)
 
     @Update
@@ -32,7 +33,7 @@ interface HabitDao {
     @Query("SELECT * FROM habit_records")
     suspend fun getAllRecords(): List<HabitRecord>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertRecord(record: HabitRecord)
 
     @Query("DELETE FROM habit_records WHERE id = :recordId")
@@ -49,7 +50,7 @@ interface HabitDao {
     @Query("SELECT * FROM diary_entries ORDER BY timestamp DESC")
     suspend fun getAllDiaryEntries(): List<DiaryEntry>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertDiaryEntry(entry: DiaryEntry)
 
     @Update
@@ -72,6 +73,20 @@ interface HabitDao {
     @Query("DELETE FROM wellbeing_stats")
     suspend fun deleteAllStats()
 
+    // ─── SLEEP LOG ENTRIES ───────────────────────────────
+
+    @Query("SELECT * FROM sleep_log_entries")
+    suspend fun getAllSleepLogs(): List<SleepLogEntry>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateSleepLog(entry: SleepLogEntry)
+
+    @Query("SELECT * FROM sleep_log_entries WHERE dateEpoch = :epochDay LIMIT 1")
+    suspend fun getSleepLogForDay(epochDay: Long): SleepLogEntry?
+
+    @Query("DELETE FROM sleep_log_entries")
+    suspend fun deleteAllSleepLogs()
+
     // ─── BULK DELETE (for profile wipe) ─────────────────────
 
     @Query("DELETE FROM habits")
@@ -82,4 +97,21 @@ interface HabitDao {
 
     @Query("DELETE FROM diary_entries")
     suspend fun deleteAllDiaryEntries()
+
+    // ─── TRANSACTIONAL OPERATIONS ────────────────────────
+
+    @Transaction
+    suspend fun deleteHabitWithRecords(habitId: String) {
+        deleteRecordsByHabitId(habitId)
+        deleteHabit(habitId)
+    }
+
+    @Transaction
+    suspend fun deleteAllUserData() {
+        deleteAllRecords()
+        deleteAllHabits()
+        deleteAllDiaryEntries()
+        deleteAllSleepLogs()
+        deleteAllStats()
+    }
 }
