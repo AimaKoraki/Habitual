@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -62,7 +63,8 @@ fun DiaryDetailScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    val existingEntry = viewModel.diaryEntries.find { it.id == entryId }
+    val diaryEntries by viewModel.diaryEntries.collectAsState()
+    val existingEntry = diaryEntries.find { it.id == entryId }
     val context = LocalContext.current
 
     var title by remember { mutableStateOf(existingEntry?.title ?: "") }

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -59,7 +60,8 @@ fun DashboardScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    val habits = viewModel.habits
+    val habits by viewModel.habits.collectAsState()
+    val records by viewModel.records.collectAsState()
     val isDark = isSystemInDarkTheme()
 
     // 1. CHRONOLOGICAL STATE: Tracks the currently viewed day
@@ -229,7 +231,7 @@ fun DashboardScreen(
 
                     // Sorting: Pushes completed rituals to the bottom of the list
                     val sortedHabits = filteredHabits.partition { habit ->
-                        !viewModel.records.any {
+                        !records.any {
                             it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
                         }
                     }.let { (incomplete, complete) -> incomplete + complete }
@@ -239,7 +241,7 @@ fun DashboardScreen(
                         contentPadding = PaddingValues(bottom = 100.dp, start = HabitualTheme.spacing.xl, end = HabitualTheme.spacing.xl)
                     ) {
                         items(sortedHabits) { habit ->
-                            val isCompleted = viewModel.records.any {
+                            val isCompleted = records.any {
                                 it.habitId == habit.id && it.timestamp == selectedDate.toEpochDay() && it.isCompleted
                             }
                             PremiumHabitCard(

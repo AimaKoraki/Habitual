@@ -6,6 +6,7 @@ import com.aima.habitual.model.Habit
 import com.aima.habitual.model.HabitRecord
 import com.aima.habitual.model.SleepLogEntry
 import com.aima.habitual.model.WellbeingStats
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Data Access Object for all database operations.
@@ -17,7 +18,7 @@ interface HabitDao {
     // ─── HABITS ─────────────────────────────────────────────
 
     @Query("SELECT * FROM habits ORDER BY createdAt DESC")
-    suspend fun getAllHabits(): List<Habit>
+    fun getAllHabits(): Flow<List<Habit>>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertHabit(habit: Habit)
@@ -31,7 +32,7 @@ interface HabitDao {
     // ─── HABIT RECORDS ──────────────────────────────────────
 
     @Query("SELECT * FROM habit_records")
-    suspend fun getAllRecords(): List<HabitRecord>
+    fun getAllRecords(): Flow<List<HabitRecord>>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertRecord(record: HabitRecord)
@@ -48,7 +49,7 @@ interface HabitDao {
     // ─── DIARY ENTRIES ──────────────────────────────────────
 
     @Query("SELECT * FROM diary_entries ORDER BY timestamp DESC")
-    suspend fun getAllDiaryEntries(): List<DiaryEntry>
+    fun getAllDiaryEntries(): Flow<List<DiaryEntry>>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertDiaryEntry(entry: DiaryEntry)
@@ -62,7 +63,7 @@ interface HabitDao {
     // ─── WELLBEING STATS ────────────────────────────────────
 
     @Query("SELECT * FROM wellbeing_stats")
-    suspend fun getAllWellbeingStats(): List<WellbeingStats>
+    fun getAllWellbeingStats(): Flow<List<WellbeingStats>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateStats(stats: WellbeingStats)
@@ -76,7 +77,7 @@ interface HabitDao {
     // ─── SLEEP LOG ENTRIES ───────────────────────────────
 
     @Query("SELECT * FROM sleep_log_entries")
-    suspend fun getAllSleepLogs(): List<SleepLogEntry>
+    fun getAllSleepLogs(): Flow<List<SleepLogEntry>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateSleepLog(entry: SleepLogEntry)

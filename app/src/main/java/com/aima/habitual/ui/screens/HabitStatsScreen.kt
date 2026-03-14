@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,8 +35,10 @@ fun HabitStatsScreen(
     navController: NavHostController,
     viewModel: HabitViewModel
 ) {
-    val habit = viewModel.habits.find { it.id == habitId }
-    val habitRecords = viewModel.records.filter { it.habitId == habitId }
+    val habits by viewModel.habits.collectAsState()
+    val habit = habits.find { it.id == habitId }
+    val records by viewModel.records.collectAsState()
+    val habitRecords = records.filter { it.habitId == habitId }
 
     val currentStreak = remember(habitRecords) {
         var streak = 0

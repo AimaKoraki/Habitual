@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,7 +81,7 @@ fun ProfileScreen(
     val focusManager = LocalFocusManager.current
 
     // Mastery Data observed from the ViewModel
-    val habits = viewModel.habits
+    val habits by viewModel.habits.collectAsState()
     val level = viewModel.currentLevel
     val progress = viewModel.levelProgress
     val toNextLevel = viewModel.habitsForNextLevel

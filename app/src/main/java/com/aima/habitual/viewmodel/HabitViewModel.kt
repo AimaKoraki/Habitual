@@ -30,6 +30,10 @@ import com.aima.habitual.utils.PasswordUtils
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import com.aima.habitual.data.OfflineAppRepository
 import java.time.LocalDate
 import com.aima.habitual.ui.theme.AppTheme
 
@@ -43,10 +47,19 @@ import com.aima.habitual.ui.theme.AppTheme
  */
 class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
-    // --- 1. CORE DATA LISTS (UI state backed by Room) ---
-    val habits = mutableStateListOf<Habit>()
-    val records = mutableStateListOf<HabitRecord>()
-    val diaryEntries = mutableStateListOf<DiaryEntry>()
+    // --- 2. ROOM DATABASE & REPOSITORY ---
+    private val db = HabitualDatabase.getInstance(application)
+    private val repository = OfflineAppRepository(db.habitDao())
+
+    // --- 1. CORE DATA STREAMS (UI state backed by Room) ---
+    val habits: StateFlow<List<Habit>> = repository.getAllHabitsStream()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val records: StateFlow<List<HabitRecord>> = repository.getAllRecordsStream()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val diaryEntries: StateFlow<List<DiaryEntry>> = repository.getAllDiaryEntriesStream()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // --- DIARY UI STATE ---
     var isJournalTabSelected by mutableStateOf(false)
@@ -59,9 +72,6 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         databaseError = null
     }
 
-    // --- 2. ROOM DATABASE ---
-    private val db = HabitualDatabase.getInstance(application)
-    private val dao = db.habitDao()
 
     // --- 3. PREFERENCES (for simple key-value config only) ---
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
@@ -81,7 +91,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     // --- LEVELING SYSTEM ---
     /** Count only unique (habitId, date) pairs so toggling can't inflate level. */
     private val uniqueCompletions: Int
-        get() = records.map { it.habitId to it.timestamp }.distinct().size
+        get() = records.value.map { it.habitId to it.timestamp }.distinct().size
 
     val currentLevel: Int
         get() = uniqueCompletions / 2
@@ -151,9 +161,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 isReminderEnabled = true
             )
             try {
-                dao.insertHabit(habit)
-                // Only add to UI after successful DB insert
-                habits.add(habit)
+                repository.insertHabit(habit)
                 ReminderManager.scheduleReminder(getApplication(), habit)
 
                 journalHabitId = habit.id
@@ -264,26 +272,11 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadDataFromRoom() {
         viewModelScope.launch {
             try {
-                // Load Habits
-                val loadedHabits = dao.getAllHabits()
-                habits.clear()
-                habits.addAll(loadedHabits)
-
-                // Load Records
-                val loadedRecords = dao.getAllRecords()
-                records.clear()
-                records.addAll(loadedRecords)
-
-                // Load Diary Entries
-                val loadedDiary = dao.getAllDiaryEntries()
-                diaryEntries.clear()
-                diaryEntries.addAll(loadedDiary)
-
-                // Load Wellbeing Stats
-                val loadedStats = dao.getAllWellbeingStats()
-                _dailyStats.clear()
-                for (stat in loadedStats) {
-                    _dailyStats[stat.epochDay] = stat
+                repository.getAllWellbeingStatsStream().collect { loadedStats ->
+                    _dailyStats.clear()
+                    for (stat in loadedStats) {
+                        _dailyStats[stat.epochDay] = stat
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to load database data", e)
@@ -344,7 +337,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         _dailyStats[epoch] = updatedStats
         viewModelScope.launch {
             try {
-                dao.insertOrUpdateStats(updatedStats)
+                repository.insertOrUpdateStats(updatedStats)
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update step stats", e)
                 databaseError = "Failed to save steps data."
@@ -381,7 +374,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         _dailyStats[epoch] = updatedStats
         viewModelScope.launch { 
             try {
-                dao.insertOrUpdateStats(updatedStats) 
+                repository.insertOrUpdateStats(updatedStats) 
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update water stats", e)
                 if (previousStats != null) _dailyStats[epoch] = previousStats else _dailyStats.remove(epoch)
@@ -402,7 +395,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         _dailyStats[epoch] = updatedStats
         viewModelScope.launch { 
             try {
-                dao.insertOrUpdateStats(updatedStats) 
+                repository.insertOrUpdateStats(updatedStats) 
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update sleep stats", e)
                 if (previousStats != null) _dailyStats[epoch] = previousStats else _dailyStats.remove(epoch)
@@ -425,7 +418,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                dao.insertOrUpdateSleepLog(entry)
+                repository.insertOrUpdateSleepLog(entry)
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to save sleep log", e)
                 databaseError = "Failed to save sleep log."
@@ -439,10 +432,11 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadSleepLogs() {
         viewModelScope.launch {
             try {
-                val logs = dao.getAllSleepLogs()
-                _sleepLogs.clear()
-                for (log in logs) {
-                    _sleepLogs[log.dateEpoch] = log
+                repository.getAllSleepLogsStream().collect { logs ->
+                    _sleepLogs.clear()
+                    for (log in logs) {
+                        _sleepLogs[log.dateEpoch] = log
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to load sleep logs", e)
@@ -460,49 +454,36 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     // --- HABIT CRUD LOGIC (Room-backed) ---
 
     suspend fun addHabit(habit: Habit): Boolean {
-        habits.add(habit)
         return try {
-            dao.insertHabit(habit)
+            repository.insertHabit(habit)
             ReminderManager.scheduleReminder(getApplication(), habit)
             true
         } catch (e: Exception) {
             Log.e("HabitViewModel", "Failed to add habit", e)
-            habits.remove(habit)
             databaseError = "Failed to create new habit."
             false
         }
     }
 
     suspend fun updateHabit(updatedHabit: Habit): Boolean {
-        val index = habits.indexOfFirst { it.id == updatedHabit.id }
-        if (index == -1) return false
-        val previous = habits[index]
-        habits[index] = updatedHabit
         return try {
-            dao.updateHabit(updatedHabit)
+            repository.updateHabit(updatedHabit)
             ReminderManager.scheduleReminder(getApplication(), updatedHabit)
             true
         } catch (e: Exception) {
             Log.e("HabitViewModel", "Failed to update habit", e)
-            habits[index] = previous
             databaseError = "Failed to update habit."
             false
         }
     }
 
     fun deleteHabit(habitId: String) {
-        val removedHabits = habits.filter { it.id == habitId }
-        val removedRecords = records.filter { it.habitId == habitId }
-        habits.removeAll { it.id == habitId }
-        records.removeAll { it.habitId == habitId }
         viewModelScope.launch {
             try {
-                dao.deleteHabitWithRecords(habitId)
+                repository.deleteHabitWithRecords(habitId)
                 ReminderManager.cancelReminder(getApplication(), habitId)
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to delete habit", e)
-                habits.addAll(removedHabits)
-                records.addAll(removedRecords)
                 databaseError = "Failed to permanently delete habit."
             }
         }
@@ -510,18 +491,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleHabitCompletion(habitId: String, date: LocalDate) {
         val epochDay = date.toEpochDay()
-        val existingRecord = records.find { it.habitId == habitId && it.timestamp == epochDay }
+        val existingRecord = records.value.find { it.habitId == habitId && it.timestamp == epochDay }
 
         if (existingRecord != null) {
-            records.remove(existingRecord)
             viewModelScope.launch { 
                 try {
-                    dao.deleteRecord(existingRecord.id) 
+                    repository.deleteRecord(existingRecord.id) 
                     // Subtract steps when un-completing a habit
                     addSteps(-300)
                 } catch (e: Exception) {
                     Log.e("HabitViewModel", "Failed to delete habit record", e)
-                    records.add(existingRecord)
                     databaseError = "Failed to update habit progress."
                 }
             }
@@ -531,15 +510,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 timestamp = epochDay,
                 isCompleted = true
             )
-            records.add(newRecord)
             viewModelScope.launch { 
                 try {
-                    dao.insertRecord(newRecord) 
+                    repository.insertRecord(newRecord) 
                     // Move addSteps logic inside so it only occurs on success
                     addSteps(300)
                 } catch (e: Exception) {
                     Log.e("HabitViewModel", "Failed to create habit record", e)
-                    records.remove(newRecord)
                     databaseError = "Failed to register activity."
                 }
             }
@@ -549,59 +526,47 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     // --- DIARY CRUD LOGIC (Room-backed) ---
 
     fun addDiaryEntry(entry: DiaryEntry) {
-        diaryEntries.add(0, entry)
         viewModelScope.launch { 
             try {
-                dao.insertDiaryEntry(entry) 
+                repository.insertDiaryEntry(entry) 
                 
                 // Automatic Journal Habit Completion
                 if (entry.isJournal) {
                     journalHabitId?.let { hId ->
                         val today = LocalDate.now()
                         val epochDay = today.toEpochDay()
-                        val isDone = records.any { it.habitId == hId && it.timestamp == epochDay }
+                        val isDone = records.value.any { it.habitId == hId && it.timestamp == epochDay }
                         if (!isDone) {
                             val newRecord = HabitRecord(habitId = hId, timestamp = epochDay, isCompleted = true)
-                            records.add(newRecord)
-                            dao.insertRecord(newRecord)
+                            repository.insertRecord(newRecord)
                             addSteps(300)
                         }
                     }
                 }
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to add diary entry", e)
-                diaryEntries.remove(entry)
                 databaseError = "Failed to save journal entry. It may not persist across restarts."
             }
         }
     }
 
     fun updateDiaryEntry(updatedEntry: DiaryEntry) {
-        val index = diaryEntries.indexOfFirst { it.id == updatedEntry.id }
-        if (index != -1) {
-            val previous = diaryEntries[index]
-            diaryEntries[index] = updatedEntry
-            viewModelScope.launch { 
-                try {
-                    dao.updateDiaryEntry(updatedEntry) 
-                } catch (e: Exception) {
-                    Log.e("HabitViewModel", "Failed to update diary entry", e)
-                    diaryEntries[index] = previous
-                    databaseError = "Failed to save journal modifications."
-                }
+        viewModelScope.launch { 
+            try {
+                repository.updateDiaryEntry(updatedEntry) 
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Failed to update diary entry", e)
+                databaseError = "Failed to save journal modifications."
             }
         }
     }
 
     fun deleteDiaryEntry(entryId: String) {
-        val removedEntries = diaryEntries.filter { it.id == entryId }
-        diaryEntries.removeAll { it.id == entryId }
         viewModelScope.launch { 
             try {
-                dao.deleteDiaryEntry(entryId) 
+                repository.deleteDiaryEntry(entryId) 
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to delete diary entry", e)
-                diaryEntries.addAll(removedEntries)
                 databaseError = "Failed to permanently delete entry."
             }
         }
@@ -684,15 +649,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit().clear().apply()
         securePrefs.edit().clear().apply()
 
-        habits.clear()
-        records.clear()
-        diaryEntries.clear()
+        // No need to clear habits/records/diary as Flow emits from empty DB
         _dailyStats.clear()
         _sleepLogs.clear()
 
         viewModelScope.launch {
             try {
-                dao.deleteAllUserData()
+                repository.deleteAllUserData()
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to clear profile databases", e)
                 databaseError = "Profile deletion incomplete. Some database records may still exist locally."

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +46,8 @@ fun DiaryViewScreen(
     viewModel: HabitViewModel
 ) {
     // 1. Find the entry. If not found (deleted), handle gracefully.
-    val entry = viewModel.diaryEntries.find { it.id == entryId }
+    val diaryEntries by viewModel.diaryEntries.collectAsState()
+    val entry = diaryEntries.find { it.id == entryId }
 
     // State for delete dialog
     var showDeleteDialog by remember { mutableStateOf(false) }

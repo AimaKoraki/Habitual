@@ -8,6 +8,7 @@ import com.aima.habitual.data.HabitualDatabase
 import com.aima.habitual.utils.ReminderManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -33,7 +34,7 @@ class BootReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val habits = dao.getAllHabits()
+                val habits = dao.getAllHabits().first()
                 var rescheduledCount = 0
                 for (habit in habits) {
                     if (habit.isReminderEnabled && habit.reminderTime != null) {

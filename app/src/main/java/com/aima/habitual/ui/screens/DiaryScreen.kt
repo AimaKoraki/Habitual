@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -54,7 +55,7 @@ fun DiaryScreen(
     onEntryClick: (String) -> Unit,
     onAddClick: (Boolean) -> Unit
 ) {
-    val entries = viewModel.diaryEntries
+    val entries by viewModel.diaryEntries.collectAsState()
     var sortMode by remember { mutableStateOf(SortMode.NEWEST) }
     var showSortMenu by remember { mutableStateOf(false) }
 
