@@ -92,7 +92,7 @@ fun ProfileScreen(
             .padding(
                 start = HabitualTheme.spacing.lg,
                 end = HabitualTheme.spacing.lg,
-                top = 10.dp,
+                top = HabitualTheme.spacing.sm,
                 bottom = HabitualTheme.spacing.lg
             )
             .verticalScroll(rememberScrollState()),
@@ -108,7 +108,7 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .size(HabitualTheme.components.profileImage)
-                    .shadow(4.dp, CircleShape) // Adds depth to the avatar
+                    .shadow(HabitualTheme.elevation.medium, CircleShape) // Adds depth to the avatar
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     // Premium Detail: A subtle ring around the profile image for separation
@@ -272,7 +272,7 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = MaterialTheme.shapes.large,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            border = androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(HabitualTheme.spacing.lg)) {
                 // Theme Toggle: Real-time Dark/Light mode switching
@@ -334,7 +334,7 @@ fun ProfileScreen(
                         val isGreen = appTheme == AppTheme.GREEN
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(HabitualTheme.components.themeSwatchOuter)
                                 .clip(CircleShape)
                                 .background(if (isGreen) greenColor.copy(alpha = 0.2f) else Color.Transparent)
                                 .border(
@@ -345,14 +345,14 @@ fun ProfileScreen(
                                 .clickable { onThemeColorChange(AppTheme.GREEN) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(greenColor))
+                            Box(modifier = Modifier.size(HabitualTheme.components.themeSwatchInner).clip(CircleShape).background(greenColor))
                         }
 
                         // Red Scheme Chip
                         val isRed = appTheme == AppTheme.RED
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(HabitualTheme.components.themeSwatchOuter)
                                 .clip(CircleShape)
                                 .background(if (isRed) redColor.copy(alpha = 0.2f) else Color.Transparent)
                                 .border(
@@ -363,7 +363,7 @@ fun ProfileScreen(
                                 .clickable { onThemeColorChange(AppTheme.RED) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(redColor))
+                            Box(modifier = Modifier.size(HabitualTheme.components.themeSwatchInner).clip(CircleShape).background(redColor))
                         }
                     }
                 }
@@ -436,7 +436,7 @@ fun ProfileScreen(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary
             ),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+            border = androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(HabitualTheme.radius.md)
         ) {
             Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)

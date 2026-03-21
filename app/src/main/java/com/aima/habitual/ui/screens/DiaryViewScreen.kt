@@ -95,7 +95,7 @@ fun DiaryViewScreen(
                             Icons.Default.Edit, 
                             contentDescription = stringResource(R.string.desc_edit_entry), 
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(HabitualTheme.components.iconMd)
                         )
                     }
                 },
@@ -222,7 +222,7 @@ fun DiaryViewScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 200.dp)
+                                .heightIn(max = HabitualTheme.components.attachmentMaxHeight)
                                 .clip(RoundedCornerShape(HabitualTheme.radius.lg))
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
@@ -278,7 +278,7 @@ fun DiaryViewScreen(
                                             isPlaying = true
                                         }
                                     },
-                                    modifier = Modifier.size(40.dp)
+                                    modifier = Modifier.size(HabitualTheme.components.chipSize)
                                 ) {
                                     Icon(
                                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -287,7 +287,7 @@ fun DiaryViewScreen(
                                     )
                                 }
                                 Spacer(Modifier.width(HabitualTheme.spacing.sm))
-                                Icon(Icons.Default.Mic, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Mic, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(HabitualTheme.components.iconSm))
                                 Spacer(Modifier.width(HabitualTheme.spacing.sm))
                                 Text("Voice Note", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
                             }
@@ -304,7 +304,7 @@ fun DiaryViewScreen(
                                 modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                                Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSm), tint = MaterialTheme.colorScheme.onTertiaryContainer)
                                 Spacer(Modifier.width(HabitualTheme.spacing.sm))
                                 Text(loc, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
                             }

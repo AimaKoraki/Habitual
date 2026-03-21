@@ -34,7 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp  // Retained for theme-internal use only
 import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.ui.components.DatePickerScroller
@@ -254,7 +254,7 @@ fun WellBeingScreen(
             // Section Divider
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl),
-                thickness = 1.dp,
+                thickness = HabitualTheme.components.borderThin,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
 
@@ -327,18 +327,18 @@ fun WellBeingScreen(
                         horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg)
                     ) {
                         // Circular darkness score indicator
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(HabitualTheme.components.darknessIndicatorSize)) {
                             CircularProgressIndicator(
                                 progress = { 1f },
-                                modifier = Modifier.size(56.dp),
+                                modifier = Modifier.size(HabitualTheme.components.darknessIndicatorSize),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                strokeWidth = 5.dp
+                                strokeWidth = HabitualTheme.components.darknessIndicatorStroke
                             )
                             CircularProgressIndicator(
                                 progress = { animatedProgress },
-                                modifier = Modifier.size(56.dp),
+                                modifier = Modifier.size(HabitualTheme.components.darknessIndicatorSize),
                                 color = scoreColor,
-                                strokeWidth = 5.dp,
+                                strokeWidth = HabitualTheme.components.darknessIndicatorStroke,
                                 strokeCap = StrokeCap.Round
                             )
                             Text(
@@ -356,13 +356,13 @@ fun WellBeingScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF4E2600)
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            Spacer(modifier = Modifier.height(HabitualTheme.spacing.micro))
                             Text(
                                 text = "Want to dim the lights?",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF795548)
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            Spacer(modifier = Modifier.height(HabitualTheme.spacing.micro))
                             Text(
                                 text = String.format("%.1f lux", currentLux),
                                 style = MaterialTheme.typography.labelSmall,
@@ -584,16 +584,16 @@ private fun SectionHeader(
         // Accent bar
         Box(
             modifier = Modifier
-                .width(4.dp)
-                .height(28.dp)
-                .clip(RoundedCornerShape(2.dp))
+                .width(HabitualTheme.components.accentBarWidth)
+                .height(HabitualTheme.components.accentBarHeight)
+                .clip(RoundedCornerShape(HabitualTheme.spacing.micro))
                 .background(color)
         )
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = color,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(HabitualTheme.components.iconDefault)
         )
         Text(
             text = title,
@@ -649,7 +649,7 @@ private fun GoalCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = contentColor.copy(alpha = 0.7f)
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.micro))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = if (isAchieved) "🎉 Achieved: $goalValue" else goalValue,
@@ -662,7 +662,7 @@ private fun GoalCard(
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "Edit Goal",
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(HabitualTheme.components.iconSm),
                 tint = contentColor.copy(alpha = 0.5f)
             )
         }

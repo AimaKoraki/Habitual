@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 // ─── SPACING ─────────────────────────────────────────────────────────────────
 // Consistent 4-point grid. Used for padding, margins, gaps.
 data class HabitualSpacing(
+    val micro: Dp = 2.dp,     // Micro gaps (between label lines, tiny spacers)
     val xxs: Dp = 4.dp,       // Tight internal gaps
     val xs: Dp = 8.dp,        // Small gaps, chip padding
     val sm: Dp = 12.dp,       // Inter-element spacing

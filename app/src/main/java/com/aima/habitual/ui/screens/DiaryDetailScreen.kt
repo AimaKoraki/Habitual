@@ -297,9 +297,9 @@ fun DiaryDetailScreen(
                         val isSelected = selectedMood == moodEmoji
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(HabitualTheme.components.iconXl)
                                 .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
+                                    width = if (isSelected) HabitualTheme.components.borderMedium else HabitualTheme.components.borderThin,
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                     shape = androidx.compose.foundation.shape.CircleShape
                                 )
@@ -553,12 +553,12 @@ fun DiaryDetailScreen(
                                     modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSm), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                     Spacer(Modifier.width(HabitualTheme.spacing.sm))
                                     Text("Photo attached", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     Spacer(Modifier.weight(1f))
-                                    IconButton(onClick = { photoUri = null }, modifier = Modifier.size(20.dp)) {
-                                        Icon(Icons.Default.Close, contentDescription = "Remove photo", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(14.dp))
+                                    IconButton(onClick = { photoUri = null }, modifier = Modifier.size(HabitualTheme.components.iconMd)) {
+                                        Icon(Icons.Default.Close, contentDescription = "Remove photo", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(HabitualTheme.components.iconXs))
                                     }
                                 }
                             }
@@ -572,13 +572,13 @@ fun DiaryDetailScreen(
                                     modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSm), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                                     Spacer(Modifier.width(HabitualTheme.spacing.sm))
                                     Text(if (isRecording) "Recording..." else "Voice note attached", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                                     Spacer(Modifier.weight(1f))
                                     if (!isRecording) {
-                                        IconButton(onClick = { audioFilePath = null }, modifier = Modifier.size(20.dp)) {
-                                            Icon(Icons.Default.Close, contentDescription = "Remove audio", tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(14.dp))
+                                        IconButton(onClick = { audioFilePath = null }, modifier = Modifier.size(HabitualTheme.components.iconMd)) {
+                                            Icon(Icons.Default.Close, contentDescription = "Remove audio", tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(HabitualTheme.components.iconXs))
                                         }
                                     }
                                 }
@@ -593,12 +593,12 @@ fun DiaryDetailScreen(
                                     modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                                    Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSm), tint = MaterialTheme.colorScheme.onTertiaryContainer)
                                     Spacer(Modifier.width(HabitualTheme.spacing.sm))
                                     Text(loc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
                                     Spacer(Modifier.weight(1f))
-                                    IconButton(onClick = { locationText = null }, modifier = Modifier.size(20.dp)) {
-                                        Icon(Icons.Default.Close, contentDescription = "Remove location", tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(14.dp))
+                                    IconButton(onClick = { locationText = null }, modifier = Modifier.size(HabitualTheme.components.iconMd)) {
+                                        Icon(Icons.Default.Close, contentDescription = "Remove location", tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(HabitualTheme.components.iconXs))
                                     }
                                 }
                             }

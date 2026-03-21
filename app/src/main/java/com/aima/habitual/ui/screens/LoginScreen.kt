@@ -231,7 +231,7 @@ fun LoginScreen(
                     Icon(
                         imageVector = Icons.Default.Fingerprint,
                         contentDescription = stringResource(R.string.login_biometric_desc),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(HabitualTheme.components.iconDefault)
                     )
                     Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
                     Text(

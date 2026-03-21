@@ -215,7 +215,7 @@ fun DiaryScreen(
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .size(HabitualTheme.components.iconXl)
                                     .padding(bottom = HabitualTheme.spacing.md)
                             )
                             Text(
@@ -271,7 +271,7 @@ fun DiaryScreen(
 
                         if (sortedEntries.isEmpty() && viewModel.isJournalTabSelected) {
                             item {
-                                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                                Box(modifier = Modifier.fillMaxWidth().height(HabitualTheme.components.attachmentMaxHeight), contentAlignment = Alignment.Center) {
                                     Text("Your journal is empty.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
@@ -305,7 +305,7 @@ fun DiaryScreen(
                 text = {
                     Column {
                         Text(text = "Please enter your password to view this entry.", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
                         OutlinedTextField(
                             value = passwordInput,
                             onValueChange = {
@@ -330,7 +330,7 @@ fun DiaryScreen(
                                 text = "Incorrect password.",
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                                modifier = Modifier.padding(start = HabitualTheme.spacing.md, top = HabitualTheme.spacing.xxs)
                             )
                         }
                     }
