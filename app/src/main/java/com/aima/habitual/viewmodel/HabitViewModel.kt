@@ -142,6 +142,27 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // --- WELLBEING GOALS ---
+    var stepGoal by mutableStateOf(prefs.getInt("daily_step_goal", 10000))
+        private set
+
+    var waterGoal by mutableStateOf(prefs.getInt("daily_water_goal_ml", 2000))
+        private set
+
+    fun updateStepGoal(newGoal: Int) {
+        if (newGoal > 0) {
+            stepGoal = newGoal
+            prefs.edit().putInt("daily_step_goal", newGoal).apply()
+        }
+    }
+
+    fun updateWaterGoal(newGoalMl: Int) {
+        if (newGoalMl > 0) {
+            waterGoal = newGoalMl
+            prefs.edit().putInt("daily_water_goal_ml", newGoalMl).apply()
+        }
+    }
+
     // --- DAILY JOURNALING HABIT SETTINGS ---
     var journalHabitId by mutableStateOf<String?>(prefs.getString("journal_habit_id", null))
         private set
@@ -328,16 +349,20 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun updateStepsForDate(date: LocalDate) {
         val epoch = date.toEpochDay()
-        val currentStats = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
+        val steps = currentSensorSteps + rewardSteps
+        val ts = System.currentTimeMillis()
+        // Optimistically keep in-memory cache current for immediate UI
+        val cached = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
+        _dailyStats[epoch] = cached.copy(stepsCount = steps, lastSyncTimestamp = ts)
 
-        val updatedStats = currentStats.copy(
-            stepsCount = currentSensorSteps + rewardSteps,
-            lastSyncTimestamp = System.currentTimeMillis()
-        )
-        _dailyStats[epoch] = updatedStats
         viewModelScope.launch {
             try {
-                repository.insertOrUpdateStats(updatedStats)
+                // Seed row if absent, then atomically replace only stepsCount
+                val existing = repository.getStatsForDay(epoch)
+                if (existing == null) {
+                    repository.insertOrUpdateStats(WellbeingStats(epochDay = epoch))
+                }
+                repository.updateStepsForDay(epoch, steps, ts)
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update step stats", e)
                 databaseError = "Failed to save steps data."
@@ -364,20 +389,22 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logWater(date: LocalDate, amountMl: Int) {
         val epoch = date.toEpochDay()
-        val previousStats = _dailyStats[epoch]
-        val currentStats = previousStats ?: WellbeingStats(epochDay = epoch)
-
-        val updatedStats = currentStats.copy(
-            waterIntakeMl = currentStats.waterIntakeMl + amountMl,
-            lastSyncTimestamp = System.currentTimeMillis()
-        )
-        _dailyStats[epoch] = updatedStats
-        viewModelScope.launch { 
+        val ts = System.currentTimeMillis()
+        viewModelScope.launch {
             try {
-                repository.insertOrUpdateStats(updatedStats) 
+                // 1. Ensure a row exists for today (seed with 0 if absent)
+                val existing = repository.getStatsForDay(epoch)
+                if (existing == null) {
+                    repository.insertOrUpdateStats(WellbeingStats(epochDay = epoch))
+                }
+                // 2. Atomically increment only the water column — safe under concurrency
+                repository.addWaterForDay(epoch, amountMl, ts)
+
+                // 3. Reflect change in in-memory cache for immediate UI update
+                val refreshed = repository.getStatsForDay(epoch)
+                if (refreshed != null) _dailyStats[epoch] = refreshed
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update water stats", e)
-                if (previousStats != null) _dailyStats[epoch] = previousStats else _dailyStats.remove(epoch)
                 databaseError = "Failed to save water intake."
             }
         }
@@ -385,20 +412,20 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSleep(date: LocalDate, hours: Double) {
         val epoch = date.toEpochDay()
-        val previousStats = _dailyStats[epoch]
-        val currentStats = previousStats ?: WellbeingStats(epochDay = epoch)
-
-        val updatedStats = currentStats.copy(
-            sleepDurationHours = hours,
-            lastSyncTimestamp = System.currentTimeMillis()
-        )
-        _dailyStats[epoch] = updatedStats
-        viewModelScope.launch { 
+        val ts = System.currentTimeMillis()
+        viewModelScope.launch {
             try {
-                repository.insertOrUpdateStats(updatedStats) 
+                // Seed row if absent, then atomically update only the sleep column
+                val existing = repository.getStatsForDay(epoch)
+                if (existing == null) {
+                    repository.insertOrUpdateStats(WellbeingStats(epochDay = epoch))
+                }
+                repository.updateSleepForDay(epoch, hours, ts)
+
+                val refreshed = repository.getStatsForDay(epoch)
+                if (refreshed != null) _dailyStats[epoch] = refreshed
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to update sleep stats", e)
-                if (previousStats != null) _dailyStats[epoch] = previousStats else _dailyStats.remove(epoch)
                 databaseError = "Failed to save sleep data."
             }
         }
@@ -616,6 +643,18 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
      * is never stored.
      */
     fun registerUser(name: String, email: String, pass: String) {
+        // FIX: Wipe all existing Room data before registering a new account.
+        // This prevents data from a previous user leaking into the new user's session.
+        viewModelScope.launch {
+            try {
+                repository.deleteAllUserData()
+            } catch (e: Exception) {
+                Log.w("HabitViewModel", "Could not clear prior user data before registration", e)
+            }
+        }
+        _dailyStats.clear()
+        _sleepLogs.clear()
+
         val salt = PasswordUtils.generateSalt()
         val hashedPassword = PasswordUtils.hashPassword(pass, salt)
 
@@ -802,6 +841,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 super.onAuthenticationError(errorCode, errString)
                 if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
                     errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                    loginError = errString.toString()
                     onFailure(errString.toString())
                 }
             }

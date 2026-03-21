@@ -68,6 +68,22 @@ interface HabitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateStats(stats: WellbeingStats)
 
+    /**
+     * Atomically adds water to the existing amount for a given day.
+     * If no row exists yet for that epochDay, this is a no-op (caller should
+     * use insertOrUpdateStats first to seed the row).
+     */
+    @Query("UPDATE wellbeing_stats SET waterIntakeMl = waterIntakeMl + :amountMl, lastSyncTimestamp = :ts WHERE epochDay = :epochDay")
+    suspend fun addWaterForDay(epochDay: Long, amountMl: Int, ts: Long)
+
+    /** Atomically replaces the sleep hours for a given day. */
+    @Query("UPDATE wellbeing_stats SET sleepDurationHours = :hours, lastSyncTimestamp = :ts WHERE epochDay = :epochDay")
+    suspend fun updateSleepForDay(epochDay: Long, hours: Double, ts: Long)
+
+    /** Atomically replaces the step count for a given day. */
+    @Query("UPDATE wellbeing_stats SET stepsCount = :steps, lastSyncTimestamp = :ts WHERE epochDay = :epochDay")
+    suspend fun updateStepsForDay(epochDay: Long, steps: Int, ts: Long)
+
     @Query("SELECT * FROM wellbeing_stats WHERE epochDay = :epochDay LIMIT 1")
     suspend fun getStatsForDay(epochDay: Long): WellbeingStats?
 
@@ -103,7 +119,8 @@ interface HabitDao {
 
     @Transaction
     suspend fun deleteHabitWithRecords(habitId: String) {
-        deleteRecordsByHabitId(habitId)
+        // ForeignKey(onDelete = CASCADE) in HabitRecord already handles record deletion
+        // automatically when the parent Habit is deleted. No manual delete needed.
         deleteHabit(habitId)
     }
 

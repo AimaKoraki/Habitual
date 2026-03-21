@@ -3,7 +3,7 @@ package com.aima.habitual
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,7 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.aima.habitual.ui.screens.MainScreen
 import com.aima.habitual.ui.theme.HabitualTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     // 1. Permission Launcher: Required for Step Counter on Android 10+ (API 29+)
     // Also used for Notifications on Android 13+ (API 33+)

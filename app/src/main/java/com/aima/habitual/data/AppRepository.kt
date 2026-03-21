@@ -33,6 +33,12 @@ interface AppRepository {
     fun getAllWellbeingStatsStream(): Flow<List<WellbeingStats>>
     suspend fun insertOrUpdateStats(stats: WellbeingStats)
     suspend fun getStatsForDay(epochDay: Long): WellbeingStats?
+    /** Atomically add water for a day (no overwrite risk). */
+    suspend fun addWaterForDay(epochDay: Long, amountMl: Int, ts: Long)
+    /** Atomically replace sleep hours for a day. */
+    suspend fun updateSleepForDay(epochDay: Long, hours: Double, ts: Long)
+    /** Atomically replace step count for a day. */
+    suspend fun updateStepsForDay(epochDay: Long, steps: Int, ts: Long)
 
     // --- Sleep Logs ---
     fun getAllSleepLogsStream(): Flow<List<SleepLogEntry>>
@@ -62,6 +68,9 @@ class OfflineAppRepository(private val habitDao: HabitDao) : AppRepository {
     override fun getAllWellbeingStatsStream() = habitDao.getAllWellbeingStats()
     override suspend fun insertOrUpdateStats(stats: WellbeingStats) = habitDao.insertOrUpdateStats(stats)
     override suspend fun getStatsForDay(epochDay: Long) = habitDao.getStatsForDay(epochDay)
+    override suspend fun addWaterForDay(epochDay: Long, amountMl: Int, ts: Long) = habitDao.addWaterForDay(epochDay, amountMl, ts)
+    override suspend fun updateSleepForDay(epochDay: Long, hours: Double, ts: Long) = habitDao.updateSleepForDay(epochDay, hours, ts)
+    override suspend fun updateStepsForDay(epochDay: Long, steps: Int, ts: Long) = habitDao.updateStepsForDay(epochDay, steps, ts)
 
     override fun getAllSleepLogsStream() = habitDao.getAllSleepLogs()
     override suspend fun insertOrUpdateSleepLog(entry: SleepLogEntry) = habitDao.insertOrUpdateSleepLog(entry)
@@ -69,3 +78,4 @@ class OfflineAppRepository(private val habitDao: HabitDao) : AppRepository {
     override suspend fun deleteHabitWithRecords(habitId: String) = habitDao.deleteHabitWithRecords(habitId)
     override suspend fun deleteAllUserData() = habitDao.deleteAllUserData()
 }
+

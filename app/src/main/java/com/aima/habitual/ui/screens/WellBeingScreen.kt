@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Sync
@@ -62,6 +63,12 @@ fun WellBeingScreen(
     var showSleepDialog by remember { mutableStateOf(false) }
     var showWaterDialog by remember { mutableStateOf(false) }
 
+    // Goal dialog states
+    var showStepGoalDialog by remember { mutableStateOf(false) }
+    var stepGoalInput by remember { mutableStateOf(viewModel.stepGoal.toString()) }
+    var showWaterGoalDialog by remember { mutableStateOf(false) }
+    var waterGoalInput by remember { mutableStateOf(viewModel.waterGoal.toString()) }
+
     // Water input state
     val unitOptions = listOf("ml", "Cups", "Oz")
     var waterAmountInput by remember { mutableStateOf("") }
@@ -83,8 +90,14 @@ fun WellBeingScreen(
     }
 
     // Step progress calculation
-    val stepGoal = 10000
+    val stepGoal = viewModel.stepGoal
     val stepProgress = (stats.stepsCount.toFloat() / stepGoal).coerceIn(0f, 1f)
+    val isStepGoalAchieved = stats.stepsCount >= stepGoal
+
+    // Water progress calculation
+    val waterGoal = viewModel.waterGoal
+    val waterProgress = (stats.waterIntakeMl.toFloat() / waterGoal).coerceIn(0f, 1f)
+    val isWaterGoalAchieved = stats.waterIntakeMl >= waterGoal
 
     // Sleep progress calculation
     val sleepProgress = (stats.sleepDurationHours.toFloat() / 8f).coerceIn(0f, 1f)
@@ -118,6 +131,18 @@ fun WellBeingScreen(
                 title = stringResource(R.string.wellbeing_section_active_vitality),
                 icon = Icons.Default.DirectionsWalk,
                 color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
+            // --- Step Goal Card ---
+            GoalCard(
+                title = "Daily Step Goal",
+                goalValue = "$stepGoal steps",
+                isAchieved = isStepGoalAchieved,
+                onClick = { showStepGoalDialog = true }
             )
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
@@ -185,17 +210,29 @@ fun WellBeingScreen(
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
+            // --- Water Goal Card ---
+            GoalCard(
+                title = "Daily Water Goal",
+                goalValue = "$waterGoal ml",
+                isAchieved = isWaterGoalAchieved,
+                onClick = { showWaterGoalDialog = true }
+            )
+
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
+
             // --- Water Intake Card ---
             Column(modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md)) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     HealthStatCard(
                         label = stringResource(R.string.wellbeing_water),
-                        value = "${stats.waterIntakeMl}ml",
+                        value = "${stats.waterIntakeMl} ml",
                         icon = Icons.Default.LocalDrink,
                         color = MaterialTheme.colorScheme.primary,
-                        onClick = { showWaterDialog = true }
+                        onClick = { showWaterDialog = true },
+                        progress = if (stats.waterIntakeMl > 0) waterProgress else null
                     )
                 }
+
             }
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
@@ -447,6 +484,80 @@ fun WellBeingScreen(
             }
         }
     }
+
+    // --- STEP GOAL DIALOG ---
+    if (showStepGoalDialog) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showStepGoalDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(HabitualTheme.radius.lg),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.padding(HabitualTheme.spacing.md)
+            ) {
+                Column(
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Set Daily Step Goal", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+                    OutlinedTextField(
+                        value = stepGoalInput,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) stepGoalInput = it },
+                        label = { Text("Steps") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
+                    )
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { showStepGoalDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+                        Button(onClick = {
+                            val goal = stepGoalInput.toIntOrNull() ?: 10000
+                            viewModel.updateStepGoal(goal)
+                            showStepGoalDialog = false
+                        }) { Text(stringResource(R.string.btn_save)) }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- WATER GOAL DIALOG ---
+    if (showWaterGoalDialog) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showWaterGoalDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(HabitualTheme.radius.lg),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.padding(HabitualTheme.spacing.md)
+            ) {
+                Column(
+                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Set Daily Water Goal", style = MaterialTheme.typography.titleLarge)
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+                    OutlinedTextField(
+                        value = waterGoalInput,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) waterGoalInput = it },
+                        label = { Text("Amount in ml") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
+                    )
+                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { showWaterGoalDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+                        Button(onClick = {
+                            val goal = waterGoalInput.toIntOrNull() ?: 2000
+                            viewModel.updateWaterGoal(goal)
+                            showWaterGoalDialog = false
+                        }) { Text(stringResource(R.string.btn_save)) }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -490,5 +601,70 @@ private fun SectionHeader(
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// GOAL CARD COMPONENT
+// ═══════════════════════════════════════════════════════
+
+@Composable
+private fun GoalCard(
+    title: String,
+    goalValue: String,
+    isAchieved: Boolean,
+    onClick: () -> Unit
+) {
+    val containerColor by animateColorAsState(
+        targetValue = if (isAchieved) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+        animationSpec = androidx.compose.animation.core.tween(500),
+        label = "GoalCardColor"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isAchieved) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        animationSpec = androidx.compose.animation.core.tween(500),
+        label = "GoalCardContentColor"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = HabitualTheme.spacing.md)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(HabitualTheme.radius.lg),
+        colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor),
+        border = if (isAchieved) null else androidx.compose.foundation.BorderStroke(HabitualTheme.components.borderThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = HabitualTheme.elevation.none)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(HabitualTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (isAchieved) "🎉 Achieved: $goalValue" else goalValue,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Edit Goal",
+                modifier = Modifier.size(18.dp),
+                tint = contentColor.copy(alpha = 0.5f)
+            )
+        }
     }
 }
