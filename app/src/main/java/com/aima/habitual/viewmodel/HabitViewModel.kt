@@ -626,7 +626,10 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             val hasLoggedInBefore = prefs.getBoolean("has_authenticated_before", false)
             if (!hasLoggedInBefore) return false
             val biometricManager = BiometricManager.from(getApplication())
-            return biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+            // Accept Class 3 (STRONG) or Class 2 (WEAK) sensors for maximum device compatibility
+            val canStrong = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+            val canWeak = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
+            return canStrong || canWeak
         }
 
     /** Mark that the user has successfully authenticated at least once (enables biometric on next visit). */
@@ -854,12 +857,30 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
         val biometricPrompt = BiometricPrompt(activity, executor, callback)
 
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_title))
-            .setSubtitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle))
-            .setNegativeButtonText(activity.getString(com.aima.habitual.R.string.biometric_prompt_cancel))
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-            .build()
+        // Determine the strongest authenticator the device supports
+        val biometricManager = BiometricManager.from(activity)
+        val canStrong = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+
+        val promptInfo = if (canStrong) {
+            // Class 3 sensor: use BIOMETRIC_STRONG | DEVICE_CREDENTIAL for a seamless prompt
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_title))
+                .setSubtitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle))
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                )
+                .build()
+        } else {
+            // Class 2 sensor: BIOMETRIC_WEAK doesn't support crypto or DEVICE_CREDENTIAL combo,
+            // so use a negative button as the cancel action instead
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_title))
+                .setSubtitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle))
+                .setNegativeButtonText(activity.getString(com.aima.habitual.R.string.biometric_prompt_cancel))
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                .build()
+        }
 
         biometricPrompt.authenticate(promptInfo)
     }
