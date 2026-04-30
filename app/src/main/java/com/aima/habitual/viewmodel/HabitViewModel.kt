@@ -28,6 +28,8 @@ import com.aima.habitual.model.StepSensorManager
 import com.aima.habitual.model.LightSensorManager
 import com.aima.habitual.model.Companion
 import com.aima.habitual.utils.ReminderManager
+import com.aima.habitual.utils.NetworkConnectivityObserver
+import com.aima.habitual.utils.ConnectivityStatus
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -123,6 +125,11 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     fun clearDatabaseError() {
         databaseError = null
     }
+
+    // --- NETWORK OBSERVATION ---
+    private val connectivityObserver = NetworkConnectivityObserver(application)
+    val networkStatus: StateFlow<ConnectivityStatus> = connectivityObserver.observe()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ConnectivityStatus.Available)
 
 
     // --- 3. PREFERENCES (for simple key-value config only) ---

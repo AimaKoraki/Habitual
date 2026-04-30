@@ -11,6 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -21,7 +24,9 @@ import com.aima.habitual.navigation.NavGraph
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.BottomNavigationBar
 import com.aima.habitual.ui.theme.AppTheme
+import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.utils.ConnectivityStatus
 
 /**
  * MainScreen: The root UI container of the app.
@@ -42,6 +47,20 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val networkStatus by viewModel.networkStatus.collectAsState()
+
+    LaunchedEffect(networkStatus) {
+        if (networkStatus == ConnectivityStatus.Lost || networkStatus == ConnectivityStatus.Unavailable) {
+            snackbarHostState.showSnackbar(
+                message = "No Internet Connection",
+                duration = SnackbarDuration.Indefinite
+            )
+        } else if (networkStatus == ConnectivityStatus.Available) {
+            snackbarHostState.currentSnackbarData?.dismiss()
+        }
+    }
+
     // 2. Responsive Logic
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -50,11 +69,12 @@ fun MainScreen(
     val showSideRail = windowSizeClass != WindowWidthSizeClass.Compact || isLandscape
 
     // Navigation item definitions (Only show bars on these screens)
-    val mainTabs = listOf(Screen.Dashboard, Screen.WellBeing, Screen.Diary, Screen.Companions, Screen.Profile)
+    val mainTabs = listOf(Screen.Dashboard, Screen.WellBeing, Screen.Diary, Screen.Profile)
     val showBars = currentRoute in mainTabs.map { it.route }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             // ONLY show Bottom Bar on Portrait Phones if logged in and on a main tab
             if (!showSideRail && showBars && viewModel.isLoggedIn) {
@@ -68,7 +88,7 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .statusBarsPadding()
-                .padding(top = 4.dp)
+                .padding(top = HabitualTheme.spacing.statusBarGap)
         ) {
             // A. SIDE NAVIGATION RAIL (Landscape / Tablet)
             if (showSideRail && showBars && viewModel.isLoggedIn) {

@@ -8,9 +8,7 @@ plugins {
 
 android {
     namespace = "com.aima.habitual"
-    compileSdk {
-        version = release(35)
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.aima.habitual"
