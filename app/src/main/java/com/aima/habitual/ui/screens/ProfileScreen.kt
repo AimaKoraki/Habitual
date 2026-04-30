@@ -1,8 +1,8 @@
 package com.aima.habitual.ui.screens
 
+import android.app.Activity
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,7 +43,13 @@ import com.aima.habitual.R
 import com.aima.habitual.ui.screens.layout.ProfileLayout
 import com.aima.habitual.ui.theme.AppTheme
 import com.aima.habitual.ui.theme.HabitualTheme
+import com.aima.habitual.ui.components.QuoteCard
+import com.aima.habitual.utils.DriveBackupManager
 import com.aima.habitual.viewmodel.HabitViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * ProfileScreen: Manages user identity, theme preferences, and habit mastery progress.
@@ -63,6 +69,7 @@ fun ProfileScreen(
     // 1. UI STATE: Manages visibility of overlays and temporary input data
     var showHabitsSheet by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showRestoreDialog by remember { mutableStateOf(false) }
 
     // 2. PHOTO PICKER: Native Android contract for secure image selection
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -86,19 +93,91 @@ fun ProfileScreen(
     val progress = viewModel.levelProgress
     val toNextLevel = viewModel.habitsForNextLevel
 
+    // --- DRIVE BACKUP STATE ---
+    val context = LocalContext.current
+    val backupState = viewModel.backupState
+    val lastBackupTime = viewModel.lastBackupTime
+
+    // Track whether the pending Drive action is backup (true) or restore (false)
+    var pendingDriveAction by remember { mutableStateOf(true) }
+
+    // ActivityResultLauncher for Drive Google Sign-In authorization
+    val driveSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+                viewModel.handleDriveSignInResult(account, isBackup = pendingDriveAction)
+            } catch (e: Exception) {
+                viewModel.handleDriveSignInResult(null, isBackup = pendingDriveAction)
+            }
+        } else {
+            viewModel.handleDriveSignInResult(null, isBackup = pendingDriveAction)
+        }
+    }
+
+    /**
+     * Initiates Drive authorization — checks for existing permission first,
+     * otherwise launches the Google Sign-In activity.
+     */
+    fun startDriveAction(isBackup: Boolean) {
+        pendingDriveAction = isBackup
+        val account = GoogleSignIn.getLastSignedInAccount(context)
+        if (account != null && DriveBackupManager.isAuthorized(context)) {
+            // Already authorized — proceed directly
+            viewModel.handleDriveSignInResult(account, isBackup)
+        } else {
+            // Need authorization — launch sign-in
+            val client = GoogleSignIn.getClient(context, DriveBackupManager.getSignInOptions())
+            driveSignInLauncher.launch(client.signInIntent)
+        }
+    }
+
+    // Refresh last backup time on screen load
+    LaunchedEffect(Unit) {
+        val account = GoogleSignIn.getLastSignedInAccount(context)
+        if (account != null && DriveBackupManager.isAuthorized(context)) {
+            viewModel.refreshLastBackupTime(account)
+        }
+        // Fetch the daily quote when the Profile screen is opened
+        viewModel.fetchDailyQuote()
+    }
+
+    // Snackbar for backup/restore feedback
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(backupState) {
+        when (backupState) {
+            is HabitViewModel.BackupState.Success -> {
+                snackbarHostState.showSnackbar((backupState as HabitViewModel.BackupState.Success).message)
+                viewModel.clearBackupState()
+            }
+            is HabitViewModel.BackupState.Error -> {
+                snackbarHostState.showSnackbar((backupState as HabitViewModel.BackupState.Error).message)
+                viewModel.clearBackupState()
+            }
+            else -> {}
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = Color.Transparent
+    ) { scaffoldPadding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(scaffoldPadding)
             .padding(
                 start = HabitualTheme.spacing.lg,
                 end = HabitualTheme.spacing.lg,
-                top = HabitualTheme.spacing.sm,
+                top = 0.dp,
                 bottom = HabitualTheme.spacing.lg
             )
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
 
         // --- 3. AVATAR SECTION ---
         Box(
@@ -267,6 +346,14 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
+        // --- DAILY QUOTE: Online API / Offline JSON fallback ---
+        QuoteCard(
+            quote = viewModel.dailyQuote,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+
         // --- 6. SETTINGS CARD: Theme and Quick Actions ---
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -400,6 +487,102 @@ fun ProfileScreen(
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = HabitualTheme.spacing.lg), color = MaterialTheme.colorScheme.outlineVariant)
+
+                // --- GOOGLE DRIVE BACKUP SECTION ---
+                Text(
+                    text = stringResource(R.string.backup_section_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary),
+                    modifier = Modifier.padding(bottom = HabitualTheme.spacing.sm)
+                )
+
+                // Last backup timestamp
+                Text(
+                    text = if (lastBackupTime != null) {
+                        val formatted = SimpleDateFormat("dd MMM yyyy, h:mm a", Locale.getDefault())
+                            .format(Date(lastBackupTime!!))
+                        stringResource(R.string.backup_last_time, formatted)
+                    } else {
+                        stringResource(R.string.backup_never)
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted),
+                    modifier = Modifier.padding(bottom = HabitualTheme.spacing.md)
+                )
+
+                val isInProgress = backupState is HabitViewModel.BackupState.InProgress
+
+                // Backup Button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(HabitualTheme.radius.md))
+                        .clickable(enabled = !isInProgress) { startDriveAction(isBackup = true) }
+                        .padding(vertical = HabitualTheme.spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CloudUpload,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
+                    Text(
+                        text = if (isInProgress && pendingDriveAction)
+                            stringResource(R.string.backup_in_progress)
+                        else
+                            stringResource(R.string.backup_to_drive),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isInProgress && pendingDriveAction) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(HabitualTheme.components.iconMd),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xs))
+
+                // Restore Button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(HabitualTheme.radius.md))
+                        .clickable(enabled = !isInProgress) { showRestoreDialog = true }
+                        .padding(vertical = HabitualTheme.spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CloudDownload,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.lg))
+                    Text(
+                        text = if (isInProgress && !pendingDriveAction)
+                            stringResource(R.string.restore_in_progress)
+                        else
+                            stringResource(R.string.restore_from_drive),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isInProgress && !pendingDriveAction) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(HabitualTheme.components.iconMd),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = HabitualTheme.spacing.lg), color = MaterialTheme.colorScheme.outlineVariant)
+
+                // My Rituals row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -460,6 +643,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
     }
+    } // End Scaffold
 
     // --- DIALOGS & OVERLAYS ---
 
@@ -477,6 +661,30 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+            }
+        )
+    }
+
+    // Restore Confirmation Dialog
+    if (showRestoreDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestoreDialog = false },
+            icon = { Icon(Icons.Default.CloudDownload, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            title = { Text(stringResource(R.string.restore_confirm_title)) },
+            text = { Text(stringResource(R.string.restore_confirm_text)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRestoreDialog = false
+                        startDriveAction(isBackup = false)
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(stringResource(R.string.restore_confirm_btn))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
             }
         )
     }

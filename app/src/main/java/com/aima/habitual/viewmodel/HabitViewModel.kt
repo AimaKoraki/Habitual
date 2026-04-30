@@ -3,6 +3,7 @@ package com.aima.habitual.viewmodel
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -25,8 +26,11 @@ import com.aima.habitual.data.HabitualDatabase
 import com.aima.habitual.model.*
 import com.aima.habitual.model.StepSensorManager
 import com.aima.habitual.model.LightSensorManager
+import com.aima.habitual.model.Companion
 import com.aima.habitual.utils.ReminderManager
-import com.aima.habitual.utils.PasswordUtils
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
@@ -34,6 +38,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import com.aima.habitual.data.OfflineAppRepository
+import com.aima.habitual.data.CompanionRepository
+import com.aima.habitual.data.QuoteRepository
 import java.time.LocalDate
 import com.aima.habitual.ui.theme.AppTheme
 
@@ -50,6 +56,52 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     // --- 2. ROOM DATABASE & REPOSITORY ---
     private val db = HabitualDatabase.getInstance(application)
     private val repository = OfflineAppRepository(db.habitDao())
+
+    // --- QUOTE REPOSITORY (online API + offline JSON fallback) ---
+    private val quoteRepository = QuoteRepository(application)
+
+    /**
+     * Holds the current daily quote. Null means loading is still in progress.
+     *
+     * ASSIGNMENT: Observable state for the QuoteCard composable. The value is
+     * populated by [fetchDailyQuote], which either calls the ZenQuotes public
+     * API (online) or reads from the bundled fallback_quotes.json asset (offline).
+     */
+    var dailyQuote by mutableStateOf<Quote?>(null)
+        private set
+
+    /**
+     * Fetches the daily motivational quote. Called once on app start.
+     * Internally handled by [QuoteRepository] which applies online-first,
+     * offline-fallback logic transparently.
+     */
+    fun fetchDailyQuote() {
+        viewModelScope.launch {
+            try {
+                dailyQuote = quoteRepository.getQuote()
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Failed to fetch daily quote", e)
+            }
+        }
+    }
+
+    // --- COMPANION REPOSITORY (external JSON API) ---
+    private val companionRepository = CompanionRepository()
+    
+    var companions by mutableStateOf<List<Companion>>(emptyList())
+        private set
+
+    /**
+     * Fetches virtual companions from the external JSON file.
+     * This fulfills the assignment requirement to "read data (master/detail) from external JSON file(s)".
+     */
+    fun fetchCompanions() {
+        if (companions.isNotEmpty()) return // Already fetched
+        
+        viewModelScope.launch {
+            companions = companionRepository.getCompanions()
+        }
+    }
 
     // --- 1. CORE DATA STREAMS (UI state backed by Room) ---
     val habits: StateFlow<List<Habit>> = repository.getAllHabitsStream()
@@ -77,16 +129,26 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("habitual_prefs", Context.MODE_PRIVATE)
 
     // --- 3b. ENCRYPTED PREFERENCES (for auth credentials) ---
-    private val masterKey = MasterKey.Builder(application)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
-    private val securePrefs = EncryptedSharedPreferences.create(
-        application,
-        "habitual_secure_prefs",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    // Lazy + try-catch: security-crypto 1.1.0-alpha06 can throw on certain
+    // device/OS combos (Keystore corruption, key invalidation after OS update).
+    // A crash here is fatal because it runs in the ViewModel constructor.
+    private val securePrefs: SharedPreferences by lazy {
+        try {
+            val masterKey = MasterKey.Builder(application)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                application,
+                "habitual_secure_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            Log.e("HabitViewModel", "EncryptedSharedPreferences failed, using fallback", e)
+            application.getSharedPreferences("habitual_secure_fallback", Context.MODE_PRIVATE)
+        }
+    }
 
     // --- LEVELING SYSTEM ---
     /** Count only unique (habitId, date) pairs so toggling can't inflate level. */
@@ -641,13 +703,10 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     /**
-     * Registers a new user. The password is hashed with a unique salt
-     * before being saved to SharedPreferences. The plain-text password
-     * is never stored.
+     * Registers a new user using Firebase Authentication.
      */
-    fun registerUser(name: String, email: String, pass: String) {
+    fun registerUser(name: String, email: String, pass: String, onComplete: (Boolean) -> Unit) {
         // FIX: Wipe all existing Room data before registering a new account.
-        // This prevents data from a previous user leaking into the new user's session.
         viewModelScope.launch {
             try {
                 repository.deleteAllUserData()
@@ -658,38 +717,50 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         _dailyStats.clear()
         _sleepLogs.clear()
 
-        val salt = PasswordUtils.generateSalt()
-        val hashedPassword = PasswordUtils.hashPassword(pass, salt)
+        FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, pass)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(name)
+                        .build()
+                    user?.updateProfile(profileUpdates)
 
-        // Store auth credentials in encrypted preferences
-        securePrefs.edit().apply {
-            putString("user_email", email)
-            putString("user_password_hash", hashedPassword)
-            putString("user_password_salt", salt)
-        }.apply()
+                    // Store non-sensitive user data in regular preferences
+                    prefs.edit().apply {
+                        putString("user_name", name)
+                        putBoolean("is_logged_in", true)
+                    }.apply()
 
-        // Store non-sensitive user data in regular preferences
-        prefs.edit().apply {
-            putString("user_name", name)
-            putBoolean("is_logged_in", true)
-        }.apply()
-
-        userName = name
-        isLoggedIn = true
-        loginError = null
-        markAuthenticated()
+                    userName = name
+                    isLoggedIn = true
+                    loginError = null
+                    markAuthenticated()
+                    onComplete(true)
+                } else {
+                    loginError = task.exception?.message ?: "Registration failed."
+                    onComplete(false)
+                }
+            }
     }
 
     fun logout() {
+        FirebaseAuth.getInstance().signOut()
         isLoggedIn = false
         prefs.edit().putBoolean("is_logged_in", false).apply()
     }
 
     /** Permanently delete the user's profile and all associated data. */
     fun deleteProfile() {
-        // Clear both regular and encrypted preferences
+        FirebaseAuth.getInstance().currentUser?.delete()
+        
+        // Clear preferences
         prefs.edit().clear().apply()
-        securePrefs.edit().clear().apply()
+        try {
+            securePrefs.edit().clear().apply()
+        } catch (e: Exception) {
+            Log.w("HabitViewModel", "Could not clear secure preferences", e)
+        }
 
         // No need to clear habits/records/diary as Flow emits from empty DB
         _dailyStats.clear()
@@ -713,52 +784,184 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Validates login by hashing the entered password with the stored salt
-     * and comparing the result against the stored hash. The plain-text
-     * password is never persisted or compared directly.
+     * Validates login using Firebase Authentication.
      */
-    fun validateLogin(email: String, pass: String): Boolean {
-        val savedEmail = securePrefs.getString("user_email", null)
-        val savedHash = securePrefs.getString("user_password_hash", null)
-        val savedSalt = securePrefs.getString("user_password_salt", null)
-
-        return when {
-            savedEmail == null -> {
-                loginError = "No account found. Please register."
-                false
+    fun validateLogin(email: String, pass: String) {
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pass)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    user?.displayName?.let { name ->
+                        userName = name
+                        prefs.edit().putString("user_name", name).apply()
+                    }
+                    loginError = null
+                    isLoggedIn = true
+                    prefs.edit().putBoolean("is_logged_in", true).apply()
+                    markAuthenticated()
+                } else {
+                    loginError = task.exception?.message ?: "Invalid email or password."
+                }
             }
-            savedEmail == email && savedHash != null && savedSalt != null
-                    && PasswordUtils.verifyPassword(pass, savedSalt, savedHash) -> {
-                loginError = null
-                isLoggedIn = true
-                prefs.edit().putBoolean("is_logged_in", true).apply()
-                markAuthenticated()
-                true
-            }
-            else -> {
-                loginError = "Invalid email or password."
-                false
-            }
-        }
     }
 
     /**
-     * Verifies the user's password without logging them in.
-     * Useful for unlocking locked entries.
+     * Verifies the user's password using Firebase Reauthentication.
      */
-    fun verifyUserPassword(pass: String): Boolean {
-        val savedHash = securePrefs.getString("user_password_hash", null)
-        val savedSalt = securePrefs.getString("user_password_salt", null)
-
-        return if (savedHash != null && savedSalt != null) {
-            PasswordUtils.verifyPassword(pass, savedSalt, savedHash)
+    fun verifyUserPassword(pass: String, onResult: (Boolean) -> Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null && user.email != null) {
+            val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(user.email!!, pass)
+            user.reauthenticate(credential)
+                .addOnCompleteListener { task ->
+                    onResult(task.isSuccessful)
+                }
         } else {
-            false
+            onResult(false)
         }
     }
 
     fun clearLoginError() {
         loginError = null
+    }
+
+    // --- GOOGLE DRIVE BACKUP / RESTORE ---
+
+    /** UI state for backup/restore operations. */
+    sealed class BackupState {
+        object Idle : BackupState()
+        object InProgress : BackupState()
+        data class Success(val message: String) : BackupState()
+        data class Error(val message: String) : BackupState()
+    }
+
+    var backupState by mutableStateOf<BackupState>(BackupState.Idle)
+        private set
+
+    var lastBackupTime by mutableStateOf<Long?>(null)
+        private set
+
+    fun clearBackupState() {
+        backupState = BackupState.Idle
+    }
+
+    /**
+     * Handles the result from the Google Sign-In activity for Drive authorization.
+     * Called from the Activity after the sign-in intent completes.
+     */
+    fun handleDriveSignInResult(
+        account: GoogleSignInAccount?,
+        isBackup: Boolean
+    ) {
+        if (account == null) {
+            backupState = BackupState.Error("Google authorization cancelled.")
+            return
+        }
+        if (isBackup) {
+            performBackup(account)
+        } else {
+            performRestore(account)
+        }
+    }
+
+    /**
+     * Collects all Room data, serializes to JSON, and uploads to Google Drive.
+     */
+    private fun performBackup(account: GoogleSignInAccount) {
+        backupState = BackupState.InProgress
+        viewModelScope.launch {
+            try {
+                // 1. Snapshot all data from Room
+                val backupData = com.aima.habitual.data.BackupData(
+                    habits = repository.getAllHabitsSnapshot(),
+                    records = repository.getAllRecordsSnapshot(),
+                    diaryEntries = repository.getAllDiaryEntriesSnapshot(),
+                    wellbeingStats = repository.getAllWellbeingStatsSnapshot(),
+                    sleepLogs = repository.getAllSleepLogsSnapshot()
+                )
+
+                // 2. Serialize to JSON using Gson
+                val gson = com.google.gson.Gson()
+                val json = gson.toJson(backupData)
+
+                // 3. Upload to Drive
+                val success = com.aima.habitual.utils.DriveBackupManager.backup(
+                    getApplication(), account, json
+                )
+
+                if (success) {
+                    lastBackupTime = System.currentTimeMillis()
+                    backupState = BackupState.Success("Backup successful!")
+                } else {
+                    backupState = BackupState.Error("Backup failed. Please try again.")
+                }
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Backup failed", e)
+                backupState = BackupState.Error("Backup failed: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    /**
+     * Downloads backup JSON from Google Drive, wipes current data,
+     * and inserts the backup data (Option B: full replace).
+     */
+    private fun performRestore(account: GoogleSignInAccount) {
+        backupState = BackupState.InProgress
+        viewModelScope.launch {
+            try {
+                // 1. Download JSON from Drive
+                val json = com.aima.habitual.utils.DriveBackupManager.restore(
+                    getApplication(), account
+                )
+
+                if (json == null) {
+                    backupState = BackupState.Error("No backup found on Google Drive.")
+                    return@launch
+                }
+
+                // 2. Deserialize
+                val gson = com.google.gson.Gson()
+                val backupData = gson.fromJson(json, com.aima.habitual.data.BackupData::class.java)
+
+                // 3. Wipe current data (Option B: full replace)
+                repository.deleteAllUserData()
+                _dailyStats.clear()
+                _sleepLogs.clear()
+
+                // 4. Insert backup data
+                repository.insertAllHabits(backupData.habits)
+                repository.insertAllRecords(backupData.records)
+                repository.insertAllDiaryEntries(backupData.diaryEntries)
+                repository.insertAllWellbeingStats(backupData.wellbeingStats)
+                repository.insertAllSleepLogs(backupData.sleepLogs)
+
+                // 5. Refresh in-memory caches
+                for (stat in backupData.wellbeingStats) {
+                    _dailyStats[stat.epochDay] = stat
+                }
+                for (log in backupData.sleepLogs) {
+                    _sleepLogs[log.dateEpoch] = log
+                }
+
+                backupState = BackupState.Success("Restore successful! Your data has been recovered.")
+            } catch (e: Exception) {
+                Log.e("HabitViewModel", "Restore failed", e)
+                backupState = BackupState.Error("Restore failed: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    /**
+     * Checks Drive for the last backup timestamp (for UI display).
+     */
+    fun refreshLastBackupTime(account: GoogleSignInAccount?) {
+        if (account == null) return
+        viewModelScope.launch {
+            lastBackupTime = com.aima.habitual.utils.DriveBackupManager.getLastBackupTime(
+                getApplication(), account
+            )
+        }
     }
 
     // --- GOOGLE SIGN-IN (Credential Manager API) ---
@@ -857,31 +1060,119 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
         val biometricPrompt = BiometricPrompt(activity, executor, callback)
 
-        // Determine the strongest authenticator the device supports
         val biometricManager = BiometricManager.from(activity)
         val canStrong = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
+        val canWeak = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
 
-        val promptInfo = if (canStrong) {
-            // Class 3 sensor: use BIOMETRIC_STRONG | DEVICE_CREDENTIAL for a seamless prompt
-            BiometricPrompt.PromptInfo.Builder()
-                .setTitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_title))
-                .setSubtitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle))
-                .setAllowedAuthenticators(
-                    BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
-                )
-                .build()
-        } else {
-            // Class 2 sensor: BIOMETRIC_WEAK doesn't support crypto or DEVICE_CREDENTIAL combo,
-            // so use a negative button as the cancel action instead
-            BiometricPrompt.PromptInfo.Builder()
-                .setTitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_title))
-                .setSubtitle(activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle))
-                .setNegativeButtonText(activity.getString(com.aima.habitual.R.string.biometric_prompt_cancel))
-                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
-                .build()
+        val title = activity.getString(com.aima.habitual.R.string.biometric_prompt_title)
+        val subtitle = activity.getString(com.aima.habitual.R.string.biometric_prompt_subtitle)
+        val cancelText = activity.getString(com.aima.habitual.R.string.biometric_prompt_cancel)
+
+        // Strategy: Never combine BIOMETRIC_STRONG with DEVICE_CREDENTIAL.
+        // Samsung One UI can throw IllegalArgumentException with that combo on
+        // debug/unsigned APKs. Use each authenticator type alone with a
+        // negative-button cancel instead.
+        val promptInfo = when {
+            canStrong -> {
+                BiometricPrompt.PromptInfo.Builder()
+                    .setTitle(title)
+                    .setSubtitle(subtitle)
+                    .setNegativeButtonText(cancelText)
+                    .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                    .build()
+            }
+            canWeak -> {
+                BiometricPrompt.PromptInfo.Builder()
+                    .setTitle(title)
+                    .setSubtitle(subtitle)
+                    .setNegativeButtonText(cancelText)
+                    .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                    .build()
+            }
+            else -> {
+                onFailure("No biometric hardware available")
+                return
+            }
         }
 
-        biometricPrompt.authenticate(promptInfo)
+        try {
+            biometricPrompt.authenticate(promptInfo)
+        } catch (e: Exception) {
+            Log.e("HabitViewModel", "BiometricPrompt.authenticate failed", e)
+            onFailure("Biometric authentication unavailable: ${e.localizedMessage}")
+        }
+    }
+
+    // --- VOICE LOGGING ---
+    var voiceCommandFeedback by mutableStateOf<String?>(null)
+        private set
+
+    fun clearVoiceCommandFeedback() {
+        voiceCommandFeedback = null
+    }
+
+    /**
+     * Parses a voice command string and applies the appropriate action.
+     * Looks for keywords "water", "sleep", "steps".
+     */
+    fun processVoiceCommand(command: String, date: LocalDate) {
+        val lowerCommand = command.lowercase()
+        // Extract numbers from the command
+        val numberRegex = Regex("\\d+")
+        val match = numberRegex.find(lowerCommand)
+        var number = match?.value?.toIntOrNull()
+
+        // Handle word numbers for small values
+        if (number == null) {
+            val wordsToNumbers = mapOf(
+                "one" to 1, "a" to 1, "two" to 2, "three" to 3, "four" to 4,
+                "five" to 5, "six" to 6, "seven" to 7, "eight" to 8, "nine" to 9, "ten" to 10
+            )
+            for ((word, value) in wordsToNumbers) {
+                if (lowerCommand.contains(word)) {
+                    number = value
+                    break
+                }
+            }
+        }
+
+        if (lowerCommand.contains("water")) {
+            val amount = number ?: 1
+            var mlToAdd = 0
+            if (lowerCommand.contains("ml") || lowerCommand.contains("milliliters")) {
+                mlToAdd = amount
+            } else if (lowerCommand.contains("glass") || lowerCommand.contains("glasses") || lowerCommand.contains("cup") || lowerCommand.contains("cups")) {
+                mlToAdd = amount * 250 // Assumption: 1 glass/cup = 250ml
+            } else if (lowerCommand.contains("oz") || lowerCommand.contains("ounces")) {
+                mlToAdd = amount * 30
+            } else {
+                mlToAdd = amount * 250 // Default to 250ml if no unit specified
+            }
+            logWater(date, mlToAdd)
+            voiceCommandFeedback = "Logged $mlToAdd ml of water."
+
+        } else if (lowerCommand.contains("sleep")) {
+            val amount = number ?: 8
+            var hoursToAdd = 0.0
+            if (lowerCommand.contains("minute") || lowerCommand.contains("minutes")) {
+                hoursToAdd = amount / 60.0
+            } else {
+                hoursToAdd = amount.toDouble() // Default to hours
+            }
+            updateSleep(date, hoursToAdd)
+            // also log via saveSleepLog for consistency if it's the current date
+            val currentDurationOpt = getSleepLog(date)?.durationMinutes ?: 0
+            val addedMinutes = (hoursToAdd * 60).toInt()
+            saveSleepLog(date, currentDurationOpt + addedMinutes, getSleepLog(date)?.quality ?: "Good")
+            
+            voiceCommandFeedback = "Logged ${String.format("%.1f", hoursToAdd)} hours of sleep."
+
+        } else if (lowerCommand.contains("step")) {
+            val amount = number ?: 1000
+            addSteps(amount)
+            voiceCommandFeedback = "Added $amount steps."
+        } else {
+            voiceCommandFeedback = "Could not understand command: \"$command\""
+        }
     }
 }

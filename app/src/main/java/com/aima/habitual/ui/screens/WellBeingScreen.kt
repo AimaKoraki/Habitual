@@ -26,6 +26,10 @@ import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.ui.platform.LocalContext
+import com.aima.habitual.utils.SpeechRecognizerManager
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -78,10 +82,54 @@ fun WellBeingScreen(
     val currentLux = viewModel.currentLuxLevel
     val isRoomTooBright = currentLux > 5f
 
+    // VOICE LOGGING & SNACKBAR
+    val context = LocalContext.current
+    var isListening by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val speechRecognizerManager = remember {
+        SpeechRecognizerManager(
+            context = context,
+            onResult = { result ->
+                viewModel.processVoiceCommand(result, selectedDate)
+            },
+            onError = { error ->
+                scope.launch { snackbarHostState.showSnackbar(error) }
+            },
+            onListeningStateChanged = { listening ->
+                isListening = listening
+            }
+        )
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            speechRecognizerManager.destroy()
+        }
+    }
+
+    LaunchedEffect(viewModel.voiceCommandFeedback) {
+        viewModel.voiceCommandFeedback?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearVoiceCommandFeedback()
+        }
+    }
+
     // PERMISSION HANDLING
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { _ -> }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            speechRecognizerManager.startListening()
+        } else {
+            scope.launch { snackbarHostState.showSnackbar("Microphone permission denied.") }
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -103,7 +151,8 @@ fun WellBeingScreen(
     val sleepProgress = (stats.sleepDurationHours.toFloat() / 8f).coerceIn(0f, 1f)
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -238,15 +287,40 @@ fun WellBeingScreen(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
             // Log Water Button
-            Button(
-                onClick = { waterAmountInput = ""; showWaterDialog = true },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
-                shape = RoundedCornerShape(HabitualTheme.radius.md),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = HabitualTheme.spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
             ) {
-                Icon(Icons.Default.LocalDrink, contentDescription = null)
-                Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
-                Text(stringResource(R.string.wellbeing_log_water))
+                Button(
+                    onClick = { waterAmountInput = ""; showWaterDialog = true },
+                    modifier = Modifier.weight(1f).height(HabitualTheme.components.buttonHeight),
+                    shape = RoundedCornerShape(HabitualTheme.radius.md),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.LocalDrink, contentDescription = null)
+                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
+                    Text(stringResource(R.string.wellbeing_log_water))
+                }
+                
+                // Mic Button
+                val micColor by animateColorAsState(
+                    targetValue = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primaryContainer,
+                    label = "micColor"
+                )
+                val micIconColor by animateColorAsState(
+                    targetValue = if (isListening) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimaryContainer,
+                    label = "micIconColor"
+                )
+                FilledIconButton(
+                    onClick = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                    modifier = Modifier.size(HabitualTheme.components.buttonHeight),
+                    shape = RoundedCornerShape(HabitualTheme.radius.md),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = micColor, contentColor = micIconColor)
+                ) {
+                    Icon(Icons.Default.Mic, contentDescription = "Voice Log Water")
+                }
             }
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
@@ -376,15 +450,40 @@ fun WellBeingScreen(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
             // Log Sleep Button
-            Button(
-                onClick = { showSleepDialog = true },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = HabitualTheme.spacing.lg).height(HabitualTheme.components.buttonHeight),
-                shape = RoundedCornerShape(HabitualTheme.radius.md),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = HabitualTheme.spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
             ) {
-                Icon(Icons.Default.NightsStay, contentDescription = null)
-                Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
-                Text("Log Sleep")
+                Button(
+                    onClick = { showSleepDialog = true },
+                    modifier = Modifier.weight(1f).height(HabitualTheme.components.buttonHeight),
+                    shape = RoundedCornerShape(HabitualTheme.radius.md),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(Icons.Default.NightsStay, contentDescription = null)
+                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.sm))
+                    Text("Log Sleep")
+                }
+
+                // Mic Button
+                val micColor by animateColorAsState(
+                    targetValue = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
+                    label = "micColorSleep"
+                )
+                val micIconColor by animateColorAsState(
+                    targetValue = if (isListening) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSecondaryContainer,
+                    label = "micIconColorSleep"
+                )
+                FilledIconButton(
+                    onClick = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                    modifier = Modifier.size(HabitualTheme.components.buttonHeight),
+                    shape = RoundedCornerShape(HabitualTheme.radius.md),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = micColor, contentColor = micIconColor)
+                ) {
+                    Icon(Icons.Default.Mic, contentDescription = "Voice Log Sleep")
+                }
             }
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))

@@ -15,6 +15,7 @@
     <string name="nav_diary">Diary</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_diary_label">My Journal</string>
+    <string name="nav_companions">Companions</string>
 
     <string name="dashboard_header">Daily Rituals</string>
     <string name="no_habits_msg">No rituals for today. Tap + to add one!</string>
@@ -170,4 +171,15 @@
     <string name="wellbeing_amount_label">Amount (%1$s)</string>
     <string name="dialog_delete_entry_title">Delete Entry?</string>
     <string name="dialog_delete_entry_text">Are you sure you want to delete this diary entry? This cannot be undone.</string>
+
+    <string name="backup_section_title">Data Backup</string>
+    <string name="backup_to_drive">Backup to Google Drive</string>
+    <string name="restore_from_drive">Restore from Google Drive</string>
+    <string name="backup_last_time">Last backup: %1$s</string>
+    <string name="backup_never">No backup yet</string>
+    <string name="backup_in_progress">Backing up…</string>
+    <string name="restore_in_progress">Restoring…</string>
+    <string name="restore_confirm_title">Restore from Backup?</string>
+    <string name="restore_confirm_text">This will replace all your current data (habits, diary entries, wellbeing stats) with the backup from Google Drive. This cannot be undone.</string>
+    <string name="restore_confirm_btn">Restore</string>
 </resources>

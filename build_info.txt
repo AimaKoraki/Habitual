@@ -1,0 +1,30 @@
+Initialized native services in: C:\Users\panth\.gradle\native
+Initialized jansi services in: C:\Users\panth\.gradle\native
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: C:\Users\panth\.gradle\daemon\8.13 Command: C:\Program Files (x86)\Java\jdk-26\bin\java.exe --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\Users\panth\.gradle\wrapper\dists\gradle-8.13-bin\5xuhj0ry160q40clulazy9h7d\gradle-8.13\lib\gradle-daemon-main-8.13.jar -javaagent:C:\Users\panth\.gradle\wrapper\dists\gradle-8.13-bin\5xuhj0ry160q40clulazy9h7d\gradle-8.13\lib\agents\gradle-instrumentation-agent-8.13.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.13
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 1.266 secs.
+The client will now receive all logging from the daemon (pid: 30780). The daemon log file: C:\Users\panth\.gradle\daemon\8.13\daemon-30780.out.log
+Daemon will be stopped at the end of the build 
+Using 12 worker leases.
+Received JVM installation metadata from 'C:\Program Files (x86)\Java\jdk-26': {JAVA_HOME=C:\Program Files (x86)\Java\jdk-26, JAVA_VERSION=26, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=26+35-2893, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=26+35-2893, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+Watching the file system is configured to be enabled if available
+Now considering [C:\Users\panth\Documents\Habitual] as hierarchies to watch
+File system watching is active
+Starting Build
+Caching disabled for Kotlin DSL script compilation (Settings/TopLevel/stage1) because:
+  Build cache is disabled
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+26
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4s
+Watched directory hierarchies: []

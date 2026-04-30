@@ -29,35 +29,35 @@ abstract class HabitualDatabase : RoomDatabase() {
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE diary_entries ADD COLUMN isLocked INTEGER NOT NULL DEFAULT 0")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE diary_entries ADD COLUMN isLocked INTEGER NOT NULL DEFAULT 0")
             }
         }
 
         val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE diary_entries ADD COLUMN mood TEXT")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE diary_entries ADD COLUMN mood TEXT")
             }
         }
 
         val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE diary_entries ADD COLUMN photoUri TEXT")
-                database.execSQL("ALTER TABLE diary_entries ADD COLUMN audioFilePath TEXT")
-                database.execSQL("ALTER TABLE diary_entries ADD COLUMN locationText TEXT")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE diary_entries ADD COLUMN photoUri TEXT")
+                db.execSQL("ALTER TABLE diary_entries ADD COLUMN audioFilePath TEXT")
+                db.execSQL("ALTER TABLE diary_entries ADD COLUMN locationText TEXT")
             }
         }
 
         val MIGRATION_4_5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE diary_entries ADD COLUMN isJournal INTEGER NOT NULL DEFAULT 0")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE diary_entries ADD COLUMN isJournal INTEGER NOT NULL DEFAULT 0")
             }
         }
 
         val MIGRATION_5_6 = object : Migration(5, 6) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("DELETE FROM habit_records WHERE habitId NOT IN (SELECT id FROM habits)")
-                database.execSQL("""
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM habit_records WHERE habitId NOT IN (SELECT id FROM habits)")
+                db.execSQL("""
                     CREATE TABLE habit_records_new (
                         id TEXT NOT NULL PRIMARY KEY,
                         habitId TEXT NOT NULL,
@@ -66,18 +66,18 @@ abstract class HabitualDatabase : RoomDatabase() {
                         FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE
                     )
                 """.trimIndent())
-                database.execSQL("INSERT INTO habit_records_new SELECT * FROM habit_records")
-                database.execSQL("DROP TABLE habit_records")
-                database.execSQL("ALTER TABLE habit_records_new RENAME TO habit_records")
-                database.execSQL("CREATE INDEX index_habit_records_habitId ON habit_records(habitId)")
+                db.execSQL("INSERT INTO habit_records_new SELECT * FROM habit_records")
+                db.execSQL("DROP TABLE habit_records")
+                db.execSQL("ALTER TABLE habit_records_new RENAME TO habit_records")
+                db.execSQL("CREATE INDEX index_habit_records_habitId ON habit_records(habitId)")
             }
         }
 
         val MIGRATION_6_7 = object : Migration(6, 7) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("DROP INDEX IF EXISTS index_habit_records_habitId")
-                database.execSQL("CREATE INDEX index_habit_records_habitId_timestamp ON habit_records(habitId, timestamp)")
-                database.execSQL("""
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP INDEX IF EXISTS index_habit_records_habitId")
+                db.execSQL("CREATE INDEX index_habit_records_habitId_timestamp ON habit_records(habitId, timestamp)")
+                db.execSQL("""
                     CREATE TABLE IF NOT EXISTS sleep_log_entries (
                         dateEpoch INTEGER NOT NULL PRIMARY KEY,
                         durationMinutes INTEGER NOT NULL,

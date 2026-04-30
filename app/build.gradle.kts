@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -40,6 +41,16 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE.md"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -68,6 +79,9 @@ dependencies {
     implementation(libs.googleid)
     ksp(libs.androidx.room.compiler)
 
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+    implementation("com.google.firebase:firebase-auth")
 
     // 5. Debugging Tools
     debugImplementation("androidx.compose.ui:ui-tooling")
@@ -77,6 +91,10 @@ dependencies {
 
     // 6. Data Persistence
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // 11. Networking (Retrofit for external API + JSON parsing)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // 7. Security (Encrypted SharedPreferences for auth credentials)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
@@ -88,6 +106,12 @@ dependencies {
 
     // 9. Biometric Authentication
     implementation("androidx.biometric:biometric:1.1.0")
+
+    // 10. Google Drive Backup (REST API v3 — uses appDataFolder)
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("com.google.api-client:google-api-client-android:2.2.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20240914-2.0.0")
+    implementation("com.google.api-client:google-api-client-gson:2.2.0")
 
     // ─── TESTING DEPENDENCIES  ───
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

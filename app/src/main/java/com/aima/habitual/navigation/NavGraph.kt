@@ -31,8 +31,7 @@ fun NavGraph(
     onThemeColorChange: (AppTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // TODO: Replace with your actual Web Client ID from Google Cloud / Firebase Console
-    val googleWebClientId = "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
+    val googleWebClientId = "19077224952-0im1f62fpj4i4sskbffqn26lco5u3tf7.apps.googleusercontent.com"
 
     NavHost(
         navController = navController,
@@ -95,11 +94,13 @@ fun NavGraph(
         composable(Screen.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = { name, email, password ->
-                    // Save user to SharedPreferences
-                    viewModel.registerUser(name, email, password)
-
-                    navController.navigate(Screen.Dashboard.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                    // Save user to Firebase
+                    viewModel.registerUser(name, email, password) { success ->
+                        if (success) {
+                            navController.navigate(Screen.Dashboard.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        }
                     }
                 },
                 onNavigateToLogin = {
@@ -210,6 +211,28 @@ fun NavGraph(
                  entryId = entryId,
                  navController = navController,
                  viewModel = viewModel
+            )
+        }
+
+        // --- 4. COMPANIONS (Master/Detail from External JSON) ---
+        composable(Screen.Companions.route) {
+            CompanionsScreen(
+                viewModel = viewModel,
+                onCompanionClick = { companionName ->
+                    navController.navigate(Screen.CompanionDetail.createRoute(companionName))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.CompanionDetail.route,
+            arguments = listOf(navArgument("companionName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val companionName = backStackEntry.arguments?.getString("companionName") ?: ""
+            CompanionDetailScreen(
+                companionName = companionName,
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }

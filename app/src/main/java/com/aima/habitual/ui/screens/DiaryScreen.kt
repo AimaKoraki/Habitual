@@ -338,14 +338,16 @@ fun DiaryScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            if (viewModel.verifyUserPassword(passwordInput)) {
-                                val idToOpen = entryToUnlock?.id
-                                entryToUnlock = null
-                                if (idToOpen != null) {
-                                    onEntryClick(idToOpen)
+                            viewModel.verifyUserPassword(passwordInput) { isValid ->
+                                if (isValid) {
+                                    val idToOpen = entryToUnlock?.id
+                                    entryToUnlock = null
+                                    if (idToOpen != null) {
+                                        onEntryClick(idToOpen)
+                                    }
+                                } else {
+                                    showPasswordError = true
                                 }
-                            } else {
-                                showPasswordError = true
                             }
                         }
                     ) {

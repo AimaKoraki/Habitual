@@ -28,6 +28,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
         Screen.Dashboard,
         Screen.WellBeing,
+        Screen.Companions,
         Screen.Diary,
         Screen.Profile
     )

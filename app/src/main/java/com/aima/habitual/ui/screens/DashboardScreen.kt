@@ -76,6 +76,8 @@ fun DashboardScreen(
         }
     }
 
+
+
     // Snackbar host for surfacing database errors
     val snackbarHostState = remember { SnackbarHostState() }
     val dbError = viewModel.databaseError
@@ -114,7 +116,6 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
             // --- HEADER SECTION: Greeting and Dynamic Time ---
             Row(
@@ -158,8 +159,6 @@ fun DashboardScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
 
             // --- DATE SELECTOR: Syncs scroller with screen state ---
             DatePickerScroller(

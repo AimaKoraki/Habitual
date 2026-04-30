@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Pets
 import com.aima.habitual.R
 
 /**
@@ -26,6 +27,7 @@ sealed class Screen(
     object Dashboard : Screen("dashboard", R.string.nav_dashboard, Icons.Default.Dashboard)
     object WellBeing : Screen("wellbeing", R.string.nav_wellbeing, Icons.Default.SelfImprovement)
     object Diary : Screen("diary", R.string.nav_diary, Icons.Default.Book)
+    object Companions : Screen("companions", R.string.nav_companions, Icons.Default.Pets)
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 
     // --- Ritual Management ---
@@ -44,5 +46,10 @@ sealed class Screen(
 
     object DiaryView : Screen("diary_view/{entryId}", R.string.diary_header) {
         fun createRoute(entryId: String) = "diary_view/$entryId"
+    }
+
+    // --- Virtual Companions ---
+    object CompanionDetail : Screen("companion_detail/{companionName}", R.string.nav_companions) {
+        fun createRoute(companionName: String) = "companion_detail/$companionName"
     }
 }

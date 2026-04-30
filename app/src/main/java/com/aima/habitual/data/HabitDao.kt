@@ -132,4 +132,40 @@ interface HabitDao {
         deleteAllSleepLogs()
         deleteAllStats()
     }
+
+    // ─── BACKUP: ONE-SHOT SNAPSHOTS ─────────────────────
+    // Non-Flow suspend queries for point-in-time export to JSON.
+
+    @Query("SELECT * FROM habits")
+    suspend fun getAllHabitsSnapshot(): List<Habit>
+
+    @Query("SELECT * FROM habit_records")
+    suspend fun getAllRecordsSnapshot(): List<HabitRecord>
+
+    @Query("SELECT * FROM diary_entries")
+    suspend fun getAllDiaryEntriesSnapshot(): List<DiaryEntry>
+
+    @Query("SELECT * FROM wellbeing_stats")
+    suspend fun getAllWellbeingStatsSnapshot(): List<WellbeingStats>
+
+    @Query("SELECT * FROM sleep_log_entries")
+    suspend fun getAllSleepLogsSnapshot(): List<SleepLogEntry>
+
+    // ─── RESTORE: BULK INSERTS ──────────────────────────
+    // REPLACE strategy handles ID collisions during restore.
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllHabits(habits: List<Habit>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllRecords(records: List<HabitRecord>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllDiaryEntries(entries: List<DiaryEntry>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllWellbeingStats(stats: List<WellbeingStats>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllSleepLogs(logs: List<SleepLogEntry>)
 }

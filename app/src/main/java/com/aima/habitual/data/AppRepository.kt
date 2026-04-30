@@ -47,6 +47,20 @@ interface AppRepository {
     // --- Bulk Operations ---
     suspend fun deleteHabitWithRecords(habitId: String)
     suspend fun deleteAllUserData()
+
+    // --- Backup Snapshots ---
+    suspend fun getAllHabitsSnapshot(): List<Habit>
+    suspend fun getAllRecordsSnapshot(): List<HabitRecord>
+    suspend fun getAllDiaryEntriesSnapshot(): List<DiaryEntry>
+    suspend fun getAllWellbeingStatsSnapshot(): List<WellbeingStats>
+    suspend fun getAllSleepLogsSnapshot(): List<SleepLogEntry>
+
+    // --- Restore Bulk Inserts ---
+    suspend fun insertAllHabits(habits: List<Habit>)
+    suspend fun insertAllRecords(records: List<HabitRecord>)
+    suspend fun insertAllDiaryEntries(entries: List<DiaryEntry>)
+    suspend fun insertAllWellbeingStats(stats: List<WellbeingStats>)
+    suspend fun insertAllSleepLogs(logs: List<SleepLogEntry>)
 }
 
 class OfflineAppRepository(private val habitDao: HabitDao) : AppRepository {
@@ -77,5 +91,19 @@ class OfflineAppRepository(private val habitDao: HabitDao) : AppRepository {
 
     override suspend fun deleteHabitWithRecords(habitId: String) = habitDao.deleteHabitWithRecords(habitId)
     override suspend fun deleteAllUserData() = habitDao.deleteAllUserData()
+
+    // --- Backup ---
+    override suspend fun getAllHabitsSnapshot() = habitDao.getAllHabitsSnapshot()
+    override suspend fun getAllRecordsSnapshot() = habitDao.getAllRecordsSnapshot()
+    override suspend fun getAllDiaryEntriesSnapshot() = habitDao.getAllDiaryEntriesSnapshot()
+    override suspend fun getAllWellbeingStatsSnapshot() = habitDao.getAllWellbeingStatsSnapshot()
+    override suspend fun getAllSleepLogsSnapshot() = habitDao.getAllSleepLogsSnapshot()
+
+    // --- Restore ---
+    override suspend fun insertAllHabits(habits: List<Habit>) = habitDao.insertAllHabits(habits)
+    override suspend fun insertAllRecords(records: List<HabitRecord>) = habitDao.insertAllRecords(records)
+    override suspend fun insertAllDiaryEntries(entries: List<DiaryEntry>) = habitDao.insertAllDiaryEntries(entries)
+    override suspend fun insertAllWellbeingStats(stats: List<WellbeingStats>) = habitDao.insertAllWellbeingStats(stats)
+    override suspend fun insertAllSleepLogs(logs: List<SleepLogEntry>) = habitDao.insertAllSleepLogs(logs)
 }
 

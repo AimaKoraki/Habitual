@@ -18,6 +18,6 @@ fun ScreenHeader(title: String, modifier: Modifier = Modifier) {
         text = title,
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onBackground,
-        modifier = modifier.padding(top = 10.dp, bottom = HabitualTheme.spacing.lg)
+        modifier = modifier.padding(bottom = HabitualTheme.spacing.lg)
     )
 }

@@ -4,6 +4,9 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -47,10 +50,11 @@ fun MainScreen(
     val showSideRail = windowSizeClass != WindowWidthSizeClass.Compact || isLandscape
 
     // Navigation item definitions (Only show bars on these screens)
-    val mainTabs = listOf(Screen.Dashboard, Screen.WellBeing, Screen.Diary, Screen.Profile)
+    val mainTabs = listOf(Screen.Dashboard, Screen.WellBeing, Screen.Diary, Screen.Companions, Screen.Profile)
     val showBars = currentRoute in mainTabs.map { it.route }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             // ONLY show Bottom Bar on Portrait Phones if logged in and on a main tab
             if (!showSideRail && showBars && viewModel.isLoggedIn) {
@@ -63,6 +67,8 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .statusBarsPadding()
+                .padding(top = 4.dp)
         ) {
             // A. SIDE NAVIGATION RAIL (Landscape / Tablet)
             if (showSideRail && showBars && viewModel.isLoggedIn) {
