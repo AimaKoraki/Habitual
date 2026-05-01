@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.aima.habitual.ui.screens.*
 import com.aima.habitual.ui.theme.AppTheme
+import com.aima.habitual.viewmodel.CompanionViewModel
 import com.aima.habitual.viewmodel.HabitViewModel
 
 /**
@@ -25,6 +26,7 @@ import com.aima.habitual.viewmodel.HabitViewModel
 fun NavGraph(
     navController: NavHostController,
     viewModel: HabitViewModel,
+    companionViewModel: CompanionViewModel,
     isDarkTheme: Boolean,
     appTheme: AppTheme,
     onThemeChange: (Boolean) -> Unit,
@@ -214,10 +216,11 @@ fun NavGraph(
             )
         }
 
-        // --- 4. COMPANIONS (Master/Detail from External JSON) ---
+        // --- 4. COMPANIONS (Master/Detail from local sprite assets) ---
         composable(Screen.Companions.route) {
             CompanionsScreen(
-                viewModel = viewModel,
+                habitViewModel = viewModel,
+                companionViewModel = companionViewModel,
                 onCompanionClick = { companionName ->
                     navController.navigate(Screen.CompanionDetail.createRoute(companionName))
                 }
@@ -231,7 +234,7 @@ fun NavGraph(
             val companionName = backStackEntry.arguments?.getString("companionName") ?: ""
             CompanionDetailScreen(
                 companionName = companionName,
-                viewModel = viewModel,
+                companionViewModel = companionViewModel,
                 onBack = { navController.popBackStack() }
             )
         }

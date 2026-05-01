@@ -1,0 +1,11 @@
+{
+  "id": "Ezio",
+  "walkFrames": ["walk_0.png", "walk_1.png", "walk_2.png"],
+  "turnFrames": [],
+  "idleFrames": ["idle_0.png", "idle_2.png", "idle_3.png", "idle_4.png"],
+  "walkFrameDurationMs": 160,
+  "idleFrameDurationMs": 200,
+  "idleChanceOnEdge": 0.75,
+  "idleMinMs": 1500,
+  "idleMaxMs": 5000
+}

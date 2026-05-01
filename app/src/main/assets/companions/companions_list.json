@@ -1,0 +1,8 @@
+{
+  "companions": [
+    { "name": "Beemo",        "species": "Adventure Sprite", "requiredLevel": 1,  "spriteAsset": "Beemo" },
+    { "name": "Marshall Lee", "species": "Vampire King",     "requiredLevel": 5,  "spriteAsset": "Marshall_Lee" },
+    { "name": "Ezio",         "species": "Master Assassin",  "requiredLevel": 10, "spriteAsset": "Ezio" },
+    { "name": "Ford",         "species": "Dimensional Sage", "requiredLevel": 15, "spriteAsset": "Ford" }
+  ]
+}

@@ -29,6 +29,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         Screen.Dashboard,
         Screen.WellBeing,
         Screen.Diary,
+        Screen.Companions,
         Screen.Profile
     )
 

@@ -1,0 +1,11 @@
+{
+  "id": "Marshall_Lee",
+  "walkFrames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"],
+  "turnFrames": ["walk_4.png"],
+  "idleFrames": ["idle_0.png", "idle_1.png", "idle_2.png"],
+  "walkFrameDurationMs": 150,
+  "idleFrameDurationMs": 180,
+  "idleChanceOnEdge": 0.30,
+  "idleMinMs": 600,
+  "idleMaxMs": 2500
+}

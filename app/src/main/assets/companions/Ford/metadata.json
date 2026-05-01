@@ -1,0 +1,11 @@
+{
+  "id": "Ford",
+  "walkFrames": ["walk_0.png", "walk_1.png"],
+  "turnFrames": [],
+  "idleFrames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png", "idle_4.png"],
+  "walkFrameDurationMs": 200,
+  "idleFrameDurationMs": 140,
+  "idleChanceOnEdge": 0.45,
+  "idleMinMs": 800,
+  "idleMaxMs": 3500
+}

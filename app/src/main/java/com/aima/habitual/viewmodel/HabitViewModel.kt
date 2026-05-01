@@ -26,7 +26,6 @@ import com.aima.habitual.data.HabitualDatabase
 import com.aima.habitual.model.*
 import com.aima.habitual.model.StepSensorManager
 import com.aima.habitual.model.LightSensorManager
-import com.aima.habitual.model.Companion
 import com.aima.habitual.utils.ReminderManager
 import com.aima.habitual.utils.NetworkConnectivityObserver
 import com.aima.habitual.utils.ConnectivityStatus
@@ -40,7 +39,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import com.aima.habitual.data.OfflineAppRepository
-import com.aima.habitual.data.CompanionRepository
 import com.aima.habitual.data.QuoteRepository
 import java.time.LocalDate
 import com.aima.habitual.ui.theme.AppTheme
@@ -84,24 +82,6 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to fetch daily quote", e)
             }
-        }
-    }
-
-    // --- COMPANION REPOSITORY (external JSON API) ---
-    private val companionRepository = CompanionRepository()
-    
-    var companions by mutableStateOf<List<Companion>>(emptyList())
-        private set
-
-    /**
-     * Fetches virtual companions from the external JSON file.
-     * This fulfills the assignment requirement to "read data (master/detail) from external JSON file(s)".
-     */
-    fun fetchCompanions() {
-        if (companions.isNotEmpty()) return // Already fetched
-        
-        viewModelScope.launch {
-            companions = companionRepository.getCompanions()
         }
     }
 
