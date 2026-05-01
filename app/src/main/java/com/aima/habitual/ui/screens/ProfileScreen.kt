@@ -148,13 +148,13 @@ fun ProfileScreen(
     // Snackbar for backup/restore feedback
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(backupState) {
-        when (backupState) {
+        when (val state = backupState) {
             is HabitViewModel.BackupState.Success -> {
-                snackbarHostState.showSnackbar((backupState as HabitViewModel.BackupState.Success).message)
+                snackbarHostState.showSnackbar(state.message)
                 viewModel.clearBackupState()
             }
             is HabitViewModel.BackupState.Error -> {
-                snackbarHostState.showSnackbar((backupState as HabitViewModel.BackupState.Error).message)
+                snackbarHostState.showSnackbar(state.message)
                 viewModel.clearBackupState()
             }
             else -> {}

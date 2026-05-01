@@ -184,8 +184,6 @@ fun WellBeingScreen(
 
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
-
             // --- Step Goal Card ---
             GoalCard(
                 title = "Daily Step Goal",
@@ -305,19 +303,12 @@ fun WellBeingScreen(
                 }
                 
                 // Mic Button
-                val micColor by animateColorAsState(
-                    targetValue = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primaryContainer,
-                    label = "micColor"
-                )
-                val micIconColor by animateColorAsState(
-                    targetValue = if (isListening) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimaryContainer,
-                    label = "micIconColor"
-                )
+                val (micBg, micFg) = micButtonColors(isListening, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
                 FilledIconButton(
                     onClick = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
                     modifier = Modifier.size(HabitualTheme.components.buttonHeight),
                     shape = RoundedCornerShape(HabitualTheme.radius.md),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = micColor, contentColor = micIconColor)
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = micBg, contentColor = micFg)
                 ) {
                     Icon(Icons.Default.Mic, contentDescription = "Voice Log Water")
                 }
@@ -468,19 +459,12 @@ fun WellBeingScreen(
                 }
 
                 // Mic Button
-                val micColor by animateColorAsState(
-                    targetValue = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
-                    label = "micColorSleep"
-                )
-                val micIconColor by animateColorAsState(
-                    targetValue = if (isListening) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSecondaryContainer,
-                    label = "micIconColorSleep"
-                )
+                val (micBg, micFg) = micButtonColors(isListening, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
                 FilledIconButton(
                     onClick = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
                     modifier = Modifier.size(HabitualTheme.components.buttonHeight),
                     shape = RoundedCornerShape(HabitualTheme.radius.md),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = micColor, contentColor = micIconColor)
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = micBg, contentColor = micFg)
                 ) {
                     Icon(Icons.Default.Mic, contentDescription = "Voice Log Sleep")
                 }
@@ -584,75 +568,82 @@ fun WellBeingScreen(
         }
     }
 
-    // --- STEP GOAL DIALOG ---
-    if (showStepGoalDialog) {
-        androidx.compose.ui.window.Dialog(onDismissRequest = { showStepGoalDialog = false }) {
-            Surface(
-                shape = RoundedCornerShape(HabitualTheme.radius.lg),
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.padding(HabitualTheme.spacing.md)
-            ) {
-                Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Set Daily Step Goal", style = MaterialTheme.typography.titleLarge)
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
-                    OutlinedTextField(
-                        value = stepGoalInput,
-                        onValueChange = { if (it.all { char -> char.isDigit() }) stepGoalInput = it },
-                        label = { Text("Steps") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
-                    )
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = { showStepGoalDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
-                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
-                        Button(onClick = {
-                            val goal = stepGoalInput.toIntOrNull() ?: 10000
-                            viewModel.updateStepGoal(goal)
-                            showStepGoalDialog = false
-                        }) { Text(stringResource(R.string.btn_save)) }
-                    }
-                }
-            }
-        }
-    }
+    GoalInputDialog(
+        isVisible = showStepGoalDialog,
+        onDismiss = { showStepGoalDialog = false },
+        title = "Set Daily Step Goal",
+        label = "Steps",
+        value = stepGoalInput,
+        onValueChange = { stepGoalInput = it },
+        onSave = { viewModel.updateStepGoal(it) },
+        defaultValue = 10000
+    )
 
-    // --- WATER GOAL DIALOG ---
-    if (showWaterGoalDialog) {
-        androidx.compose.ui.window.Dialog(onDismissRequest = { showWaterGoalDialog = false }) {
-            Surface(
-                shape = RoundedCornerShape(HabitualTheme.radius.lg),
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.padding(HabitualTheme.spacing.md)
+    GoalInputDialog(
+        isVisible = showWaterGoalDialog,
+        onDismiss = { showWaterGoalDialog = false },
+        title = "Set Daily Water Goal",
+        label = "Amount in ml",
+        value = waterGoalInput,
+        onValueChange = { waterGoalInput = it },
+        onSave = { viewModel.updateWaterGoal(it) },
+        defaultValue = 2000
+    )
+}
+
+@Composable
+private fun micButtonColors(isListening: Boolean, containerColor: Color, onContainerColor: Color): Pair<Color, Color> {
+    val bg by animateColorAsState(
+        targetValue = if (isListening) MaterialTheme.colorScheme.error else containerColor,
+        label = "micBg"
+    )
+    val fg by animateColorAsState(
+        targetValue = if (isListening) MaterialTheme.colorScheme.onError else onContainerColor,
+        label = "micFg"
+    )
+    return Pair(bg, fg)
+}
+
+@Composable
+private fun GoalInputDialog(
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+    title: String,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSave: (Int) -> Unit,
+    defaultValue: Int
+) {
+    if (!isVisible) return
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(HabitualTheme.radius.lg),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.padding(HabitualTheme.spacing.md)
+        ) {
+            Column(
+                modifier = Modifier.padding(HabitualTheme.spacing.xl),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(HabitualTheme.spacing.xl),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Set Daily Water Goal", style = MaterialTheme.typography.titleLarge)
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
-                    OutlinedTextField(
-                        value = waterGoalInput,
-                        onValueChange = { if (it.all { char -> char.isDigit() }) waterGoalInput = it },
-                        label = { Text("Amount in ml") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(HabitualTheme.radius.xl)
-                    )
-                    Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = { showWaterGoalDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
-                        Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
-                        Button(onClick = {
-                            val goal = waterGoalInput.toIntOrNull() ?: 2000
-                            viewModel.updateWaterGoal(goal)
-                            showWaterGoalDialog = false
-                        }) { Text(stringResource(R.string.btn_save)) }
-                    }
+                Text(text = title, style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { if (it.all { char -> char.isDigit() }) onValueChange(it) },
+                    label = { Text(label) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(HabitualTheme.radius.xl)
+                )
+                Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel)) }
+                    Spacer(modifier = Modifier.width(HabitualTheme.spacing.md))
+                    Button(onClick = {
+                        onSave(value.toIntOrNull() ?: defaultValue)
+                        onDismiss()
+                    }) { Text(stringResource(R.string.btn_save)) }
                 }
             }
         }

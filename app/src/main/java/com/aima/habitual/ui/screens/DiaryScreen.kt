@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -38,10 +37,14 @@ import com.aima.habitual.ui.components.DiaryHeader
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.viewmodel.HabitViewModel
 
-/** * SortMode: Defines the ordering logic for diary entries.
- * Enums ensure type-safe sorting transitions.
- */
 private enum class SortMode { NEWEST, OLDEST, ALPHABETICAL }
+
+@Composable
+private fun SortMode.label(): String = when (this) {
+    SortMode.NEWEST -> stringResource(R.string.sort_newest)
+    SortMode.OLDEST -> stringResource(R.string.sort_oldest)
+    SortMode.ALPHABETICAL -> stringResource(R.string.sort_alphabetical)
+}
 
 /**
  * DiaryScreen: A reflective space for users to view and organize their journal entries.
@@ -135,15 +138,10 @@ fun DiaryScreen(
                                 onDismissRequest = { showSortMenu = false }
                             ) {
                                 SortMode.entries.forEach { mode ->
-                                    val label = when (mode) {
-                                        SortMode.NEWEST -> stringResource(R.string.sort_newest)
-                                        SortMode.OLDEST -> stringResource(R.string.sort_oldest)
-                                        SortMode.ALPHABETICAL -> stringResource(R.string.sort_alphabetical)
-                                    }
                                     DropdownMenuItem(
                                         text = {
                                             Text(
-                                                text = label,
+                                                text = mode.label(),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = if (sortMode == mode)
                                                     MaterialTheme.colorScheme.primary

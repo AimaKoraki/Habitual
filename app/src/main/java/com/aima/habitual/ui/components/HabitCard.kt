@@ -1,7 +1,6 @@
 /** HabitCard.kt **/
 package com.aima.habitual.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -96,10 +95,6 @@ fun HabitCard(
                 modifier = Modifier
                     .size(HabitualTheme.components.chipSize)
                     .clip(CircleShape)
-                    .background(
-                        if (isCompleted) Color.Transparent
-                        else Color.Transparent
-                    )
                     // Border provides a visible target even when the habit is not yet checked
                     .border(
                         width = HabitualTheme.components.borderMedium,

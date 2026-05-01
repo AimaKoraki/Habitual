@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary_teal">#004D40</color>
-    <color name="primary_teal_light">#39796B</color>
-    <color name="primary_teal_dark">#00251A</color>
-
-    <color name="secondary_peach">#FFE0B2</color>
-    <color name="secondary_peach_light">#FFF3E0</color>
-    <color name="secondary_peach_dark">#FFB081</color>
-
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="diary_card_bg">#34516D</color>
-    <color name="surface_grey">#F5F5F5</color>
 </resources>
