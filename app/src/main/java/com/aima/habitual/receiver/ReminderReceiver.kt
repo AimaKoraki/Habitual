@@ -11,14 +11,19 @@ import androidx.core.app.NotificationCompat
 import com.aima.habitual.MainActivity
 import com.aima.habitual.R
 
+/**
+ * Receives scheduled habit reminders and turns them into notifications.
+ */
 class ReminderReceiver : BroadcastReceiver() {
 
     companion object {
+        // Extras used by the scheduler to tell this receiver which habit to remind.
         const val EXTRA_HABIT_ID = "extra_habit_id"
         const val EXTRA_HABIT_TITLE = "extra_habit_title"
         private const val CHANNEL_ID = "habitual_reminders"
     }
 
+    // Android delivers the alarm broadcast here.
     override fun onReceive(context: Context, intent: Intent) {
         val habitId = intent.getStringExtra(EXTRA_HABIT_ID) ?: return
         val habitTitle = intent.getStringExtra(EXTRA_HABIT_TITLE) ?: "Your Ritual"
@@ -26,11 +31,11 @@ class ReminderReceiver : BroadcastReceiver() {
         showNotification(context, habitId, habitTitle)
     }
 
+    // Build and post a high-priority reminder notification for the habit.
     private fun showNotification(context: Context, habitId: String, title: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
+        // Android O+ requires a notification channel before notifications can be shown.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Habit Reminders"
             val descriptionText = "Notifications for your daily rituals"
@@ -41,6 +46,7 @@ class ReminderReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Tapping the notification returns the user to the main app screen.
         val activityIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -59,7 +65,7 @@ class ReminderReceiver : BroadcastReceiver() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Use a unique positive ID for each habit (bitmask ensures non-negative)
+        // Derive a stable, non-negative notification ID from the habit ID.
         val notificationId = habitId.hashCode().and(0x7FFFFFFF)
         notificationManager.notify(notificationId, builder.build())
     }

@@ -141,10 +141,10 @@ fun MainScreen(
             }
 
             // Walking-companion overlay. Pinned to the bottom of the Scaffold content
-            // area, which sits directly above the BottomNavigationBar. The overlay
-            // installs no clickable / pointerInput, so taps fall through to the
-            // BottomNav buttons beneath.
-            if (showBars && viewModel.isLoggedIn && !showSideRail) {
+            // area, which sits directly above the BottomNavigationBar (if present),
+            // or at the very bottom of the screen if there is no bottom bar.
+            // The overlay installs no clickable / pointerInput, so taps fall through.
+            if (viewModel.isLoggedIn) {
                 ShimejiOverlay(
                     activeCompanion = activeCompanion,
                     modifier = Modifier.align(Alignment.BottomCenter)

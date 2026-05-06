@@ -8,28 +8,31 @@ import com.aima.habitual.model.WellbeingStats
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Repository that provides access to all App data.
+ * Central data-access contract for the app.
+ *
+ * Most callers use this instead of talking to the DAO directly so the rest of the
+ * app stays decoupled from the storage layer.
  */
 interface AppRepository {
-    // --- Habits ---
+    // Habit data is exposed as a Flow so UI layers can react to changes automatically.
     fun getAllHabitsStream(): Flow<List<Habit>>
     suspend fun insertHabit(habit: Habit)
     suspend fun updateHabit(habit: Habit)
     suspend fun deleteHabit(habitId: String)
 
-    // --- Habit Records ---
+    // Habit records track day-by-day completion state and support lookup by habit/date.
     fun getAllRecordsStream(): Flow<List<HabitRecord>>
     suspend fun insertRecord(record: HabitRecord)
     suspend fun deleteRecord(recordId: String)
     suspend fun findRecord(habitId: String, epochDay: Long): HabitRecord?
 
-    // --- Diary Entries ---
+    // Diary entries are stored separately from habits so notes can be edited independently.
     fun getAllDiaryEntriesStream(): Flow<List<DiaryEntry>>
     suspend fun insertDiaryEntry(entry: DiaryEntry)
     suspend fun updateDiaryEntry(entry: DiaryEntry)
     suspend fun deleteDiaryEntry(entryId: String)
 
-    // --- Wellbeing Stats ---
+    // Wellbeing stats use atomic helpers to avoid overwriting concurrent updates.
     fun getAllWellbeingStatsStream(): Flow<List<WellbeingStats>>
     suspend fun insertOrUpdateStats(stats: WellbeingStats)
     suspend fun getStatsForDay(epochDay: Long): WellbeingStats?
@@ -40,22 +43,22 @@ interface AppRepository {
     /** Atomically replace step count for a day. */
     suspend fun updateStepsForDay(epochDay: Long, steps: Int, ts: Long)
 
-    // --- Sleep Logs ---
+    // Sleep logs are normalized records that can be updated without duplicating entries.
     fun getAllSleepLogsStream(): Flow<List<SleepLogEntry>>
     suspend fun insertOrUpdateSleepLog(entry: SleepLogEntry)
 
-    // --- Bulk Operations ---
+    // Bulk operations are used when deleting a habit or clearing the app's local data.
     suspend fun deleteHabitWithRecords(habitId: String)
     suspend fun deleteAllUserData()
 
-    // --- Backup Snapshots ---
+    // Snapshots capture a point-in-time view for export/backup.
     suspend fun getAllHabitsSnapshot(): List<Habit>
     suspend fun getAllRecordsSnapshot(): List<HabitRecord>
     suspend fun getAllDiaryEntriesSnapshot(): List<DiaryEntry>
     suspend fun getAllWellbeingStatsSnapshot(): List<WellbeingStats>
     suspend fun getAllSleepLogsSnapshot(): List<SleepLogEntry>
 
-    // --- Restore Bulk Inserts ---
+    // Restore methods rehydrate the database from a saved snapshot.
     suspend fun insertAllHabits(habits: List<Habit>)
     suspend fun insertAllRecords(records: List<HabitRecord>)
     suspend fun insertAllDiaryEntries(entries: List<DiaryEntry>)
@@ -63,6 +66,12 @@ interface AppRepository {
     suspend fun insertAllSleepLogs(logs: List<SleepLogEntry>)
 }
 
+/**
+ * Offline implementation that forwards each call to the DAO.
+ *
+ * Keeping this layer in place makes it easy to swap the backing store later
+ * without changing the rest of the app.
+ */
 class OfflineAppRepository(private val habitDao: HabitDao) : AppRepository {
     override fun getAllHabitsStream() = habitDao.getAllHabits()
     override suspend fun insertHabit(habit: Habit) = habitDao.insertHabit(habit)

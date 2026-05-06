@@ -14,10 +14,13 @@ import com.aima.habitual.model.SleepLogEntry
 import com.aima.habitual.model.WellbeingStats
 
 /**
- * The Room Database for the Habitual app.
- * Manages all four entities and provides a singleton instance.
+ * Room database for the Habitual app.
+ *
+ * This class owns the local schema, the migration chain between versions,
+ * and the single shared database instance used by the app.
  */
 @Database(
+    // All persisted app data lives in these tables.
     entities = [Habit::class, HabitRecord::class, DiaryEntry::class, WellbeingStats::class, SleepLogEntry::class],
     version = 7,
     exportSchema = true
@@ -28,18 +31,21 @@ abstract class HabitualDatabase : RoomDatabase() {
     abstract fun habitDao(): HabitDao
 
     companion object {
+        // Add the diary lock flag introduced in schema version 2.
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE diary_entries ADD COLUMN isLocked INTEGER NOT NULL DEFAULT 0")
             }
         }
 
+        // Add mood support for diary entries in version 3.
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE diary_entries ADD COLUMN mood TEXT")
             }
         }
 
+        // Extend diary entries with media and location fields in version 4.
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE diary_entries ADD COLUMN photoUri TEXT")
@@ -48,12 +54,14 @@ abstract class HabitualDatabase : RoomDatabase() {
             }
         }
 
+        // Mark diary entries that are journal-style entries in version 5.
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE diary_entries ADD COLUMN isJournal INTEGER NOT NULL DEFAULT 0")
             }
         }
 
+        // Rebuild habit_records so the table enforces foreign keys and cleans up orphan rows.
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DELETE FROM habit_records WHERE habitId NOT IN (SELECT id FROM habits)")
@@ -73,6 +81,7 @@ abstract class HabitualDatabase : RoomDatabase() {
             }
         }
 
+        // Replace the habit record index and add the new sleep log table in version 7.
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP INDEX IF EXISTS index_habit_records_habitId")
@@ -91,8 +100,10 @@ abstract class HabitualDatabase : RoomDatabase() {
         private var INSTANCE: HabitualDatabase? = null
 
         /**
-         * Thread-safe singleton accessor.
-         * Uses double-checked locking to avoid multiple database instances.
+         * Returns the shared database instance.
+         *
+         * Double-checked locking keeps initialization lazy while preventing
+         * multiple Room databases from being created in parallel.
          */
         fun getInstance(context: Context): HabitualDatabase {
             return INSTANCE ?: synchronized(this) {
