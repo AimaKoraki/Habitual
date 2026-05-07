@@ -50,6 +50,8 @@ import android.os.Build
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import java.io.File
+import android.net.Uri
+import androidx.core.content.FileProvider
 
 /**
  * DiaryDetailScreen provides the interface to create or edit journal entries.
@@ -93,6 +95,9 @@ fun DiaryDetailScreen(
     var locationText by remember { mutableStateOf(existingEntry?.locationText) }
     var isRecording by remember { mutableStateOf(false) }
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    
+    var showPhotoOptions by remember { mutableStateOf(false) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
 
     // --- PHOTO PICKER ---
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -106,6 +111,14 @@ fun DiaryDetailScreen(
                 )
             } catch (_: Exception) { /* Some providers don't support persistable grants */ }
             photoUri = uri.toString()
+        }
+    }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            photoUri = tempPhotoUri.toString()
         }
     }
 
@@ -462,7 +475,7 @@ fun DiaryDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // --- PHOTO BUTTON ---
-                    IconButton(onClick = { photoPickerLauncher.launch("image/*") }) {
+                    IconButton(onClick = { showPhotoOptions = true }) {
                         Icon(
                             Icons.Default.PhotoCamera, 
                             contentDescription = "Add Photo", 
@@ -610,5 +623,32 @@ fun DiaryDetailScreen(
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
+    }
+
+    if (showPhotoOptions) {
+        AlertDialog(
+            onDismissRequest = { showPhotoOptions = false },
+            title = { Text("Add Photo") },
+            text = { Text("Choose an option to add a photo to your diary.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPhotoOptions = false
+                    val file = File.createTempFile("JPEG_", ".jpg", File(context.cacheDir, "images").apply { mkdirs() })
+                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    tempPhotoUri = uri
+                    cameraLauncher.launch(uri)
+                }) {
+                    Text("Take Photo")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPhotoOptions = false
+                    photoPickerLauncher.launch("image/*")
+                }) {
+                    Text("Choose from Gallery")
+                }
+            }
+        )
     }
 }

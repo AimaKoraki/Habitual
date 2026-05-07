@@ -50,6 +50,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.io.File
+import androidx.core.content.FileProvider
 
 /**
  * ProfileScreen: Manages user identity, theme preferences, and habit mastery progress.
@@ -72,6 +74,9 @@ fun ProfileScreen(
     var showRestoreDialog by remember { mutableStateOf(false) }
 
     // 2. PHOTO PICKER: Native Android contract for secure image selection
+    var showPhotoOptions by remember { mutableStateOf(false) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
@@ -80,6 +85,14 @@ fun ProfileScreen(
             }
         }
     )
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            viewModel.updateProfileImage(tempPhotoUri!!)
+        }
+    }
 
     // Name Editing State Logic
     var isEditingName by remember { mutableStateOf(false) }
@@ -182,7 +195,7 @@ fun ProfileScreen(
         // --- 3. AVATAR SECTION ---
         Box(
             contentAlignment = Alignment.BottomEnd,
-            modifier = Modifier.clickable { photoPickerLauncher.launch("image/*") }
+            modifier = Modifier.clickable { showPhotoOptions = true }
         ) {
             Box(
                 modifier = Modifier
@@ -725,5 +738,33 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+    
+    // Photo Options Dialog
+    if (showPhotoOptions) {
+        AlertDialog(
+            onDismissRequest = { showPhotoOptions = false },
+            title = { Text("Update Profile Picture") },
+            text = { Text("Choose an option to update your profile picture.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPhotoOptions = false
+                    val file = File.createTempFile("JPEG_", ".jpg", File(context.cacheDir, "images").apply { mkdirs() })
+                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    tempPhotoUri = uri
+                    cameraLauncher.launch(uri)
+                }) {
+                    Text("Take Photo")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPhotoOptions = false
+                    photoPickerLauncher.launch("image/*")
+                }) {
+                    Text("Choose from Gallery")
+                }
+            }
+        )
     }
 }
