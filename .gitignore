@@ -14,3 +14,6 @@
 .cxx
 local.properties
 .aider*
+
+# Firebase config — contains API keys, must NOT be committed
+app/google-services.json
