@@ -84,11 +84,13 @@ fun WellBeingScreen(
 
     // VOICE LOGGING & SNACKBAR
     val context = LocalContext.current
-    var isListening by remember { mutableStateOf(false) }
+    var isListeningWater by remember { mutableStateOf(false) }
+    var isListeningSleep by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val speechRecognizerManager = remember {
+    // Separate SpeechRecognizerManager for Water mic — only its isListeningWater state is toggled
+    val waterSpeechManager = remember {
         SpeechRecognizerManager(
             context = context,
             onResult = { result ->
@@ -98,14 +100,31 @@ fun WellBeingScreen(
                 scope.launch { snackbarHostState.showSnackbar(error) }
             },
             onListeningStateChanged = { listening ->
-                isListening = listening
+                isListeningWater = listening
+            }
+        )
+    }
+
+    // Separate SpeechRecognizerManager for Sleep mic — only its isListeningSleep state is toggled
+    val sleepSpeechManager = remember {
+        SpeechRecognizerManager(
+            context = context,
+            onResult = { result ->
+                viewModel.processVoiceCommand(result, selectedDate)
+            },
+            onError = { error ->
+                scope.launch { snackbarHostState.showSnackbar(error) }
+            },
+            onListeningStateChanged = { listening ->
+                isListeningSleep = listening
             }
         )
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            speechRecognizerManager.destroy()
+            waterSpeechManager.destroy()
+            sleepSpeechManager.destroy()
         }
     }
 
@@ -121,11 +140,22 @@ fun WellBeingScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { _ -> }
 
-    val micPermissionLauncher = rememberLauncherForActivityResult(
+    // Separate launchers so each one starts only its own speech manager
+    val waterMicPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            speechRecognizerManager.startListening()
+            waterSpeechManager.startListening()
+        } else {
+            scope.launch { snackbarHostState.showSnackbar("Microphone permission denied.") }
+        }
+    }
+
+    val sleepMicPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            sleepSpeechManager.startListening()
         } else {
             scope.launch { snackbarHostState.showSnackbar("Microphone permission denied.") }
         }
@@ -302,10 +332,10 @@ fun WellBeingScreen(
                     Text(stringResource(R.string.wellbeing_log_water))
                 }
                 
-                // Mic Button
-                val (micBg, micFg) = micButtonColors(isListening, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+                // Mic Button (Water)
+                val (micBg, micFg) = micButtonColors(isListeningWater, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
                 FilledIconButton(
-                    onClick = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                    onClick = { waterMicPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
                     modifier = Modifier.size(HabitualTheme.components.buttonHeight),
                     shape = RoundedCornerShape(HabitualTheme.radius.md),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = micBg, contentColor = micFg)
@@ -458,10 +488,10 @@ fun WellBeingScreen(
                     Text("Log Sleep")
                 }
 
-                // Mic Button
-                val (micBg, micFg) = micButtonColors(isListening, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+                // Mic Button (Sleep)
+                val (micBg, micFg) = micButtonColors(isListeningSleep, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
                 FilledIconButton(
-                    onClick = { micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                    onClick = { sleepMicPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
                     modifier = Modifier.size(HabitualTheme.components.buttonHeight),
                     shape = RoundedCornerShape(HabitualTheme.radius.md),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = micBg, contentColor = micFg)
