@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
+import kotlin.math.roundToInt
 
 /**
  * StepSensorManager: Interface for the device's physical Step Counter sensor.
@@ -47,7 +48,9 @@ class StepSensorManager(context: Context) : SensorEventListener {
         event?.let {
             if (it.sensor.type == Sensor.TYPE_STEP_COUNTER) {
                 // event.values[0] holds the cumulative steps since the device was last turned on.
-                val totalStepsSinceBoot = it.values[0].toInt()
+                // Use roundToInt() instead of toInt() to avoid systematically losing fractional
+                // step accumulation that the hardware sensor tracks internally.
+                val totalStepsSinceBoot = it.values[0].roundToInt()
                 onStepUpdate?.invoke(totalStepsSinceBoot)
             }
         }

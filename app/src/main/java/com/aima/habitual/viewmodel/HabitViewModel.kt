@@ -318,6 +318,8 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         if (storedDate != todayEpoch) {
             currentSensorSteps = 0
             rewardSteps = 0
+            // Also clear persisted reward steps so they don't bleed into the new day on cold start
+            prefs.edit().putInt(KEY_REWARDS, 0).apply()
             saveStepState(0, 0, todayEpoch)
         } else {
             currentSensorSteps = prefs.getInt(KEY_STEPS_TODAY, 0)
@@ -347,6 +349,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                     for (stat in loadedStats) {
                         _dailyStats[stat.epochDay] = stat
                     }
+                    // Re-apply the live sensor count for today so a stale DB emission
+                    // doesn't overwrite the most recent in-memory step value.
+                    val todayEpoch = LocalDate.now().toEpochDay()
+                    val liveSteps = currentSensorSteps + rewardSteps
+                    if (liveSteps > 0) {
+                        val cached = _dailyStats[todayEpoch] ?: WellbeingStats(epochDay = todayEpoch)
+                        if (cached.stepsCount < liveSteps) {
+                            _dailyStats[todayEpoch] = cached.copy(stepsCount = liveSteps)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("HabitViewModel", "Failed to load database data", e)
@@ -363,8 +375,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         if (storedDate != todayEpoch) {
             currentSensorSteps = 0
             rewardSteps = 0
-            // Fix: Immediately persist reset so it's not lost on activity recreation before next sensor event
+            // Clear persisted reward steps for the new day
+            prefs.edit().putInt(KEY_REWARDS, 0).apply()
+            // Save the new baseline and return — no delta on first event of the day.
+            // This prevents yesterday's accumulated sensor value from leaking into today's count.
             saveStepState(0, totalDeviceSteps, todayEpoch)
+            updateStepsForDate(LocalDate.now()) // ensure today shows 0 immediately
+            return
         }
 
         var delta = 0
@@ -372,6 +389,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             delta = if (totalDeviceSteps >= lastSensorValue) {
                 totalDeviceSteps - lastSensorValue
             } else {
+                // Sensor counter was reset (e.g. device reboot) — treat current value as delta
                 totalDeviceSteps
             }
         }
@@ -422,7 +440,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     private fun saveStepState(steps: Int, sensorVal: Int, date: Long) {
         prefs.edit().apply {
             putInt(KEY_STEPS_TODAY, steps)
-            if (sensorVal != 0) putInt(KEY_LAST_SENSOR, sensorVal)
+            // Always persist the sensor baseline — even when sensorVal is 0 — so the
+            // next handleSensorUpdate delta is computed against a valid anchor.
+            putInt(KEY_LAST_SENSOR, sensorVal)
             putLong(KEY_LAST_DATE, date)
             apply()
         }
