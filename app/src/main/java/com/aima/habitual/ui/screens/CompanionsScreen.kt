@@ -58,7 +58,7 @@ fun CompanionsScreen(
     val outerPad = HabitualTheme.spacing.lg
     val gutter = HabitualTheme.spacing.md
     val gridColumns = 2
-    val bottomContentPad = 100.dp
+    val bottomContentPad = HabitualTheme.spacing.navBarPad
     // ────────────────────────────────────────────
 
     val companions by companionViewModel.companions.collectAsState()

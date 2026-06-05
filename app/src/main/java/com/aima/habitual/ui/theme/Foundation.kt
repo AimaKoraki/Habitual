@@ -15,7 +15,8 @@ data class HabitualSpacing(
     val lg: Dp = 20.dp,       // Card padding, section gaps
     val xl: Dp = 24.dp,       // Generous padding, screen horizontal
     val section: Dp = 32.dp,   // Between major sections
-    val statusBarGap: Dp = 8.dp // Gap below the status bar
+    val statusBarGap: Dp = 8.dp, // Gap below the status bar
+    val navBarPad: Dp = 72.dp   // Bottom content clearance for the Shimeji overlay (56dp band + 16dp buffer)
 )
 
 // ─── RADIUS ──────────────────────────────────────────────────────────────────

@@ -185,8 +185,7 @@ fun ProfileScreen(
             .padding(
                 start = HabitualTheme.spacing.lg,
                 end = HabitualTheme.spacing.lg,
-                top = 0.dp,
-                bottom = HabitualTheme.spacing.lg
+                top = 0.dp
             )
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -654,7 +653,7 @@ fun ProfileScreen(
             Text(text = stringResource(R.string.profile_delete_account), style = MaterialTheme.typography.titleMedium)
         }
 
-        Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+        Spacer(modifier = Modifier.height(HabitualTheme.spacing.navBarPad))
     }
     } // End Scaffold
 

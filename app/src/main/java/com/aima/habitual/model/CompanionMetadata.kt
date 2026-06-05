@@ -18,5 +18,8 @@ data class CompanionMetadata(
     // Idle tuning keeps the companion from moving constantly and makes motion feel natural.
     @SerializedName("idleChanceOnEdge") val idleChanceOnEdge: Float = 0.45f,
     @SerializedName("idleMinMs") val idleMinMs: Long = 800L,
-    @SerializedName("idleMaxMs") val idleMaxMs: Long = 3500L
+    @SerializedName("idleMaxMs") val idleMaxMs: Long = 3500L,
+    // When true, the walk animation plays through once and holds on the last frame
+    // until the next walk pass begins (e.g. Marshall Lee). All others loop continuously.
+    @SerializedName("walkHoldOnLastFrame") val walkHoldOnLastFrame: Boolean = false
 )

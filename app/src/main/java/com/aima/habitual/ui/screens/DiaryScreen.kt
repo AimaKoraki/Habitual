@@ -226,7 +226,12 @@ fun DiaryScreen(
                 } else {
                     // LIST STATE: Displays scrollable entry cards.
                     LazyColumn(
-                        contentPadding = PaddingValues(HabitualTheme.spacing.lg),
+                        contentPadding = PaddingValues(
+                            start = HabitualTheme.spacing.lg,
+                            end = HabitualTheme.spacing.lg,
+                            top = HabitualTheme.spacing.lg,
+                            bottom = HabitualTheme.spacing.navBarPad
+                        ),
                         verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)
                     ) {
                         // Journal Setup Header

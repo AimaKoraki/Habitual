@@ -131,7 +131,14 @@ fun ShimejiOverlay(
             walkFrameTimer += tickMs
             if (walkFrameTimer >= meta.walkFrameDurationMs) {
                 walkFrameTimer = 0L
-                walkFrameIdx = (walkFrameIdx + 1) % meta.walkFrames.size
+                walkFrameIdx = if (meta.walkHoldOnLastFrame) {
+                    // Single pass: advance up to the last frame and hold there.
+                    // Index resets to 0 on each edge hit (start of next walk pass).
+                    (walkFrameIdx + 1).coerceAtMost(meta.walkFrames.size - 1)
+                } else {
+                    // Normal loop: wrap back to walk_0 after the last frame.
+                    (walkFrameIdx + 1) % meta.walkFrames.size
+                }
                 currentFramePath = walkPath(meta.walkFrames[walkFrameIdx])
             }
 

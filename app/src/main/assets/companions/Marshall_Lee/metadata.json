@@ -7,5 +7,6 @@
   "idleFrameDurationMs": 180,
   "idleChanceOnEdge": 0.30,
   "idleMinMs": 600,
-  "idleMaxMs": 2500
+  "idleMaxMs": 2500,
+  "walkHoldOnLastFrame": true
 }

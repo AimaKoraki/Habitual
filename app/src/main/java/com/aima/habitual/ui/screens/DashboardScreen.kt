@@ -121,7 +121,10 @@ fun DashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = HabitualTheme.spacing.xl),
+                    .padding(
+                        horizontal = HabitualTheme.spacing.xl,
+                        vertical = HabitualTheme.spacing.md
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -160,6 +163,8 @@ fun DashboardScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
+
             // --- DATE SELECTOR: Syncs scroller with screen state ---
             DatePickerScroller(
                 selectedDate = selectedDate,
@@ -175,7 +180,7 @@ fun DashboardScreen(
                 modifier = Modifier.padding(horizontal = HabitualTheme.spacing.xl)
             )
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.xl))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
 
             // 2. BACKGROUND TEXTURE: Applies the fading leaf pattern to the list area
             val leafColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.17f)
@@ -237,7 +242,7 @@ fun DashboardScreen(
 
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.lg),
-                        contentPadding = PaddingValues(bottom = 100.dp, start = HabitualTheme.spacing.xl, end = HabitualTheme.spacing.xl)
+                        contentPadding = PaddingValues(bottom = HabitualTheme.spacing.navBarPad, start = HabitualTheme.spacing.xl, end = HabitualTheme.spacing.xl)
                     ) {
                         items(sortedHabits) { habit ->
                             val isCompleted = records.any {

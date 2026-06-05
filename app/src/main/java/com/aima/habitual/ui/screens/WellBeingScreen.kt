@@ -470,7 +470,7 @@ fun WellBeingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(HabitualTheme.spacing.section))
+            Spacer(modifier = Modifier.height(HabitualTheme.spacing.navBarPad))
         }
     }
 
