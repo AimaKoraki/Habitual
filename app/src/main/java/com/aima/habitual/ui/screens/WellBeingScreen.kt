@@ -62,7 +62,7 @@ fun WellBeingScreen(
 ) {
     // 1. STATE MANAGEMENT
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    val stats = viewModel.getStatsForDate(selectedDate)
+    val stats by remember { derivedStateOf { viewModel.getStatsForDate(selectedDate) } }
 
     var showSleepDialog by remember { mutableStateOf(false) }
     var showWaterDialog by remember { mutableStateOf(false) }
@@ -72,6 +72,10 @@ fun WellBeingScreen(
     var stepGoalInput by remember { mutableStateOf(viewModel.stepGoal.toString()) }
     var showWaterGoalDialog by remember { mutableStateOf(false) }
     var waterGoalInput by remember { mutableStateOf(viewModel.waterGoal.toString()) }
+
+    // Keep goal input strings in sync with ViewModel (e.g., after backup restore)
+    LaunchedEffect(viewModel.stepGoal) { stepGoalInput = viewModel.stepGoal.toString() }
+    LaunchedEffect(viewModel.waterGoal) { waterGoalInput = viewModel.waterGoal.toString() }
 
     // Water input state
     val unitOptions = listOf("ml", "Cups", "Oz")

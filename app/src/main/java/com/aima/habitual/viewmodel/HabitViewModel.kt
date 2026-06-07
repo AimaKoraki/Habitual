@@ -320,7 +320,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             rewardSteps = 0
             // Also clear persisted reward steps so they don't bleed into the new day on cold start
             prefs.edit().putInt(KEY_REWARDS, 0).apply()
-            saveStepState(0, 0, todayEpoch)
+            saveStepState(0, -2, todayEpoch)
         } else {
             currentSensorSteps = prefs.getInt(KEY_STEPS_TODAY, 0)
             rewardSteps = prefs.getInt(KEY_REWARDS, 0)
@@ -459,17 +459,21 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     fun logWater(date: LocalDate, amountMl: Int) {
         val epoch = date.toEpochDay()
         val ts = System.currentTimeMillis()
+        // 1. Optimistically update in-memory cache first for immediate UI response
+        val cached = _dailyStats[epoch] ?: WellbeingStats(epochDay = epoch)
+        _dailyStats[epoch] = cached.copy(waterIntakeMl = cached.waterIntakeMl + amountMl, lastSyncTimestamp = ts)
+
         viewModelScope.launch {
             try {
-                // 1. Ensure a row exists for today (seed with 0 if absent)
+                // 2. Ensure a row exists for today (seed with 0 if absent)
                 val existing = repository.getStatsForDay(epoch)
                 if (existing == null) {
                     repository.insertOrUpdateStats(WellbeingStats(epochDay = epoch))
                 }
-                // 2. Atomically increment only the water column — safe under concurrency
+                // 3. Atomically increment only the water column — safe under concurrency
                 repository.addWaterForDay(epoch, amountMl, ts)
 
-                // 3. Reflect change in in-memory cache for immediate UI update
+                // 4. Re-sync from DB to reconcile any concurrent writes
                 val refreshed = repository.getStatsForDay(epoch)
                 if (refreshed != null) _dailyStats[epoch] = refreshed
             } catch (e: Exception) {
@@ -541,6 +545,15 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addSteps(steps: Int) {
+        val todayEpoch = LocalDate.now().toEpochDay()
+        val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
+        if (storedDate != todayEpoch) {
+            currentSensorSteps = 0
+            rewardSteps = 0
+            prefs.edit().putInt(KEY_REWARDS, 0).apply()
+            saveStepState(0, -2, todayEpoch)
+        }
+
         rewardSteps += steps
         if (rewardSteps < 0) rewardSteps = 0
         prefs.edit().putInt(KEY_REWARDS, rewardSteps).apply()
@@ -1160,18 +1173,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
         } else if (lowerCommand.contains("sleep")) {
             val amount = number ?: 8
-            var hoursToAdd = 0.0
-            if (lowerCommand.contains("minute") || lowerCommand.contains("minutes")) {
-                hoursToAdd = amount / 60.0
+            val hoursToAdd = if (lowerCommand.contains("minute") || lowerCommand.contains("minutes")) {
+                amount / 60.0
             } else {
-                hoursToAdd = amount.toDouble() // Default to hours
+                amount.toDouble() // Default to hours
             }
-            updateSleep(date, hoursToAdd)
-            // also log via saveSleepLog for consistency if it's the current date
-            val currentDurationOpt = getSleepLog(date)?.durationMinutes ?: 0
-            val addedMinutes = (hoursToAdd * 60).toInt()
-            saveSleepLog(date, currentDurationOpt + addedMinutes, getSleepLog(date)?.quality ?: "Good")
-            
+            val durationMinutes = (hoursToAdd * 60).toInt()
+            val existingQuality = getSleepLog(date)?.quality ?: "Good"
+            // saveSleepLog already calls updateSleep internally — call only once to avoid double-write
+            saveSleepLog(date, durationMinutes, existingQuality)
+
             voiceCommandFeedback = "Logged ${String.format("%.1f", hoursToAdd)} hours of sleep."
 
         } else if (lowerCommand.contains("step")) {
