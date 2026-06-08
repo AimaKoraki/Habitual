@@ -239,12 +239,12 @@ fun DiaryViewScreen(
                     entry.audioFilePath?.let { filePath ->
                         val context = LocalContext.current
                         var isPlaying by remember { mutableStateOf(false) }
-                        var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+                        val mediaPlayerState = remember { mutableStateOf<MediaPlayer?>(null) }
                         
                         // Cleanup player on dispose
                         androidx.compose.runtime.DisposableEffect(filePath) {
                             onDispose {
-                                mediaPlayer?.release()
+                                mediaPlayerState.value?.release()
                             }
                         }
 
@@ -260,21 +260,26 @@ fun DiaryViewScreen(
                             ) {
                                 IconButton(
                                     onClick = {
-                                        if (isPlaying) {
-                                            mediaPlayer?.pause()
-                                            isPlaying = false
-                                        } else {
-                                            if (mediaPlayer == null) {
-                                                mediaPlayer = MediaPlayer().apply {
-                                                    setDataSource(filePath)
-                                                    prepare()
-                                                    setOnCompletionListener {
-                                                        isPlaying = false
+                                        try {
+                                            if (isPlaying) {
+                                                mediaPlayerState.value?.pause()
+                                                isPlaying = false
+                                            } else {
+                                                if (mediaPlayerState.value == null) {
+                                                    mediaPlayerState.value = MediaPlayer().apply {
+                                                        setDataSource(filePath)
+                                                        prepare()
+                                                        setOnCompletionListener {
+                                                            isPlaying = false
+                                                        }
                                                     }
                                                 }
+                                                mediaPlayerState.value?.start()
+                                                isPlaying = true
                                             }
-                                            mediaPlayer?.start()
-                                            isPlaying = true
+                                        } catch (e: Exception) {
+                                            android.widget.Toast.makeText(context, "Cannot play audio file", android.widget.Toast.LENGTH_SHORT).show()
+                                            isPlaying = false
                                         }
                                     },
                                     modifier = Modifier.size(HabitualTheme.components.chipSize)

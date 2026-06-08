@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -85,6 +86,15 @@ fun DiaryCard(
                             Icon(
                                 imageVector = Icons.Default.PhotoCamera,
                                 contentDescription = "Photo attached",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        if (entry.audioFilePath != null) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = "Voice note attached",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(16.dp)
                             )
