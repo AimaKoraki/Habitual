@@ -36,8 +36,12 @@ import com.aima.habitual.ui.components.ShimejiOverlay
 import com.aima.habitual.ui.theme.AppTheme
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.utils.ConnectivityStatus
+import com.aima.habitual.viewmodel.AuthViewModel
 import com.aima.habitual.viewmodel.CompanionViewModel
+import com.aima.habitual.viewmodel.DiaryViewModel
 import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.SettingsViewModel
+import com.aima.habitual.viewmodel.WellbeingViewModel
 
 /**
  * MainScreen: The root UI container of the app.
@@ -52,7 +56,11 @@ fun MainScreen(
     appTheme: AppTheme,
     onThemeChange: (Boolean) -> Unit,
     onThemeColorChange: (AppTheme) -> Unit,
-    viewModel: HabitViewModel
+    habitViewModel: HabitViewModel,
+    authViewModel: AuthViewModel,
+    settingsViewModel: SettingsViewModel,
+    wellbeingViewModel: WellbeingViewModel,
+    diaryViewModel: DiaryViewModel
 ) {
     // ── Tokens ─────────────────────────────────
     val statusBarGap = HabitualTheme.spacing.statusBarGap
@@ -63,7 +71,7 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val networkStatus by viewModel.networkStatus.collectAsState()
+    val networkStatus by habitViewModel.networkStatus.collectAsState()
 
     LaunchedEffect(networkStatus) {
         if (networkStatus == ConnectivityStatus.Lost || networkStatus == ConnectivityStatus.Unavailable) {
@@ -95,7 +103,7 @@ fun MainScreen(
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            if (!showSideRail && showBars && viewModel.isLoggedIn) {
+            if (!showSideRail && showBars && authViewModel.isLoggedIn) {
                 BottomNavigationBar(navController)
             }
         }
@@ -109,7 +117,7 @@ fun MainScreen(
                 .padding(top = statusBarGap)
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
-                if (showSideRail && showBars && viewModel.isLoggedIn) {
+                if (showSideRail && showBars && authViewModel.isLoggedIn) {
                     NavigationRail {
                         mainTabs.forEach { screen ->
                             NavigationRailItem(
@@ -130,7 +138,11 @@ fun MainScreen(
 
                 NavGraph(
                     navController = navController,
-                    viewModel = viewModel,
+                    habitViewModel = habitViewModel,
+                    authViewModel = authViewModel,
+                    settingsViewModel = settingsViewModel,
+                    wellbeingViewModel = wellbeingViewModel,
+                    diaryViewModel = diaryViewModel,
                     companionViewModel = companionViewModel,
                     isDarkTheme = isDarkTheme,
                     appTheme = appTheme,
@@ -144,7 +156,7 @@ fun MainScreen(
             // area, which sits directly above the BottomNavigationBar (if present),
             // or at the very bottom of the screen if there is no bottom bar.
             // The overlay installs no clickable / pointerInput, so taps fall through.
-            if (viewModel.isLoggedIn) {
+            if (authViewModel.isLoggedIn) {
                 ShimejiOverlay(
                     activeCompanion = activeCompanion,
                     modifier = Modifier.align(Alignment.BottomCenter)

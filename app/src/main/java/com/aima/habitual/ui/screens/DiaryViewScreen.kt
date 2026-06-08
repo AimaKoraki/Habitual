@@ -29,7 +29,7 @@ import com.aima.habitual.R
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.DiaryTag
 import com.aima.habitual.ui.theme.HabitualTheme
-import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.DiaryViewModel
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.LocationOn
@@ -45,7 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 fun DiaryViewScreen(
     entryId: String,
     navController: NavHostController,
-    viewModel: HabitViewModel
+    viewModel: DiaryViewModel
 ) {
     // 1. Find the entry. If not found (deleted), handle gracefully.
     val diaryEntries by viewModel.diaryEntries.collectAsState()

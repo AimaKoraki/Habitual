@@ -46,6 +46,7 @@ import com.aima.habitual.model.Habit
 import com.aima.habitual.navigation.Screen
 import com.aima.habitual.ui.components.DatePickerScroller
 import com.aima.habitual.ui.theme.HabitualTheme
+import com.aima.habitual.viewmodel.AuthViewModel
 import com.aima.habitual.viewmodel.HabitViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -58,7 +59,8 @@ import java.time.LocalDateTime
 @Composable
 fun DashboardScreen(
     navController: NavHostController,
-    viewModel: HabitViewModel
+    viewModel: HabitViewModel,
+    authViewModel: AuthViewModel
 ) {
     val habits by viewModel.habits.collectAsState()
     val records by viewModel.records.collectAsState()
@@ -142,7 +144,7 @@ fun DashboardScreen(
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = HabitualTheme.alpha.secondary)
                     )
                     Text(
-                        text = viewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
+                        text = authViewModel.userName.ifEmpty { stringResource(R.string.default_user_name) },
                         style = MaterialTheme.typography.displayMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )

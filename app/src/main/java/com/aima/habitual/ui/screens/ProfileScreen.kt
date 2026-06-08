@@ -45,7 +45,10 @@ import com.aima.habitual.ui.theme.AppTheme
 import com.aima.habitual.ui.theme.HabitualTheme
 import com.aima.habitual.ui.components.QuoteCard
 import com.aima.habitual.utils.DriveBackupManager
+import com.aima.habitual.viewmodel.AuthViewModel
 import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.SettingsViewModel
+import com.aima.habitual.viewmodel.WellbeingViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -64,7 +67,10 @@ fun ProfileScreen(
     appTheme: AppTheme,
     onThemeChange: (Boolean) -> Unit,
     onThemeColorChange: (AppTheme) -> Unit,
-    viewModel: HabitViewModel,
+    authViewModel: AuthViewModel,
+    settingsViewModel: SettingsViewModel,
+    habitViewModel: HabitViewModel,
+    wellbeingViewModel: WellbeingViewModel,
     onLogout: () -> Unit,
     onDeleteProfile: () -> Unit
 ) {
@@ -81,7 +87,7 @@ fun ProfileScreen(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
             if (uri != null) {
-                viewModel.updateProfileImage(uri)
+                authViewModel.updateProfileImage(uri)
             }
         }
     )
@@ -90,7 +96,7 @@ fun ProfileScreen(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success && tempPhotoUri != null) {
-            viewModel.updateProfileImage(tempPhotoUri!!)
+            authViewModel.updateProfileImage(tempPhotoUri!!)
         }
     }
 
@@ -102,18 +108,18 @@ fun ProfileScreen(
 
     // Mastery Data observed from the ViewModel
     // Subscribe to records to force recomposition when gamification stats change
-    val records by viewModel.records.collectAsState()
-    val habits by viewModel.habits.collectAsState()
+    val records by habitViewModel.records.collectAsState()
+    val habits by habitViewModel.habits.collectAsState()
     
-    val level = viewModel.currentLevel
-    val habitsForNextLevel = viewModel.habitsForNextLevel
-    val progress = viewModel.levelProgress
-    val toNextLevel = viewModel.habitsForNextLevel
+    val level = habitViewModel.currentLevel
+    val habitsForNextLevel = habitViewModel.habitsForNextLevel
+    val progress = habitViewModel.levelProgress
+    val toNextLevel = habitViewModel.habitsForNextLevel
 
     // --- DRIVE BACKUP STATE ---
     val context = LocalContext.current
-    val backupState = viewModel.backupState
-    val lastBackupTime = viewModel.lastBackupTime
+    val backupState = authViewModel.backupState
+    val lastBackupTime = authViewModel.lastBackupTime
 
     // Track whether the pending Drive action is backup (true) or restore (false)
     var pendingDriveAction by remember { mutableStateOf(true) }
@@ -126,12 +132,12 @@ fun ProfileScreen(
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
-                viewModel.handleDriveSignInResult(account, isBackup = pendingDriveAction)
+                authViewModel.handleDriveSignInResult(account, isBackup = pendingDriveAction)
             } catch (e: Exception) {
-                viewModel.handleDriveSignInResult(null, isBackup = pendingDriveAction)
+                authViewModel.handleDriveSignInResult(null, isBackup = pendingDriveAction)
             }
         } else {
-            viewModel.handleDriveSignInResult(null, isBackup = pendingDriveAction)
+            authViewModel.handleDriveSignInResult(null, isBackup = pendingDriveAction)
         }
     }
 
@@ -144,7 +150,7 @@ fun ProfileScreen(
         val account = GoogleSignIn.getLastSignedInAccount(context)
         if (account != null && DriveBackupManager.isAuthorized(context)) {
             // Already authorized — proceed directly
-            viewModel.handleDriveSignInResult(account, isBackup)
+            authViewModel.handleDriveSignInResult(account, isBackup)
         } else {
             // Need authorization — launch sign-in
             val client = GoogleSignIn.getClient(context, DriveBackupManager.getSignInOptions())
@@ -156,23 +162,23 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         val account = GoogleSignIn.getLastSignedInAccount(context)
         if (account != null && DriveBackupManager.isAuthorized(context)) {
-            viewModel.refreshLastBackupTime(account)
+            authViewModel.refreshLastBackupTime(account)
         }
         // Fetch the daily quote when the Profile screen is opened
-        viewModel.fetchDailyQuote()
+        habitViewModel.fetchDailyQuote()
     }
 
     // Snackbar for backup/restore feedback
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(backupState) {
         when (val state = backupState) {
-            is HabitViewModel.BackupState.Success -> {
+            is AuthViewModel.BackupState.Success -> {
                 snackbarHostState.showSnackbar(state.message)
-                viewModel.clearBackupState()
+                authViewModel.clearBackupState()
             }
-            is HabitViewModel.BackupState.Error -> {
+            is AuthViewModel.BackupState.Error -> {
                 snackbarHostState.showSnackbar(state.message)
-                viewModel.clearBackupState()
+                authViewModel.clearBackupState()
             }
             else -> {}
         }
@@ -212,7 +218,7 @@ fun ProfileScreen(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(viewModel.profileImageUri ?: R.drawable.profile_placeholder)
+                        .data(authViewModel.profileImageUri ?: R.drawable.profile_placeholder)
                         .crossfade(true)
                         .build(),
                     contentDescription = stringResource(R.string.desc_profile_picture),
@@ -277,7 +283,7 @@ fun ProfileScreen(
                             if (tempName.trim().isBlank()) {
                                 nameError = true
                             } else {
-                                viewModel.updateUserName(tempName)
+                                authViewModel.updateUserName(tempName)
                                 isEditingName = false
                                 focusManager.clearFocus()
                             }
@@ -287,7 +293,7 @@ fun ProfileScreen(
                         if (tempName.trim().isBlank()) {
                             nameError = true
                         } else {
-                            viewModel.updateUserName(tempName)
+                            authViewModel.updateUserName(tempName)
                             isEditingName = false
                             focusManager.clearFocus()
                         }
@@ -311,13 +317,13 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        tempName = viewModel.userName
+                        tempName = authViewModel.userName
                         isEditingName = true
                     }
                     .padding(HabitualTheme.spacing.sm)
             ) {
                 Text(
-                    text = viewModel.userName,
+                    text = authViewModel.userName,
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -364,7 +370,7 @@ fun ProfileScreen(
 
         // --- DAILY QUOTE: Online API / Offline JSON fallback ---
         QuoteCard(
-            quote = viewModel.dailyQuote,
+            quote = habitViewModel.dailyQuote,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -493,8 +499,8 @@ fun ProfileScreen(
                         )
                     }
                     Switch(
-                        checked = viewModel.isBiometricEnabled,
-                        onCheckedChange = { viewModel.toggleBiometricLogin(it) },
+                        checked = authViewModel.isBiometricEnabled,
+                        onCheckedChange = { authViewModel.toggleBiometricLogin(it) },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
                             checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
@@ -526,7 +532,7 @@ fun ProfileScreen(
                     modifier = Modifier.padding(bottom = HabitualTheme.spacing.md)
                 )
 
-                val isInProgress = backupState is HabitViewModel.BackupState.InProgress
+                val isInProgress = backupState is AuthViewModel.BackupState.InProgress
 
                 // Backup Button
                 Row(
@@ -731,7 +737,7 @@ fun ProfileScreen(
                                         Text(text = habit.title, style = MaterialTheme.typography.titleMedium)
                                         Text(text = habit.category, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                                     }
-                                    IconButton(onClick = { viewModel.deleteHabit(habit.id) }) {
+                                    IconButton(onClick = { habitViewModel.deleteHabit(habit.id) }) {
                                         Icon(Icons.Default.Delete, tint = MaterialTheme.colorScheme.error, contentDescription = null)
                                     }
                                 }

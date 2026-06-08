@@ -32,7 +32,7 @@ import androidx.navigation.NavHostController
 import com.aima.habitual.R
 import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.theme.HabitualTheme
-import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.DiaryViewModel
 import java.util.UUID
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -65,7 +65,7 @@ fun DiaryDetailScreen(
     entryId: String?, // Nullable: If null -> New Entry, If ID exists -> Edit Mode
     isJournal: Boolean,
     navController: NavHostController,
-    viewModel: HabitViewModel
+    viewModel: DiaryViewModel
 ) {
     val diaryEntries by viewModel.diaryEntries.collectAsState()
     val existingEntry = diaryEntries.find { it.id == entryId }

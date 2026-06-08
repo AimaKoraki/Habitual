@@ -15,17 +15,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.aima.habitual.ui.screens.*
 import com.aima.habitual.ui.theme.AppTheme
+import com.aima.habitual.viewmodel.AuthViewModel
 import com.aima.habitual.viewmodel.CompanionViewModel
+import com.aima.habitual.viewmodel.DiaryViewModel
 import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.SettingsViewModel
+import com.aima.habitual.viewmodel.WellbeingViewModel
 
-/**
- * NavGraph manages the entire navigation structure.
- * Updated to handle Auth flow and Master/Detail logic.
- */
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    viewModel: HabitViewModel,
+    habitViewModel: HabitViewModel,
+    authViewModel: AuthViewModel,
+    settingsViewModel: SettingsViewModel,
+    wellbeingViewModel: WellbeingViewModel,
+    diaryViewModel: DiaryViewModel,
     companionViewModel: CompanionViewModel,
     isDarkTheme: Boolean,
     appTheme: AppTheme,
@@ -37,8 +41,7 @@ fun NavGraph(
 
     NavHost(
         navController = navController,
-        // Start at Login if not authenticated, otherwise Dashboard
-        startDestination = if (viewModel.isLoggedIn) Screen.Dashboard.route else Screen.Login.route,
+        startDestination = if (authViewModel.isLoggedIn) Screen.Dashboard.route else Screen.Login.route,
         modifier = modifier,
         enterTransition = { slideInHorizontally(animationSpec = tween(300)) { it } },
         exitTransition = { slideOutHorizontally(animationSpec = tween(300)) { -it } },
@@ -46,16 +49,12 @@ fun NavGraph(
         popExitTransition = { slideOutHorizontally(animationSpec = tween(300)) { it } }
     ) {
 
-        // --- 1. AUTH FLOW ---
-
         composable(Screen.Login.route) {
             val context = LocalContext.current
             val activity = context as? FragmentActivity
 
-            // Reactive navigation: when async Google sign-in sets isLoggedIn = true,
-            // this effect triggers navigation to Dashboard.
-            LaunchedEffect(viewModel.isLoggedIn) {
-                if (viewModel.isLoggedIn) {
+            LaunchedEffect(authViewModel.isLoggedIn) {
+                if (authViewModel.isLoggedIn) {
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -63,39 +62,35 @@ fun NavGraph(
             }
 
             LoginScreen(
-                errorMessage = viewModel.loginError,
+                errorMessage = authViewModel.loginError,
                 onLoginAttempt = { email, password ->
-                    viewModel.validateLogin(email, password)
-                    // Navigation handled by LaunchedEffect above
+                    authViewModel.validateLogin(email, password)
                 },
                 onNavigateToRegister = {
-                    viewModel.clearLoginError()
+                    authViewModel.clearLoginError()
                     navController.navigate(Screen.Register.route)
                 },
                 onGoogleSignIn = {
-                    viewModel.signInWithGoogle(context, googleWebClientId)
-                    // Navigation handled by LaunchedEffect above
+                    authViewModel.signInWithGoogle(context, googleWebClientId)
                 },
                 onBiometricLogin = {
                     activity?.let { act ->
-                        viewModel.showBiometricPrompt(
+                        authViewModel.showBiometricPrompt(
                             activity = act,
                             onSuccess = {
-                                // Navigation handled by LaunchedEffect above
                             },
                             onFailure = { errorMsg ->
-                                // loginError is set by the callback if needed
                             }
                         )
                     }
                 },
-                isBiometricAvailable = viewModel.isBiometricAvailable
+                isBiometricAvailable = authViewModel.isBiometricAvailable
             )
         }
 
         composable(Screen.Register.route) {
-            LaunchedEffect(viewModel.isLoggedIn) {
-                if (viewModel.isLoggedIn) {
+            LaunchedEffect(authViewModel.isLoggedIn) {
+                if (authViewModel.isLoggedIn) {
                     navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -103,32 +98,29 @@ fun NavGraph(
             }
             RegisterScreen(
                 onRegisterSuccess = { name, email, password ->
-                    // Save user to Firebase
-                    viewModel.registerUser(name, email, password) { success ->
-                        // Navigation handled by LaunchedEffect
+                    authViewModel.registerUser(name, email, password) { success ->
                     }
                 },
                 onNavigateToLogin = {
-                    viewModel.clearLoginError()
+                    authViewModel.clearLoginError()
                     navController.popBackStack()
                 }
             )
         }
 
-        // --- 2. MAIN APP TABS ---
-
         composable(Screen.Dashboard.route) {
-            DashboardScreen(navController = navController, viewModel = viewModel)
+            DashboardScreen(navController = navController, viewModel = habitViewModel, authViewModel = authViewModel)
         }
 
         composable(Screen.WellBeing.route) {
-            WellBeingScreen(navController = navController, viewModel = viewModel)
+            WellBeingScreen(navController = navController, viewModel = wellbeingViewModel, settingsViewModel = settingsViewModel)
         }
 
         composable(Screen.Diary.route) {
             DiaryScreen(
                 navController = navController,
-                viewModel = viewModel,
+                viewModel = diaryViewModel,
+                authViewModel = authViewModel,
                 onEntryClick = { entryId ->
                     navController.navigate(Screen.DiaryView.createRoute(entryId))
                 },
@@ -138,31 +130,30 @@ fun NavGraph(
             )
         }
 
-        // --- 3. PROFILE & LOGOUT ---
         composable(Screen.Profile.route) {
             ProfileScreen(
                 isDarkTheme = isDarkTheme,
                 appTheme = appTheme,
                 onThemeChange = onThemeChange,
                 onThemeColorChange = onThemeColorChange,
-                viewModel = viewModel,
+                authViewModel = authViewModel,
+                settingsViewModel = settingsViewModel,
+                habitViewModel = habitViewModel,
+                wellbeingViewModel = wellbeingViewModel,
                 onLogout = {
-                    viewModel.logout()
+                    authViewModel.logout()
                     navController.navigate(Screen.Login.route) {
-                        // Clears all history so user is fully logged out
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onDeleteProfile = {
-                    viewModel.deleteProfile()
+                    authViewModel.deleteProfile()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
             )
         }
-
-        // --- 4. DETAILS & OTHER SCREENS ---
 
         composable(
             route = Screen.DiaryDetail.route,
@@ -180,7 +171,7 @@ fun NavGraph(
                 entryId = if (entryId == "new") null else entryId,
                 isJournal = isJournal,
                 navController = navController,
-                viewModel = viewModel
+                viewModel = diaryViewModel
             )
         }
 
@@ -192,7 +183,7 @@ fun NavGraph(
             HabitDetailScreen(
                 habitId = habitId,
                 navController = navController,
-                viewModel = viewModel
+                viewModel = habitViewModel
             )
         }
 
@@ -204,7 +195,7 @@ fun NavGraph(
             HabitStatsScreen(
                  habitId = habitId,
                  navController = navController,
-                 viewModel = viewModel
+                 viewModel = habitViewModel
             )
         }
         composable(
@@ -215,14 +206,13 @@ fun NavGraph(
             DiaryViewScreen(
                  entryId = entryId,
                  navController = navController,
-                 viewModel = viewModel
+                 viewModel = diaryViewModel
             )
         }
 
-        // --- 4. COMPANIONS (Master/Detail from local sprite assets) ---
         composable(Screen.Companions.route) {
             CompanionsScreen(
-                habitViewModel = viewModel,
+                habitViewModel = habitViewModel,
                 companionViewModel = companionViewModel,
                 onCompanionClick = { companionName ->
                     navController.navigate(Screen.CompanionDetail.createRoute(companionName))

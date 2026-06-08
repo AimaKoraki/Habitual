@@ -45,7 +45,8 @@ import com.aima.habitual.ui.components.DatePickerScroller
 import com.aima.habitual.ui.components.HealthStatCard
 import com.aima.habitual.ui.components.ScreenHeader
 import com.aima.habitual.ui.theme.HabitualTheme
-import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.SettingsViewModel
+import com.aima.habitual.viewmodel.WellbeingViewModel
 import java.time.LocalDate
 
 /**
@@ -58,7 +59,8 @@ import java.time.LocalDate
 @Composable
 fun WellBeingScreen(
     navController: NavHostController,
-    viewModel: HabitViewModel
+    viewModel: WellbeingViewModel,
+    settingsViewModel: SettingsViewModel
 ) {
     // 1. STATE MANAGEMENT
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -69,13 +71,13 @@ fun WellBeingScreen(
 
     // Goal dialog states
     var showStepGoalDialog by remember { mutableStateOf(false) }
-    var stepGoalInput by remember { mutableStateOf(viewModel.stepGoal.toString()) }
+    var stepGoalInput by remember { mutableStateOf(settingsViewModel.stepGoal.toString()) }
     var showWaterGoalDialog by remember { mutableStateOf(false) }
-    var waterGoalInput by remember { mutableStateOf(viewModel.waterGoal.toString()) }
+    var waterGoalInput by remember { mutableStateOf(settingsViewModel.waterGoal.toString()) }
 
     // Keep goal input strings in sync with ViewModel (e.g., after backup restore)
-    LaunchedEffect(viewModel.stepGoal) { stepGoalInput = viewModel.stepGoal.toString() }
-    LaunchedEffect(viewModel.waterGoal) { waterGoalInput = viewModel.waterGoal.toString() }
+    LaunchedEffect(settingsViewModel.stepGoal) { stepGoalInput = settingsViewModel.stepGoal.toString() }
+    LaunchedEffect(settingsViewModel.waterGoal) { waterGoalInput = settingsViewModel.waterGoal.toString() }
 
     // Water input state
     val unitOptions = listOf("ml", "Cups", "Oz")
@@ -172,12 +174,12 @@ fun WellBeingScreen(
     }
 
     // Step progress calculation
-    val stepGoal = viewModel.stepGoal
+    val stepGoal = settingsViewModel.stepGoal
     val stepProgress = (stats.stepsCount.toFloat() / stepGoal).coerceIn(0f, 1f)
     val isStepGoalAchieved = stats.stepsCount >= stepGoal
 
     // Water progress calculation
-    val waterGoal = viewModel.waterGoal
+    val waterGoal = settingsViewModel.waterGoal
     val waterProgress = (stats.waterIntakeMl.toFloat() / waterGoal).coerceIn(0f, 1f)
     val isWaterGoalAchieved = stats.waterIntakeMl >= waterGoal
 
@@ -609,7 +611,7 @@ fun WellBeingScreen(
         label = "Steps",
         value = stepGoalInput,
         onValueChange = { stepGoalInput = it },
-        onSave = { viewModel.updateStepGoal(it) },
+        onSave = { settingsViewModel.updateStepGoal(it) },
         defaultValue = 10000
     )
 
@@ -620,7 +622,7 @@ fun WellBeingScreen(
         label = "Amount in ml",
         value = waterGoalInput,
         onValueChange = { waterGoalInput = it },
-        onSave = { viewModel.updateWaterGoal(it) },
+        onSave = { settingsViewModel.updateWaterGoal(it) },
         defaultValue = 2000
     )
 }

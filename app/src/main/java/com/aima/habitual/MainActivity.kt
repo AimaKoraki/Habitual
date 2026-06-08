@@ -61,9 +61,26 @@ class MainActivity : FragmentActivity() {
             // This ensures the Theme doesn't reset to Light Mode if the user rotates the screen.
             // 4. IMPROVEMENT: Use ViewModel for Theme Persistence
             // This ensures the Theme is saved even if the app is killed.
-            val viewModel: com.aima.habitual.viewmodel.HabitViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-            val isDarkTheme = viewModel.isDarkTheme
-            val appTheme = viewModel.appTheme
+            val habitViewModel: com.aima.habitual.viewmodel.HabitViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val authViewModel: com.aima.habitual.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val settingsViewModel: com.aima.habitual.viewmodel.SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val wellbeingViewModel: com.aima.habitual.viewmodel.WellbeingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val diaryViewModel: com.aima.habitual.viewmodel.DiaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
+            LaunchedEffect(Unit) {
+                authViewModel.onUserChanged = {
+                    wellbeingViewModel.clearCache()
+                }
+                diaryViewModel.onAddSteps = { steps, date ->
+                    wellbeingViewModel.addSteps(steps, date)
+                }
+                habitViewModel.onAddSteps = { steps, date ->
+                    wellbeingViewModel.addSteps(steps, date)
+                }
+            }
+
+            val isDarkTheme = settingsViewModel.isDarkTheme
+            val appTheme = settingsViewModel.appTheme
 
             val windowSizeClass = calculateWindowSizeClass(this)
 
@@ -72,9 +89,13 @@ class MainActivity : FragmentActivity() {
                     windowSizeClass = windowSizeClass.widthSizeClass,
                     isDarkTheme = isDarkTheme,
                     appTheme = appTheme,
-                    onThemeChange = { viewModel.toggleTheme(it) },
-                    onThemeColorChange = { viewModel.changeAppTheme(it) },
-                    viewModel = viewModel
+                    onThemeChange = { settingsViewModel.toggleTheme(it) },
+                    onThemeColorChange = { settingsViewModel.changeAppTheme(it) },
+                    habitViewModel = habitViewModel,
+                    authViewModel = authViewModel,
+                    settingsViewModel = settingsViewModel,
+                    wellbeingViewModel = wellbeingViewModel,
+                    diaryViewModel = diaryViewModel
                 )
             }
         }

@@ -111,30 +111,36 @@ fun SleepLogForm(
         )
         Spacer(modifier = Modifier.height(HabitualTheme.spacing.sm))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
         ) {
-            qualityOptions.forEach { quality ->
-                val isSelected = selectedQuality == quality
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(HabitualTheme.components.chipSize)
-                        .clip(RoundedCornerShape(HabitualTheme.radius.sm))
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
-                        )
-                        .clickable { selectedQuality = quality },
-                    contentAlignment = Alignment.Center
+            qualityOptions.chunked(2).forEach { rowOptions ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)
                 ) {
-                    Text(
-                        text = quality,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    rowOptions.forEach { quality ->
+                        val isSelected = selectedQuality == quality
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(HabitualTheme.components.chipSize)
+                                .clip(RoundedCornerShape(HabitualTheme.radius.sm))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
+                                )
+                                .clickable { selectedQuality = quality },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = quality,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
                 }
             }
         }

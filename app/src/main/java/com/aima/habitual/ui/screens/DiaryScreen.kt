@@ -35,7 +35,8 @@ import com.aima.habitual.model.DiaryEntry
 import com.aima.habitual.ui.components.DiaryCard
 import com.aima.habitual.ui.components.DiaryHeader
 import com.aima.habitual.ui.theme.HabitualTheme
-import com.aima.habitual.viewmodel.HabitViewModel
+import com.aima.habitual.viewmodel.AuthViewModel
+import com.aima.habitual.viewmodel.DiaryViewModel
 
 private enum class SortMode { NEWEST, OLDEST, ALPHABETICAL }
 
@@ -54,7 +55,8 @@ private fun SortMode.label(): String = when (this) {
 @Composable
 fun DiaryScreen(
     navController: NavHostController,
-    viewModel: HabitViewModel,
+    viewModel: DiaryViewModel,
+    authViewModel: AuthViewModel,
     onEntryClick: (String) -> Unit,
     onAddClick: (Boolean) -> Unit
 ) {
@@ -341,7 +343,7 @@ fun DiaryScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            viewModel.verifyUserPassword(passwordInput) { isValid ->
+                            authViewModel.verifyUserPassword(passwordInput) { isValid ->
                                 if (isValid) {
                                     val idToOpen = entryToUnlock?.id
                                     entryToUnlock = null

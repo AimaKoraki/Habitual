@@ -40,7 +40,7 @@ class ReminderReceiver : BroadcastReceiver() {
                 val habit = db.habitDao().getHabitById(habitId)
                 
                 if (habit != null) {
-                    val currentDay = LocalDate.now().dayOfWeek.value
+                    val currentDay = LocalDate.now().dayOfWeek.value % 7
                     if (habit.repeatDays.contains(currentDay)) {
                         showNotification(context, habitId, habitTitle)
                     }
