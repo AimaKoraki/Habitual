@@ -1,6 +1,7 @@
 package com.aima.habitual.ui.screens
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -98,6 +100,23 @@ fun DiaryDetailScreen(
     
     var showPhotoOptions by remember { mutableStateOf(false) }
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(existingEntry) {
+        existingEntry?.let { entry ->
+            // Only populate if fields are currently empty (prevents overwriting user edits)
+            if (title.isEmpty() && content.isEmpty()) {
+                title = entry.title
+                content = entry.content
+                isLocked = entry.isLocked
+                selectedMood = entry.mood ?: ""
+                tags.clear()
+                tags.addAll(entry.tags)
+                photoUri = entry.photoUri
+                audioFilePath = entry.audioFilePath
+                locationText = entry.locationText
+            }
+        }
+    }
 
     // --- PHOTO PICKER ---
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -557,22 +576,31 @@ fun DiaryDetailScreen(
                 if (photoUri != null || audioFilePath != null || locationText != null) {
                     Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))
                     Column(verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.sm)) {
-                        photoUri?.let {
-                            Surface(
-                                shape = RoundedCornerShape(HabitualTheme.radius.md),
-                                color = MaterialTheme.colorScheme.primaryContainer
+                        photoUri?.let { uriStr ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = HabitualTheme.components.attachmentMaxHeight)
+                                    .clip(RoundedCornerShape(HabitualTheme.radius.md))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = HabitualTheme.spacing.md, vertical = HabitualTheme.spacing.sm),
-                                    verticalAlignment = Alignment.CenterVertically
+                                coil.compose.AsyncImage(
+                                    model = Uri.parse(uriStr),
+                                    contentDescription = "Attached photo",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = HabitualTheme.components.attachmentMaxHeight),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                )
+                                IconButton(
+                                    onClick = { photoUri = null },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(8.dp)
+                                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), androidx.compose.foundation.shape.CircleShape)
+                                        .size(32.dp)
                                 ) {
-                                    Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(HabitualTheme.components.iconSm), tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Spacer(Modifier.width(HabitualTheme.spacing.sm))
-                                    Text("Photo attached", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Spacer(Modifier.weight(1f))
-                                    IconButton(onClick = { photoUri = null }, modifier = Modifier.size(HabitualTheme.components.iconMd)) {
-                                        Icon(Icons.Default.Close, contentDescription = "Remove photo", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(HabitualTheme.components.iconXs))
-                                    }
+                                    Icon(Icons.Default.Close, contentDescription = "Remove photo", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }

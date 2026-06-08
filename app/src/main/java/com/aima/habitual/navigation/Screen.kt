@@ -50,6 +50,6 @@ sealed class Screen(
 
     // --- Virtual Companions ---
     object CompanionDetail : Screen("companion_detail/{companionName}", R.string.nav_companions) {
-        fun createRoute(companionName: String) = "companion_detail/$companionName"
+        fun createRoute(companionName: String) = "companion_detail/${android.net.Uri.encode(companionName)}"
     }
 }

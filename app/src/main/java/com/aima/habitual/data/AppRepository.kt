@@ -64,6 +64,15 @@ interface AppRepository {
     suspend fun insertAllDiaryEntries(entries: List<DiaryEntry>)
     suspend fun insertAllWellbeingStats(stats: List<WellbeingStats>)
     suspend fun insertAllSleepLogs(logs: List<SleepLogEntry>)
+
+    // Atomic restore
+    suspend fun restoreAllUserData(
+        habits: List<Habit>,
+        records: List<HabitRecord>,
+        diaryEntries: List<DiaryEntry>,
+        stats: List<WellbeingStats>,
+        sleepLogs: List<SleepLogEntry>
+    )
 }
 
 /**
@@ -114,5 +123,13 @@ class OfflineAppRepository(private val habitDao: HabitDao) : AppRepository {
     override suspend fun insertAllDiaryEntries(entries: List<DiaryEntry>) = habitDao.insertAllDiaryEntries(entries)
     override suspend fun insertAllWellbeingStats(stats: List<WellbeingStats>) = habitDao.insertAllWellbeingStats(stats)
     override suspend fun insertAllSleepLogs(logs: List<SleepLogEntry>) = habitDao.insertAllSleepLogs(logs)
+
+    override suspend fun restoreAllUserData(
+        habits: List<Habit>,
+        records: List<HabitRecord>,
+        diaryEntries: List<DiaryEntry>,
+        stats: List<WellbeingStats>,
+        sleepLogs: List<SleepLogEntry>
+    ) = habitDao.restoreAllUserData(habits, records, diaryEntries, stats, sleepLogs)
 }
 

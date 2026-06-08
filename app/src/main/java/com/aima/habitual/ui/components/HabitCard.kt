@@ -13,15 +13,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.aima.habitual.R
 import com.aima.habitual.model.Habit
 import com.aima.habitual.ui.theme.HabitualTheme
+
+/** Tag used by the automated test suite to locate the completion toggle on each HabitCard. */
+const val HABIT_COMPLETE_TAG = "habit_complete_button"
 
 /**
  * HabitCard: The primary interaction component for ritual tracking.
@@ -101,9 +105,15 @@ fun HabitCard(
                         color = if (isCompleted) Color.Transparent else forestGreen.copy(alpha = HabitualTheme.alpha.secondary),
                         shape = CircleShape
                     )
-                    // 5. ACCESSIBILITY (A11Y):
-                    // Essential for screen readers and your automated test suite to identify the check action.
-                    .semantics { contentDescription = completeDesc }
+                    // 5. ACCESSIBILITY (A11Y) + TESTABILITY:
+                    // clearAndSetSemantics sets the contentDescription for screen readers.
+                    // testTag is added separately because ElevatedCard(onClick) applies
+                    // mergeDescendants = true, which absorbs clearAndSetSemantics into the
+                    // card's merged node and makes contentDescription unreliable for test
+                    // queries. testTag is specifically designed to survive mergeDescendants
+                    // and is always independently findable via onAllNodesWithTag().
+                    .clearAndSetSemantics { contentDescription = completeDesc }
+                    .testTag(HABIT_COMPLETE_TAG)
             ) {
                 Icon(
                     painter = if (isCompleted) {
@@ -111,7 +121,10 @@ fun HabitCard(
                     } else {
                         androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.Check)
                     },
-                    contentDescription = stringResource(R.string.desc_completed_ritual),
+                    // No contentDescription here — the IconButton's .semantics block above
+                    // already sets contentDescription = "Complete". Adding one on the Icon
+                    // would create duplicate/conflicting semantics in the merged node.
+                    contentDescription = null,
                     tint = if (isCompleted) Color.Unspecified else Color.Transparent,
                     modifier = Modifier.size(HabitualTheme.components.chipSize)
                 )

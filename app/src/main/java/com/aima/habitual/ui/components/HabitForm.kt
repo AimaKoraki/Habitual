@@ -362,7 +362,9 @@ fun HabitForm(
                         )
                     }
                     if (success) {
-                        onSave()
+                        android.os.Handler(android.os.Looper.getMainLooper()).post {
+                            onSave()
+                        }
                     }
                     isSaving = false
                 }

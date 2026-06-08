@@ -63,6 +63,9 @@ fun CompanionsScreen(
 
     val companions by companionViewModel.companions.collectAsState()
     val activeName by companionViewModel.activeCompanionName.collectAsState()
+
+    // Subscribe to records to force recomposition when gamification stats change
+    val records by habitViewModel.records.collectAsState()
     val userLevel = habitViewModel.currentLevel
 
     LaunchedEffect(userLevel, companions.size) {

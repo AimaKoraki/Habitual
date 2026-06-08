@@ -101,8 +101,12 @@ fun ProfileScreen(
     val focusManager = LocalFocusManager.current
 
     // Mastery Data observed from the ViewModel
+    // Subscribe to records to force recomposition when gamification stats change
+    val records by viewModel.records.collectAsState()
     val habits by viewModel.habits.collectAsState()
+    
     val level = viewModel.currentLevel
+    val habitsForNextLevel = viewModel.habitsForNextLevel
     val progress = viewModel.levelProgress
     val toNextLevel = viewModel.habitsForNextLevel
 

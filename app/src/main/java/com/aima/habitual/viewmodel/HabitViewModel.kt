@@ -345,9 +345,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 repository.getAllWellbeingStatsStream().collect { loadedStats ->
-                    _dailyStats.clear()
                     for (stat in loadedStats) {
-                        _dailyStats[stat.epochDay] = stat
+                        val current = _dailyStats[stat.epochDay]
+                        // Only overwrite memory if the database record is equal or newer.
+                        // This prevents older DB emissions from wiping out optimistic UI updates.
+                        if (current == null || stat.lastSyncTimestamp >= current.lastSyncTimestamp) {
+                            _dailyStats[stat.epochDay] = stat
+                        }
                     }
                     // Re-apply the live sensor count for today so a stale DB emission
                     // doesn't overwrite the most recent in-memory step value.
@@ -372,18 +376,6 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         val storedDate = prefs.getLong(KEY_LAST_DATE, -1L)
         val lastSensorValue = prefs.getInt(KEY_LAST_SENSOR, -2)
 
-        if (storedDate != todayEpoch) {
-            currentSensorSteps = 0
-            rewardSteps = 0
-            // Clear persisted reward steps for the new day
-            prefs.edit().putInt(KEY_REWARDS, 0).apply()
-            // Save the new baseline and return — no delta on first event of the day.
-            // This prevents yesterday's accumulated sensor value from leaking into today's count.
-            saveStepState(0, totalDeviceSteps, todayEpoch)
-            updateStepsForDate(LocalDate.now()) // ensure today shows 0 immediately
-            return
-        }
-
         var delta = 0
         if (lastSensorValue != -2) {
             delta = if (totalDeviceSteps >= lastSensorValue) {
@@ -393,6 +385,19 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 totalDeviceSteps
             }
         }
+
+        if (storedDate != todayEpoch) {
+            // New day. Apply the delta that occurred over midnight to today's count.
+            currentSensorSteps = delta
+            rewardSteps = 0
+            // Clear persisted reward steps for the new day
+            prefs.edit().putInt(KEY_REWARDS, 0).apply()
+            // Save the new baseline
+            saveStepState(currentSensorSteps, totalDeviceSteps, todayEpoch)
+            updateStepsForDate(LocalDate.now())
+            return
+        }
+
 
         if (delta > 0) {
             currentSensorSteps += delta
@@ -551,7 +556,9 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             currentSensorSteps = 0
             rewardSteps = 0
             prefs.edit().putInt(KEY_REWARDS, 0).apply()
-            saveStepState(0, -2, todayEpoch)
+            // Preserve the hardware sensor's baseline so we don't break the background pedometer math
+            val lastSensorValue = prefs.getInt(KEY_LAST_SENSOR, -2)
+            saveStepState(0, lastSensorValue, todayEpoch)
         }
 
         rewardSteps += steps
@@ -705,13 +712,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     val isBiometricAvailable: Boolean
         get() {
             if (!isBiometricEnabled) return false
-            val hasLoggedInBefore = prefs.getBoolean("has_authenticated_before", false)
-            if (!hasLoggedInBefore) return false
-            val biometricManager = BiometricManager.from(getApplication())
-            // Accept Class 3 (STRONG) or Class 2 (WEAK) sensors for maximum device compatibility
-            val canStrong = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS
-            val canWeak = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
-            return canStrong || canWeak
+            return prefs.getBoolean("has_authenticated_before", false)
         }
 
     /** Mark that the user has successfully authenticated at least once (enables biometric on next visit). */
@@ -726,20 +727,21 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
      * Registers a new user using Firebase Authentication.
      */
     fun registerUser(name: String, email: String, pass: String, onComplete: (Boolean) -> Unit) {
-        // FIX: Wipe all existing Room data before registering a new account.
-        viewModelScope.launch {
-            try {
-                repository.deleteAllUserData()
-            } catch (e: Exception) {
-                Log.w("HabitViewModel", "Could not clear prior user data before registration", e)
-            }
-        }
-        _dailyStats.clear()
-        _sleepLogs.clear()
-
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, pass)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    val lastEmail = securePrefs.getString("user_email", null)
+                    if (lastEmail != null && lastEmail != email) {
+                        // Prevent data leak from previous different user
+                        viewModelScope.launch {
+                            try { repository.deleteAllUserData() } catch (e: Exception) {}
+                            _dailyStats.clear()
+                            _sleepLogs.clear()
+                        }
+                    }
+
+                    securePrefs.edit().putString("user_email", email).apply()
+
                     val user = FirebaseAuth.getInstance().currentUser
                     val profileUpdates = UserProfileChangeRequest.Builder()
                         .setDisplayName(name)
@@ -765,9 +767,12 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout() {
+        prefs.edit().apply {
+            putBoolean("is_logged_in", false)
+        }.apply()
+
         FirebaseAuth.getInstance().signOut()
         isLoggedIn = false
-        prefs.edit().putBoolean("is_logged_in", false).apply()
     }
 
     /** Permanently delete the user's profile and all associated data. */
@@ -810,6 +815,16 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pass)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    val lastEmail = securePrefs.getString("user_email", null)
+                    if (lastEmail != null && lastEmail != email) {
+                        viewModelScope.launch {
+                            try { repository.deleteAllUserData() } catch (e: Exception) {}
+                            _dailyStats.clear()
+                            _sleepLogs.clear()
+                        }
+                    }
+                    securePrefs.edit().putString("user_email", email).apply()
+
                     val user = FirebaseAuth.getInstance().currentUser
                     user?.displayName?.let { name ->
                         userName = name
@@ -820,7 +835,12 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                     prefs.edit().putBoolean("is_logged_in", true).apply()
                     markAuthenticated()
                 } else {
-                    loginError = task.exception?.message ?: "Invalid email or password."
+                    val ex = task.exception
+                    loginError = when (ex) {
+                        is com.google.firebase.auth.FirebaseAuthInvalidUserException -> "No account found. Please register."
+                        is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException -> "Invalid email or password."
+                        else -> ex?.message ?: "Invalid email or password."
+                    }
                 }
             }
     }
@@ -944,17 +964,17 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 val gson = com.google.gson.Gson()
                 val backupData = gson.fromJson(json, com.aima.habitual.data.BackupData::class.java)
 
-                // 3. Wipe current data (Option B: full replace)
-                repository.deleteAllUserData()
+                // 3. Restore all data atomically
+                repository.restoreAllUserData(
+                    backupData.habits,
+                    backupData.records,
+                    backupData.diaryEntries,
+                    backupData.wellbeingStats,
+                    backupData.sleepLogs
+                )
+                
                 _dailyStats.clear()
                 _sleepLogs.clear()
-
-                // 4. Insert backup data
-                repository.insertAllHabits(backupData.habits)
-                repository.insertAllRecords(backupData.records)
-                repository.insertAllDiaryEntries(backupData.diaryEntries)
-                repository.insertAllWellbeingStats(backupData.wellbeingStats)
-                repository.insertAllSleepLogs(backupData.sleepLogs)
 
                 // 5. Refresh in-memory caches
                 for (stat in backupData.wellbeingStats) {
@@ -1013,22 +1033,39 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
                 val name = googleIdTokenCredential.displayName ?: "User"
                 val email = googleIdTokenCredential.id  // email address
 
-                // Save user info
-                prefs.edit().apply {
-                    putString("user_name", name)
-                    putBoolean("is_logged_in", true)
-                }.apply()
+                val idToken = googleIdTokenCredential.idToken
 
-                securePrefs.edit().apply {
-                    putString("user_email", email)
-                }.apply()
+                val firebaseCredential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+                FirebaseAuth.getInstance().signInWithCredential(firebaseCredential)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            viewModelScope.launch {
+                                val lastEmail = securePrefs.getString("user_email", null)
+                                if (lastEmail != null && lastEmail != email) {
+                                    try { repository.deleteAllUserData() } catch (e: Exception) {}
+                                    _dailyStats.clear()
+                                    _sleepLogs.clear()
+                                }
 
-                userName = name
-                isLoggedIn = true
-                loginError = null
-                markAuthenticated()
+                                prefs.edit().apply {
+                                    putString("user_name", name)
+                                    putBoolean("is_logged_in", true)
+                                }.apply()
 
-                Log.d("HabitViewModel", "Google Sign-In successful: $email")
+                                securePrefs.edit().apply {
+                                    putString("user_email", email)
+                                }.apply()
+
+                                userName = name
+                                isLoggedIn = true
+                                loginError = null
+                                markAuthenticated()
+                                Log.d("HabitViewModel", "Google Sign-In successful")
+                            }
+                        } else {
+                            loginError = task.exception?.message ?: "Firebase authentication failed."
+                        }
+                    }
             } catch (e: GetCredentialCancellationException) {
                 Log.d("HabitViewModel", "Google Sign-In cancelled by user")
             } catch (e: Exception) {

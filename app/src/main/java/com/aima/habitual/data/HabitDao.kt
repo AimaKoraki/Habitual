@@ -20,6 +20,9 @@ interface HabitDao {
     @Query("SELECT * FROM habits ORDER BY createdAt DESC")
     fun getAllHabits(): Flow<List<Habit>>
 
+    @Query("SELECT * FROM habits WHERE id = :habitId")
+    suspend fun getHabitById(habitId: String): Habit?
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertHabit(habit: Habit)
 
@@ -131,6 +134,22 @@ interface HabitDao {
         deleteAllDiaryEntries()
         deleteAllSleepLogs()
         deleteAllStats()
+    }
+
+    @Transaction
+    suspend fun restoreAllUserData(
+        habits: List<Habit>,
+        records: List<HabitRecord>,
+        diaryEntries: List<DiaryEntry>,
+        stats: List<WellbeingStats>,
+        sleepLogs: List<SleepLogEntry>
+    ) {
+        deleteAllUserData()
+        insertAllHabits(habits)
+        insertAllRecords(records)
+        insertAllDiaryEntries(diaryEntries)
+        insertAllWellbeingStats(stats)
+        insertAllSleepLogs(sleepLogs)
     }
 
     // ─── BACKUP: ONE-SHOT SNAPSHOTS ─────────────────────

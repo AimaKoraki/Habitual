@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -76,14 +77,28 @@ fun DiaryCard(
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    val icon = if (entry.isLocked) Icons.Default.Lock else Icons.Default.Notes
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (entry.photoUri != null) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoCamera,
+                                contentDescription = "Photo attached",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
 
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null, // Decorative icon
-                        tint = if (entry.isLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
+                        val icon = if (entry.isLocked) Icons.Default.Lock else Icons.Default.Notes
+
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null, // Decorative icon
+                            tint = if (entry.isLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(HabitualTheme.spacing.md))

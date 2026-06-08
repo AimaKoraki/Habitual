@@ -28,8 +28,9 @@ fun HabitDetailScreen(
     viewModel: HabitViewModel
 ) {
     // 1. Logic: Determine if we are editing an existing habit
+    val habits by viewModel.habits.collectAsState()
     val existingHabit = if (habitId != null && habitId != "new") {
-        viewModel.habits.value.find { it.id == habitId }
+        habits.find { it.id == habitId }
     } else null
 
     // State for the Delete Confirmation Dialog

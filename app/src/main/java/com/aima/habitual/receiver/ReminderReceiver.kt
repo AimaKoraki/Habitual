@@ -10,6 +10,11 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.aima.habitual.MainActivity
 import com.aima.habitual.R
+import com.aima.habitual.data.HabitualDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /**
  * Receives scheduled habit reminders and turns them into notifications.
@@ -28,7 +33,22 @@ class ReminderReceiver : BroadcastReceiver() {
         val habitId = intent.getStringExtra(EXTRA_HABIT_ID) ?: return
         val habitTitle = intent.getStringExtra(EXTRA_HABIT_TITLE) ?: "Your Ritual"
 
-        showNotification(context, habitId, habitTitle)
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = HabitualDatabase.getInstance(context)
+                val habit = db.habitDao().getHabitById(habitId)
+                
+                if (habit != null) {
+                    val currentDay = LocalDate.now().dayOfWeek.value
+                    if (habit.repeatDays.contains(currentDay)) {
+                        showNotification(context, habitId, habitTitle)
+                    }
+                }
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     // Build and post a high-priority reminder notification for the habit.

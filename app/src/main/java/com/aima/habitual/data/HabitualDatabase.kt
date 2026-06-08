@@ -23,7 +23,7 @@ import com.aima.habitual.model.WellbeingStats
     // All persisted app data lives in these tables.
     entities = [Habit::class, HabitRecord::class, DiaryEntry::class, WellbeingStats::class, SleepLogEntry::class],
     version = 7,
-    exportSchema = true
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class HabitualDatabase : RoomDatabase() {
@@ -82,6 +82,7 @@ abstract class HabitualDatabase : RoomDatabase() {
         }
 
         // Replace the habit record index and add the new sleep log table in version 7.
+        // FIX: Added wellbeing_stats creation to prevent upgrade crashes for returning users.
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP INDEX IF EXISTS index_habit_records_habitId")
@@ -91,6 +92,15 @@ abstract class HabitualDatabase : RoomDatabase() {
                         dateEpoch INTEGER NOT NULL PRIMARY KEY,
                         durationMinutes INTEGER NOT NULL,
                         quality TEXT NOT NULL
+                    )
+                """.trimIndent())
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS wellbeing_stats (
+                        epochDay INTEGER NOT NULL PRIMARY KEY,
+                        stepsCount INTEGER NOT NULL,
+                        sleepDurationHours REAL NOT NULL,
+                        waterIntakeMl INTEGER NOT NULL,
+                        lastSyncTimestamp INTEGER NOT NULL
                     )
                 """.trimIndent())
             }

@@ -94,15 +94,18 @@ fun NavGraph(
         }
 
         composable(Screen.Register.route) {
+            LaunchedEffect(viewModel.isLoggedIn) {
+                if (viewModel.isLoggedIn) {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            }
             RegisterScreen(
                 onRegisterSuccess = { name, email, password ->
                     // Save user to Firebase
                     viewModel.registerUser(name, email, password) { success ->
-                        if (success) {
-                            navController.navigate(Screen.Dashboard.route) {
-                                popUpTo(Screen.Login.route) { inclusive = true }
-                            }
-                        }
+                        // Navigation handled by LaunchedEffect
                     }
                 },
                 onNavigateToLogin = {

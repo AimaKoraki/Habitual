@@ -47,14 +47,28 @@ fun RegisterScreen(
             // Procedural background pattern for visual continuity
             .wavePattern(MaterialTheme.colorScheme.primary)
     ) {
+        // BUG FIX 1: Do NOT combine verticalArrangement = Arrangement.Center with
+        // verticalScroll. When a Column is measured with verticalScroll its height
+        // is unbounded (infinite). Arrangement.Center then has nothing to centre
+        // within, AND the layout no longer correctly responds to WindowInsets
+        // (keyboard), so the Sign Up button becomes unreachable on small screens.
+        //
+        // Solution: Arrangement.Top + a pair of weight(1f) Spacers. The spacers
+        // give the same visually-centred look on tall screens, but collapse to
+        // nothing on small screens / when the keyboard is open, allowing proper
+        // scroll and keyboard-avoidance.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = HabitualTheme.spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            // Flexible top spacer — pushes content down on tall screens to look
+            // centred, but collapses to nothing on small screens / with keyboard open.
+            Spacer(modifier = Modifier.weight(1f))
+
             // ── HERO TITLE ──
             Text(
                 text = stringResource(R.string.register_title),
@@ -161,6 +175,14 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(HabitualTheme.spacing.lg))
 
             // ── TERMS CHECKBOX ──
+            // BUG FIX 2: The Row had `.clickable { termsAccepted = !termsAccepted }`
+            // AND the Checkbox had `onCheckedChange = { termsAccepted = it }`.
+            // A single tap fired BOTH handlers: the Checkbox set it true, then the
+            // Row's clickable immediately toggled it back to false — so terms were
+            // never actually accepted and Sign Up stayed permanently disabled.
+            //
+            // Fix: set Checkbox onCheckedChange = null so it acts as a pure visual
+            // indicator. All state changes are driven solely by the Row's clickable.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -169,7 +191,7 @@ fun RegisterScreen(
             ) {
                 Checkbox(
                     checked = termsAccepted,
-                    onCheckedChange = { termsAccepted = it },
+                    onCheckedChange = null, // Row's clickable is the single source of truth
                     colors = CheckboxDefaults.colors(
                         checkedColor = MaterialTheme.colorScheme.primary,
                         uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.muted)
@@ -217,6 +239,10 @@ fun RegisterScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = HabitualTheme.alpha.secondary)
                 )
             }
+
+            // Flexible bottom spacer — mirrors the top spacer so content stays
+            // centred on tall screens, but collapses when keyboard is open.
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

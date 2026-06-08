@@ -1,6 +1,7 @@
 package com.aima.habitual.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Close
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +53,7 @@ fun DiaryViewScreen(
 
     // State for delete dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showImageFullscreen by remember { mutableStateOf<String?>(null) }
 
     if (entry == null) {
         // Fallback if entry is missing
@@ -83,7 +86,7 @@ fun DiaryViewScreen(
 
                     // 3. Edit Button - Reduce size from FAB to standard IconButton for balance
                     IconButton(
-                        onClick = { navController.navigate(Screen.DiaryDetail.createRoute(entry.id)) },
+                        onClick = { navController.navigate(Screen.DiaryDetail.createRoute(entry.id, entry.isJournal)) },
                         modifier = Modifier
                             .padding(end = HabitualTheme.spacing.sm)
                             .background(
@@ -219,21 +222,17 @@ fun DiaryViewScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(HabitualTheme.spacing.md)) {
                     // Photo Attachment
                     entry.photoUri?.let { uriStr ->
-                        Box(
+                        coil.compose.AsyncImage(
+                            model = Uri.parse(uriStr),
+                            contentDescription = "Attached photo",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(max = HabitualTheme.components.attachmentMaxHeight)
                                 .clip(RoundedCornerShape(HabitualTheme.radius.lg))
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Display attached photo label with icon
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.PhotoCamera, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(Modifier.width(HabitualTheme.spacing.sm))
-                                Text("Photo attached", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable { showImageFullscreen = uriStr },
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
                     }
 
                     // Audio Attachment with Playback
@@ -344,6 +343,29 @@ fun DiaryViewScreen(
                 }
             )
         }
-    }
+        
+        // --- FULLSCREEN IMAGE DIALOG ---
+        if (showImageFullscreen != null) {
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = { showImageFullscreen = null },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black)) {
+                    coil.compose.AsyncImage(
+                        model = Uri.parse(showImageFullscreen),
+                        contentDescription = "Fullscreen photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
+                    IconButton(
+                        onClick = { showImageFullscreen = null },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).background(androidx.compose.ui.graphics.Color.Black.copy(alpha=0.5f), androidx.compose.foundation.shape.CircleShape)
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = androidx.compose.ui.graphics.Color.White)
+                    }
+                }
+            }
         }
+    }
+}
 }
