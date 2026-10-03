@@ -2,6 +2,10 @@
 
 <div align="center">
 
+![Habitual Banner](docs/images/HabitualGithubBanner.png)
+
+<br/>
+
 ![Android](https://img.shields.io/badge/Platform-Android_8.0+_(API_26+)-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack_Compose_Material3-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
@@ -409,6 +413,9 @@ Habitual/
 │           │   ├── utils/               # Helper managers (DriveBackup, Speech, Audio, Passwords)
 │           │   └── viewmodel/           # MVVM ViewModels (Habit, Wellbeing, Diary, Auth, etc.)
 │           └── res/                     # Drawables, layouts, mipmaps, and string resources
+├── docs/
+│   └── images/                          # Visual documentation & repository assets
+│       └── HabitualGithubBanner.png
 ├── gradle/
 │   ├── libs.versions.toml               # Gradle Version Catalog for unified dependency versions
 │   └── wrapper/                         # Gradle Wrapper binaries and properties
